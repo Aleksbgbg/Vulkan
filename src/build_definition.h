@@ -1,0 +1,11 @@
+#ifndef VULKAN_SRC_BUILD_DEFINITION_H
+#define VULKAN_SRC_BUILD_DEFINITION_H
+
+#define VALIDATION
+#define DIAGNOSTICS
+
+#if !defined(DIAGNOSTICS) && defined(NDEBUG)
+#define RELEASE
+#endif
+
+#endif // VULKAN_SRC_BUILD_DEFINITION_H
