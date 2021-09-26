@@ -56,6 +56,7 @@ public:
 
   u32 GetImageCount() const;
 
+  std::vector<Framebuffer> GetFramebuffers(RenderPass& renderPass);
   std::vector<Framebuffer> GetFramebuffers(RenderPass& renderPass, ImageView& depthImageView);
 
 private:

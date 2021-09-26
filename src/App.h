@@ -105,6 +105,21 @@ private:
   ImageView textureView;
   Sampler textureSampler;
 
+  BufferWithMemory uiTextureMemory;
+  ImageWithMemory uiTexture;
+  ImageView uiTextureView;
+  Sampler uiTextureSampler;
+  DescriptorSetLayout uiDescriptorSetLayout;
+  DescriptorPool uiDescriptorPool;
+  BufferWithMemory uiVertexMemoryBuffer;
+  BufferWithMemory uiIndexMemoryBuffer;
+  u32 uiIndexCount;
+  std::vector<ShaderModule> uiShaders;
+  Pipeline uiPipeline;
+  std::vector<Framebuffer> uiFramebuffers;
+
+  RenderPass renderPass;
+
   CommandPool renderCommandPool;
   std::vector<ShaderModule> shaders;
   Swapchain swapchain;

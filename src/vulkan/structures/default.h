@@ -37,6 +37,8 @@ inline const VkImageCreateInfo IMAGE_2D =
 //        .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
 //        .BuildObject();
 
+inline const VkSamplerCreateInfo SAMPLER_EMPTY = SamplerCreateInfoBuilder().BuildObject();
+
 inline const VkViewport VIEWPORT_BASE = ViewportBuilder().SetMaxDepth(1.0f).BuildObject();
 
 inline const VkOffset2D OFFSET2D_ZERO = {};

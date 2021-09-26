@@ -16,7 +16,8 @@ public:
   Pipeline(VkDevice shaderModule,
            const std::vector<ShaderModule>& shaderModules,
            PipelineLayout pipelineLayout,
-           RenderPass renderPass,
+           const RenderPass& renderPass,
+           const u32 subpass,
            GraphicsPipelineCreateInfoBuilder& infoBuilder);
 
   Pipeline(const Pipeline&) = delete;
@@ -24,8 +25,7 @@ public:
     :
       device(other.device),
       pipeline(other.pipeline),
-      pipelineLayout(std::move(other.pipelineLayout)),
-      renderPass(std::move(other.renderPass)) {
+      pipelineLayout(std::move(other.pipelineLayout)) {
     other.pipeline = nullptr;
   }
 
@@ -36,18 +36,15 @@ public:
     device = other.device;
     std::swap(pipeline, other.pipeline);
     pipelineLayout = std::move(other.pipelineLayout);
-    renderPass = std::move(other.renderPass);
     return *this;
   }
 
   PipelineLayout& GetLayout();
-  RenderPass& GetRenderPass();
 
 private:
   VkDevice device;
   VkPipeline pipeline = nullptr;
   PipelineLayout pipelineLayout;
-  RenderPass renderPass;
 };
 
 #endif // VULKAN_SRC_VULKAN_PIPELINE_H

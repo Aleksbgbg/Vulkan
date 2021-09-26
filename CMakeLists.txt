@@ -53,5 +53,8 @@ add_binary_output(resources/*)
 add_shader(vulkan shader.vert)
 add_shader(vulkan shader.frag)
 
+add_shader(vulkan uiShader.vert)
+add_shader(vulkan uiShader.frag)
+
 # file(GLOB VERTEX_SHADERS "src/*.vert")
 # file(GLOB FRAGMENT_SHADERS "src/*.frag")

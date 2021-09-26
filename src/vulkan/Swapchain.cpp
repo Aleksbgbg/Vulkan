@@ -68,6 +68,28 @@ u32 Swapchain::GetImageCount() const {
   return images.size();
 }
 
+std::vector<Framebuffer> Swapchain::GetFramebuffers(RenderPass& renderPass) {
+  std::vector<Framebuffer> framebuffers;
+  std::transform(
+      imageViews.begin(),
+      imageViews.end(),
+      std::back_inserter(framebuffers),
+      [this, &renderPass](ImageView& imageView) {
+        std::array<VkImageView, 1> attachments{ imageView.imageView };
+
+        return Framebuffer(
+            device,
+            FramebufferCreateInfoBuilder()
+                .SetRenderPass(renderPass.renderPass)
+                .SetAttachmentCount(attachments.size())
+                .SetPAttachments(attachments.data())
+                .SetWidth(imageExtent.width)
+                .SetHeight(imageExtent.height)
+                .SetLayers(1));
+      });
+  return framebuffers;
+}
+
 std::vector<Framebuffer> Swapchain::GetFramebuffers(
     RenderPass& renderPass, ImageView& depthImageView) {
   std::vector<Framebuffer> framebuffers;

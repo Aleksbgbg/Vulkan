@@ -63,10 +63,12 @@ public:
   Image CreateImage(ImageCreateInfoBuilder& infoBuilder) const;
   DescriptorSetLayout CreateDescriptorSetLayout(DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const;
   PipelineLayout CreatePipelineLayout(const DescriptorSetLayout& descriptorSetLayout) const;
+  PipelineLayout CreatePipelineLayout(const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts) const;
   RenderPass CreateRenderPass(RenderPassCreateInfoBuilder& infoBuilder) const;
   Pipeline CreateGraphicsPipeline(const std::vector<ShaderModule>& shaders,
                                   PipelineLayout pipelineLayout,
-                                  RenderPass renderPass,
+                                  const RenderPass& renderPass,
+                                  const u32 subpass,
                                   GraphicsPipelineCreateInfoBuilder& infoBuilder) const;
   DescriptorPool CreateDescriptorPool(DescriptorPoolCreateInfoBuilder& infoBuilder) const;
   Sampler CreateSampler(SamplerCreateInfoBuilder& infoBuilder) const;

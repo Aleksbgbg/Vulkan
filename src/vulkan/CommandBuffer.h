@@ -57,10 +57,11 @@ public:
 
   void CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder, const VkSubpassContents subpassContents, RenderPass& renderPass, Framebuffer& framebuffer);
   void CmdBindPipeline(const VkPipelineBindPoint bindPoint, Pipeline& pipeline);
-  void CmdBindVertexBuffers(Buffer& buffer);
+  void CmdBindVertexBuffers(Buffer& buffer, const u32 binding);
   void CmdBindIndexBuffer(Buffer& buffer, const VkIndexType indexType);
   void CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint, PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet);
   void CmdDrawIndexed(const u32 indexCount, const u32 instanceCount);
+  void CmdNextSubpass(const VkSubpassContents contents);
   void CmdEndRenderPass();
 
 private:

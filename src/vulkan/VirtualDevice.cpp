@@ -52,8 +52,11 @@ DescriptorSetLayout VirtualDevice::CreateDescriptorSetLayout(DescriptorSetLayout
 }
 
 PipelineLayout VirtualDevice::CreatePipelineLayout(const DescriptorSetLayout& descriptorSetLayout) const {
-  const std::vector<const DescriptorSetLayout*> layouts { &descriptorSetLayout };
-  return PipelineLayout(device, layouts);
+  return CreatePipelineLayout({ &descriptorSetLayout });
+}
+
+PipelineLayout VirtualDevice::CreatePipelineLayout(const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts) const {
+  return PipelineLayout(device, descriptorSetLayouts);
 }
 
 RenderPass VirtualDevice::CreateRenderPass(RenderPassCreateInfoBuilder& infoBuilder) const {
@@ -62,9 +65,10 @@ RenderPass VirtualDevice::CreateRenderPass(RenderPassCreateInfoBuilder& infoBuil
 
 Pipeline VirtualDevice::CreateGraphicsPipeline(const std::vector<ShaderModule>& shaders,
                                                PipelineLayout pipelineLayout,
-                                               RenderPass renderPass,
+                                               const RenderPass& renderPass,
+                                               const u32 subpass,
                                                GraphicsPipelineCreateInfoBuilder& infoBuilder) const {
-  return Pipeline(device, shaders, std::move(pipelineLayout), std::move(renderPass), infoBuilder);
+  return Pipeline(device, shaders, std::move(pipelineLayout), renderPass, subpass, infoBuilder);
 }
 
 Semaphore VirtualDevice::MakeSemaphore() const {

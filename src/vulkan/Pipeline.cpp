@@ -3,12 +3,16 @@
 
 #include "error.h"
 
-Pipeline::Pipeline(VkDevice device, const std::vector<ShaderModule>& shaderModules, PipelineLayout pipelineLayout,
-                   RenderPass renderPass, GraphicsPipelineCreateInfoBuilder& infoBuilder)
+Pipeline::Pipeline(
+    VkDevice device,
+    const std::vector<ShaderModule>& shaderModules,
+    PipelineLayout pipelineLayout,
+    const RenderPass& renderPass,
+    const u32 subpass,
+    GraphicsPipelineCreateInfoBuilder& infoBuilder)
   :
     device(device),
-    pipelineLayout(std::move(pipelineLayout)),
-    renderPass(std::move(renderPass)) {
+    pipelineLayout(std::move(pipelineLayout)) {
   std::vector<VkPipelineShaderStageCreateInfo> shaderCreateInfos(shaderModules.size());
   std::transform(
       shaderModules.begin(),
@@ -30,7 +34,8 @@ Pipeline::Pipeline(VkDevice device, const std::vector<ShaderModule>& shaderModul
               .SetStageCount(shaderCreateInfos.size())
               .SetPStages(shaderCreateInfos.data())
               .SetLayout(this->pipelineLayout.pipelineLayout)
-              .SetRenderPass(this->renderPass.renderPass)
+              .SetRenderPass(renderPass.renderPass)
+              .SetSubpass(subpass)
               .Build(),
           nullptr,
           &pipeline))
@@ -40,10 +45,6 @@ Pipeline::~Pipeline() {
   if (pipeline != nullptr) {
     vkDestroyPipeline(device, pipeline, nullptr);
   }
-}
-
-RenderPass& Pipeline::GetRenderPass() {
-  return renderPass;
 }
 
 PipelineLayout& Pipeline::GetLayout() {
