@@ -25,7 +25,6 @@
 #include "vulkan/util.h"
 #include "build_definition.h"
 #include "VertexBuilder.h"
-#include "TextRenderer.h"
 
 struct UiVertex {
   glm::vec2 position;
@@ -243,9 +242,7 @@ App::App()
     cubeTransform(glm::mat4(1.0f)),
     cameraRotation(glm::vec2(0.0f)),
     threadMessenger(),
-    acquiredImage({ .exists = false, .index = 0 }),
-    uiRotation(0.0f),
-    uiTranslation(glm::vec2(0.0f)) {
+    acquiredImage({ .exists = false, .index = 0 }) {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
 
@@ -386,35 +383,8 @@ App::App()
 
   Bitmap bitmap = ReadBitmap("Alice.bmp");
 
-  RenderText("Alice", bitmap.data.data(), bitmap.width, bitmap.height);
-
   const float pictureWidth = static_cast<float>(bitmap.width);
   const float pictureHeight = static_cast<float>(bitmap.height);
-
-  const std::vector<UiVertex> uiVertices = {
-      /* 0 */ {{-(pictureWidth / 2.0f), -(pictureHeight / 2.0f)}, {1.0f, 1.0f}},
-      /* 1 */ {{-(pictureWidth / 2.0f), pictureHeight / 2.0f}, {1.0f, 0.0f}},
-      /* 2 */ {{pictureWidth / 2.0f, -(pictureHeight / 2.0f)}, {0.0f, 1.0f}},
-      /* 3 */ {{pictureWidth / 2.0f, pictureHeight / 2.0f}, {0.0f, 0.0f}},
-  };
-
-  const std::vector<u16> uiIndices = {
-      0, 1, 3, 3, 2, 0
-  };
-  uiIndexCount = uiIndices.size();
-
-  uiVertexMemoryBuffer =
-      TransferDataToGpuLocalMemory(
-          memoryTransferCommandBuffer,
-          uiVertices.data(),
-          sizeof(uiVertices[0]) * uiVertices.size(),
-          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-  uiIndexMemoryBuffer =
-      TransferDataToGpuLocalMemory(
-          memoryTransferCommandBuffer,
-          uiIndices.data(),
-          sizeof(uiIndices[0]) * uiIndices.size(),
-          VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
   Buffer stagingBuffer =
       virtualDevice.CreateBuffer(
@@ -432,40 +402,6 @@ App::App()
               .SetExtent(Extent3DBuilder().SetWidth(bitmap.width).SetHeight(bitmap.height).SetDepth(1))
               .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT));
   DeviceMemory textureImageMemory = textureImage.AllocateAndBindMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-  uiTextureMemory.buffer =
-      virtualDevice.CreateBuffer(
-          BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
-              .SetSize(200 * 200 * 4)
-              .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  uiTextureMemory.memory =
-      uiTextureMemory
-          .buffer
-          .AllocateAndBindMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  std::vector<u8> colors(200 * 200 * 4);
-  for (u32 index = 0; index < (200 * 200); ++index) {
-    colors[(index * 4)] = 255;
-    colors[(index * 4) + 1] = 0;
-    colors[(index * 4) + 2] = 0;
-    colors[(index * 4) + 3] = 0;
-  }
-  uiTextureMemory.memory.MapCopy(colors.data(), colors.size());
-  uiTexture.image =
-      virtualDevice.CreateImage(
-          ImageCreateInfoBuilder(IMAGE_2D)
-              .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
-              .SetExtent(Extent3DBuilder(EXTENT3D_SINGLE_DEPTH).SetWidth(bitmap.width).SetHeight(bitmap.height))
-              .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT));
-  uiTexture.memory =
-      uiTexture.image.AllocateAndBindMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  uiTextureView =
-      uiTexture.image.CreateView(
-          ImageViewCreateInfoBuilder()
-              .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
-              .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
-              .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  SamplerCreateInfoBuilder samplerCreateInfoBuilder = SamplerCreateInfoBuilder(SAMPLER_EMPTY);
-  uiTextureSampler = virtualDevice.CreateSampler(samplerCreateInfoBuilder);
 
   memoryTransferCommandBuffer.BeginOneTimeSubmit();
   memoryTransferCommandBuffer.CmdImageMemoryBarrier(
@@ -487,33 +423,6 @@ App::App()
           .SetImageExtent(Extent3DBuilder(EXTENT3D_SINGLE_DEPTH).SetWidth(bitmap.width).SetHeight(bitmap.height)));
   memoryTransferCommandBuffer.CmdImageMemoryBarrier(
       textureImage,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-      ImageMemoryBarrierBuilder(IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER)
-          .SetSrcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
-          .SetDstAccessMask(VK_ACCESS_SHADER_READ_BIT)
-          .SetOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-          .SetNewLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-          .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  memoryTransferCommandBuffer.CmdImageMemoryBarrier(
-      uiTexture.image,
-      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      ImageMemoryBarrierBuilder(IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER)
-          .SetSrcAccessMask(0)
-          .SetDstAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
-          .SetOldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-          .SetNewLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-          .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  memoryTransferCommandBuffer.CmdCopyBufferToImage(
-      stagingBuffer,
-      uiTexture.image,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      BufferImageCopyBuilder()
-          .SetImageSubresource(SUBRESOURCE_LAYERS_COLOR_SINGLE_LAYER)
-          .SetImageExtent(Extent3DBuilder(EXTENT3D_SINGLE_DEPTH).SetWidth(bitmap.width).SetHeight(bitmap.height)));
-  memoryTransferCommandBuffer.CmdImageMemoryBarrier(
-      uiTexture.image,
       VK_PIPELINE_STAGE_TRANSFER_BIT,
       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
       ImageMemoryBarrierBuilder(IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER)
@@ -549,9 +458,6 @@ App::App()
 
   shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_VERTEX_BIT, "shaders/shader.vert.spv"));
   shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/shader.frag.spv"));
-
-  uiShaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_VERTEX_BIT, "shaders/uiShader.vert.spv"));
-  uiShaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/uiShader.frag.spv"));
 
   InitializeSwapchain();
 
@@ -593,7 +499,6 @@ void App::InitializeSwapchain() {
           0.1f,
           1000.0f);
   renderTransform.proj[1][1] *= -1;
-  // uiTransformation.model = glm::mat3(0.0f, 0.0f);
 
   Image depthStencilImage =
       virtualDevice.CreateImage(
@@ -685,7 +590,7 @@ void App::InitializeSwapchain() {
           DescriptorSetLayoutCreateInfoBuilder()
               .SetBindingCount(descriptorSetLayoutBindings.size())
               .SetPBindings(descriptorSetLayoutBindings.data()));
-  const std::array<VkSubpassDescription, 2> subpasses {
+  const std::array<VkSubpassDescription, 1> subpasses {
       SubpassDescriptionBuilder()
           .SetPipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS)
           .SetColorAttachmentCount(1)
@@ -698,16 +603,8 @@ void App::InitializeSwapchain() {
                   .SetAttachment(1)
                   .SetLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL))
           .BuildObject(),
-      SubpassDescriptionBuilder()
-          .SetPipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS)
-          .SetColorAttachmentCount(1)
-          .SetPColorAttachments(
-              AttachmentReferenceBuilder()
-                  .SetAttachment(0)
-                  .SetLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL))
-          .BuildObject(),
   };
-  const std::array<VkSubpassDependency, 2> subpassDependencies {
+  const std::array<VkSubpassDependency, 1> subpassDependencies {
       SubpassDependencyBuilder()
           .SetSrcSubpass(VK_SUBPASS_EXTERNAL)
           .SetDstSubpass(0)
@@ -718,14 +615,6 @@ void App::InitializeSwapchain() {
           .SetSrcAccessMask(0)
           .SetDstAccessMask(
               VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
-          .BuildObject(),
-      SubpassDependencyBuilder()
-          .SetSrcSubpass(0)
-          .SetDstSubpass(1)
-          .SetSrcStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
-          .SetDstStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
-          .SetSrcAccessMask(0)
-          .SetDstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
           .BuildObject(),
   };
   renderPass =
@@ -795,97 +684,6 @@ void App::InitializeSwapchain() {
                               .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
   swapchainFramebuffers = swapchain.GetFramebuffers(renderPass, depthStencilView);
 
-  const std::array<VkVertexInputBindingDescription, 1> uiVertexBindingDescriptions {
-      VertexInputBindingDescriptionBuilder()
-          .SetBinding(0)
-          .SetStride(sizeof(UiVertex))
-          .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX)
-          .BuildObject(),
-  };
-  const std::array<VkVertexInputAttributeDescription, 2> uiVertexAttributeDescriptions {
-      VertexInputAttributeDescriptionBuilder()
-          .SetBinding(0)
-          .SetLocation(0)
-          .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-          .SetOffset(offsetof(UiVertex, position))
-          .BuildObject(),
-      VertexInputAttributeDescriptionBuilder()
-          .SetBinding(0)
-          .SetLocation(1)
-          .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-          .SetOffset(offsetof(UiVertex, textureCoordinate))
-          .BuildObject(),
-  };
-  const std::array<VkDescriptorSetLayoutBinding, 1> uiDescriptorSetLayoutBindings {
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(0)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-          .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT)
-          .BuildObject(),
-  };
-  uiDescriptorSetLayout =
-      virtualDevice.CreateDescriptorSetLayout(
-          DescriptorSetLayoutCreateInfoBuilder()
-              .SetBindingCount(uiDescriptorSetLayoutBindings.size())
-              .SetPBindings(uiDescriptorSetLayoutBindings.data()));
-  uiPipeline =
-      virtualDevice.CreateGraphicsPipeline(
-          uiShaders,
-          virtualDevice.CreatePipelineLayout(
-              uiDescriptorSetLayout,
-              PipelineLayoutCreateInfoBuilder()
-                  .SetPushConstantRangeCount(1)
-                  .SetPPushConstantRanges(
-                      PushConstantRangeBuilder()
-                          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
-                          .SetOffset(0)
-                          .SetSize(sizeof(UiTransformation)))),
-          renderPass,
-          1,
-          GraphicsPipelineCreateInfoBuilder()
-              .SetPVertexInputState(
-                  PipelineVertexInputStateCreateInfoBuilder()
-                      .SetVertexBindingDescriptionCount(uiVertexBindingDescriptions.size())
-                      .SetPVertexBindingDescriptions(uiVertexBindingDescriptions.data())
-                      .SetVertexAttributeDescriptionCount(uiVertexAttributeDescriptions.size())
-                      .SetPVertexAttributeDescriptions(uiVertexAttributeDescriptions.data()))
-              .SetPInputAssemblyState(
-                  PipelineInputAssemblyStateCreateInfoBuilder().SetTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST))
-              .SetPViewportState(
-                  PipelineViewportStateCreateInfoBuilder()
-                      .SetViewportCount(1)
-                      .SetPViewports(
-                          ViewportBuilder(VIEWPORT_BASE)
-                              .SetWidth(static_cast<float>(swapchainExtent.width))
-                              .SetHeight(static_cast<float>(swapchainExtent.height)))
-                      .SetScissorCount(1)
-                      .SetPScissors(Rect2DBuilder().SetOffset(OFFSET2D_ZERO).SetExtent(swapchainExtent)))
-              .SetPRasterizationState(
-                  PipelineRasterizationStateCreateInfoBuilder()
-                      .SetPolygonMode(VK_POLYGON_MODE_FILL)
-                      .SetLineWidth(1.0f))
-              .SetPMultisampleState(
-                  PipelineMultisampleStateCreateInfoBuilder()
-                      .SetRasterizationSamples(VK_SAMPLE_COUNT_1_BIT)
-                      .SetMinSampleShading(1.0f))
-              .SetPColorBlendState(
-                  PipelineColorBlendStateCreateInfoBuilder()
-                      .SetAttachmentCount(1)
-                      .SetPAttachments(
-                          PipelineColorBlendAttachmentStateBuilder()
-                              .SetColorWriteMask(
-                                  VK_COLOR_COMPONENT_R_BIT
-                                  | VK_COLOR_COMPONENT_G_BIT
-                                  | VK_COLOR_COMPONENT_B_BIT
-                                  | VK_COLOR_COMPONENT_A_BIT)
-                              .SetSrcColorBlendFactor(VK_BLEND_FACTOR_ONE)
-                              .SetDstColorBlendFactor(VK_BLEND_FACTOR_ZERO)
-                              .SetColorBlendOp(VK_BLEND_OP_ADD)
-                              .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
-                              .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
-                              .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
-
   const u32 swapchainImages = swapchain.GetImageCount();
   const std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes {
       DescriptorPoolSizeBuilder()
@@ -905,20 +703,6 @@ void App::InitializeSwapchain() {
               .SetMaxSets(swapchainImages));
   descriptorSets =
       descriptorPool.AllocateDescriptorSets(descriptorSetLayout, swapchainImages);
-  const std::array<VkDescriptorPoolSize, 1> uiDescriptorPoolSizes {
-      DescriptorPoolSizeBuilder()
-          .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-          .SetDescriptorCount(swapchainImages)
-          .BuildObject(),
-  };
-  uiDescriptorPool =
-      virtualDevice.CreateDescriptorPool(
-          DescriptorPoolCreateInfoBuilder()
-              .SetPoolSizeCount(uiDescriptorPoolSizes.size())
-              .SetPPoolSizes(uiDescriptorPoolSizes.data())
-              .SetMaxSets(swapchainImages));
-  uiDescriptorSets =
-      uiDescriptorPool.AllocateDescriptorSets(uiDescriptorSetLayout, swapchainImages);
 
   for (u32 renderIndex = 0; renderIndex < swapchainImages; ++renderIndex) {
     Buffer uniformBuffer =
@@ -944,19 +728,6 @@ void App::InitializeSwapchain() {
             .BuildObject(),
     };
     virtualDevice.UpdateDescriptorSets(descriptorSetWrites.size(), descriptorSetWrites.data());
-
-    DescriptorSet& uiDescriptorSet = uiDescriptorSets[renderIndex];
-    DescriptorSet::WriteDescriptorSetBuild uiTextureSamplerWrite =
-        uiDescriptorSet
-            .CreateImageSamplerWrite(uiTextureView, uiTextureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    std::array<VkWriteDescriptorSet, 1> uiDescriptorSetWrites{
-        uiTextureSamplerWrite
-            .builder
-            .SetPImageInfo(&uiTextureSamplerWrite.info.imageInfo)
-            .SetDstBinding(0)
-            .BuildObject(),
-    };
-    virtualDevice.UpdateDescriptorSets(uiDescriptorSetWrites.size(), uiDescriptorSetWrites.data());
 
     CommandBuffer renderPassCommandBuffer = renderCommandPool.AllocatePrimaryCommandBuffer();
 
@@ -1141,28 +912,6 @@ void App::UpdateModel(const float deltaTime) {
     cameraRotation.y -= deltaTime * cameraRotationSpeed;
   }
 
-  constexpr float pictureMovementSpeed = 1000.0f;
-  if (keyboard.IsKeyDown(SDLK_j)) {
-    uiTranslation.x -= deltaTime * pictureMovementSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_l)) {
-    uiTranslation.x += deltaTime * pictureMovementSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_i)) {
-    uiTranslation.y -= deltaTime * pictureMovementSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_k)) {
-    uiTranslation.y += deltaTime * pictureMovementSpeed;
-  }
-
-  constexpr float pictureRotationSpeed = 90.0f;
-  if (keyboard.IsKeyDown(SDLK_u)) {
-    uiRotation -= deltaTime * pictureRotationSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_o)) {
-    uiRotation += deltaTime * pictureRotationSpeed;
-  }
-
   cubeRotation += deltaTime * 90.0f;
 
   constexpr glm::vec3 cameraStarePoint = glm::vec3(0.0f, -2.0f, -4.0f);
@@ -1181,16 +930,6 @@ void App::UpdateModel(const float deltaTime) {
 
   renderTransform.model = rotatedCube;
   renderTransform.view = glm::lookAt(glm::vec3(0.0f), glm::vec3(cameraRotatedCenter), glm::vec3(0.0f, 1.0f, 0.0f));
-
-  glm::mat3 modelTransform = glm::mat3(1.0f);
-  modelTransform = glm::translate(modelTransform, uiTranslation);
-  // modelTransform = glm::translate(modelTransform, glm::vec2(1366.0f / 2.0f, 760.0f / 2.0f));
-  // modelTransform = glm::scale(modelTransform, glm::vec2(2.0f, 2.0f));
-  modelTransform = glm::rotate(modelTransform, glm::radians(uiRotation));
-  uiTransformation.model = modelTransform;
-  uiTransformation.proj = glm::mat3(1.0f);
-  uiTransformation.proj[0][0] = 1.0f / static_cast<float>(windowInfo.rect.size.x);
-  uiTransformation.proj[1][1] = 1.0f / static_cast<float>(windowInfo.rect.size.y);
 }
 
 void App::Render() {  
@@ -1245,13 +984,6 @@ void App::Render() {
     swapchainRender.commandBuffer.CmdBindIndexBuffer(indexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
     swapchainRender.commandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), descriptorSets[0]);
     swapchainRender.commandBuffer.CmdDrawIndexed(indexCount, /* instanceCount= */ 1); // TODO: More instances
-    swapchainRender.commandBuffer.CmdNextSubpass(VK_SUBPASS_CONTENTS_INLINE);
-    swapchainRender.commandBuffer.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, uiPipeline);
-    swapchainRender.commandBuffer.CmdPushConstants(uiPipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(UiTransformation), &uiTransformation);
-    swapchainRender.commandBuffer.CmdBindVertexBuffers(uiVertexMemoryBuffer.buffer, 0);
-    swapchainRender.commandBuffer.CmdBindIndexBuffer(uiIndexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
-    swapchainRender.commandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, uiPipeline.GetLayout(), uiDescriptorSets[0]);
-    swapchainRender.commandBuffer.CmdDrawIndexed(uiIndexCount, /* instanceCount= */ 1); // TODO: More instances
     swapchainRender.commandBuffer.CmdEndRenderPass();
     swapchainRender.commandBuffer.End();
   }

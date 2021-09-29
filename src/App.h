@@ -10,12 +10,8 @@
 #include <vulkan/Swapchain.h>
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_ALIGNED_GENTYPES
-#define GLM_GTX_matrix_transform_2d
 #include <glm/glm.hpp>
-#include <glm/gtc/type_aligned.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/matrix_transform_2d.hpp>
 
 #include "vulkan/VulkanInstance.h"
 #include "vulkan/Semaphore.h"
@@ -75,11 +71,6 @@ private:
     alignas(16) glm::mat4 proj;
   };
 
-  struct UiTransformation {
-    alignas(16) glm::aligned_mat3 model;
-    alignas(16) glm::aligned_mat3 proj;
-  };
-
   BufferWithMemory TransferDataToGpuLocalMemory(
       CommandBuffer& commandBuffer, const void* data, const u32 size, const VkBufferUsageFlags usage) const;
 
@@ -116,19 +107,6 @@ private:
   ImageWithMemory texture;
   ImageView textureView;
   Sampler textureSampler;
-
-  BufferWithMemory uiTextureMemory;
-  ImageWithMemory uiTexture;
-  ImageView uiTextureView;
-  Sampler uiTextureSampler;
-  DescriptorSetLayout uiDescriptorSetLayout;
-  DescriptorPool uiDescriptorPool;
-  BufferWithMemory uiVertexMemoryBuffer;
-  BufferWithMemory uiIndexMemoryBuffer;
-  u32 uiIndexCount;
-  std::vector<ShaderModule> uiShaders;
-  Pipeline uiPipeline;
-  UiTransformation uiTransformation;
 
   RenderPass renderPass;
 
@@ -184,10 +162,6 @@ private:
   Keyboard keyboard;
 
   std::vector<DescriptorSet> descriptorSets;
-  std::vector<DescriptorSet> uiDescriptorSets;
-
-  float uiRotation;
-  glm::vec2 uiTranslation;
 };
 
 #endif // VULKAN_SRC_APP_H
