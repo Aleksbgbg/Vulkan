@@ -5,6 +5,12 @@
 #include "error.h"
 
 PipelineLayout::PipelineLayout(VkDevice device, const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts)
+  : PipelineLayout(device, PipelineLayoutCreateInfoBuilder().Reference(), descriptorSetLayouts) {}
+
+PipelineLayout::PipelineLayout(
+    VkDevice device,
+    PipelineLayoutCreateInfoBuilder& infoBuilder,
+    const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts)
   : device(device) {
   std::vector<VkDescriptorSetLayout> descriptorSetLayoutsRaw(descriptorSetLayouts.size());
   std::transform(
@@ -17,7 +23,7 @@ PipelineLayout::PipelineLayout(VkDevice device, const std::vector<const Descript
   PROCEED_ON_VALID_RESULT(
       vkCreatePipelineLayout(
           device,
-          PipelineLayoutCreateInfoBuilder()
+          infoBuilder
               .SetSetLayoutCount(descriptorSetLayoutsRaw.size())
               .SetPSetLayouts(descriptorSetLayoutsRaw.data())
               .Build(),

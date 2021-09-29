@@ -12,6 +12,10 @@
       this->value.sType = (structureType);                \
     }                                                     \
                                                           \
+    name& Reference() {                                   \
+      return *this;                                       \
+    }                                                     \
+                                                          \
     structure BuildObject() {                             \
       return value;                                       \
     }                                                     \
@@ -29,6 +33,10 @@
     name() : value() {}                                   \
     explicit name(structure value) : value(value) {}      \
                                                           \
+    name& Reference() {                                   \
+      return *this;                                       \
+    }                                                     \
+                                                          \
     structure BuildObject() {                             \
       return value;                                       \
     }                                                     \
@@ -44,9 +52,9 @@
   }
 
 #define STRUCTURE_SETTER_DIFFERENT_ASSIGNMENT(type, methodName, argumentType, argumentName, assignment) \
-  type& Set##methodName(argumentType argumentName) {                   \
-    value.assignment = argumentName;                                 \
-    return *this;                                                      \
+  type& Set##methodName(argumentType argumentName) {                                                    \
+    value.assignment = argumentName;                                                                    \
+    return *this;                                                                                       \
   }
 
 #define STRUCTURE_SETTER_BUILDER(type, methodName, builderType, argumentName) \

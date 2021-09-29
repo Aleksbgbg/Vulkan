@@ -63,6 +63,8 @@ public:
   Image CreateImage(ImageCreateInfoBuilder& infoBuilder) const;
   DescriptorSetLayout CreateDescriptorSetLayout(DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const;
   PipelineLayout CreatePipelineLayout(const DescriptorSetLayout& descriptorSetLayout) const;
+  PipelineLayout CreatePipelineLayout(
+      const DescriptorSetLayout& descriptorSetLayout, PipelineLayoutCreateInfoBuilder& infoBuilder) const;
   PipelineLayout CreatePipelineLayout(const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts) const;
   RenderPass CreateRenderPass(RenderPassCreateInfoBuilder& infoBuilder) const;
   Pipeline CreateGraphicsPipeline(const std::vector<ShaderModule>& shaders,

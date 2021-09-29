@@ -32,36 +32,6 @@ CommandBuffer& CommandBuffer::End() {
   return *this;
 }
 
-void CommandBuffer::CmdCopyBufferFull(Buffer& source, Buffer& dest) {
-  CmdCopyBuffer(source, dest, { .size = source.size });
-}
-
-void CommandBuffer::CmdCopyBuffer(Buffer& source, Buffer& dest, const VkBufferCopy& copyRegion) {
-  vkCmdCopyBuffer(commandBuffer, source.buffer, dest.buffer, 1, &copyRegion);
-}
-
-void CommandBuffer::CmdCopyBufferToImage(Buffer& source, Image& dest, const VkImageLayout destLayout, BufferImageCopyBuilder& infoBuilder) {
-  vkCmdCopyBufferToImage(commandBuffer, source.buffer, dest.image, destLayout, 1, infoBuilder.Build());
-}
-
-void CommandBuffer::CmdImageMemoryBarrier(
-    Image& image,
-    const VkPipelineStageFlags srcStageMask,
-    const VkPipelineStageFlags dstStageMask,
-    ImageMemoryBarrierBuilder& infoBuilder) {
-  vkCmdPipelineBarrier(
-      commandBuffer,
-      srcStageMask,
-      dstStageMask,
-      0,
-      0,
-      nullptr,
-      0,
-      nullptr,
-      1,
-      infoBuilder.SetImage(image.image).Build());
-}
-
 Fence CommandBuffer::Submit() {
   Fence fence(device);
   PROCEED_ON_VALID_RESULT(
@@ -94,6 +64,44 @@ void CommandBuffer::Submit(const SynchronisationPack& synchronisationPack) {
           synchronisationPack.GetSignalFence()->Raw()))
 }
 
+void CommandBuffer::Reset() const {
+  Reset(0);
+}
+
+void CommandBuffer::Reset(const VkCommandBufferResetFlags flags) const {
+  vkResetCommandBuffer(commandBuffer, flags);
+}
+
+void CommandBuffer::CmdCopyBufferFull(Buffer& source, Buffer& dest) {
+  CmdCopyBuffer(source, dest, { .size = source.size });
+}
+
+void CommandBuffer::CmdCopyBuffer(Buffer& source, Buffer& dest, const VkBufferCopy& copyRegion) {
+  vkCmdCopyBuffer(commandBuffer, source.buffer, dest.buffer, 1, &copyRegion);
+}
+
+void CommandBuffer::CmdCopyBufferToImage(Buffer& source, Image& dest, const VkImageLayout destLayout, BufferImageCopyBuilder& infoBuilder) {
+  vkCmdCopyBufferToImage(commandBuffer, source.buffer, dest.image, destLayout, 1, infoBuilder.Build());
+}
+
+void CommandBuffer::CmdImageMemoryBarrier(
+    Image& image,
+    const VkPipelineStageFlags srcStageMask,
+    const VkPipelineStageFlags dstStageMask,
+    ImageMemoryBarrierBuilder& infoBuilder) {
+  vkCmdPipelineBarrier(
+      commandBuffer,
+      srcStageMask,
+      dstStageMask,
+      0,
+      0,
+      nullptr,
+      0,
+      nullptr,
+      1,
+      infoBuilder.SetImage(image.image).Build());
+}
+
 void CommandBuffer::CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder, const VkSubpassContents subpassContents,
                                        RenderPass& renderPass, Framebuffer& framebuffer) {
   vkCmdBeginRenderPass(
@@ -104,6 +112,11 @@ void CommandBuffer::CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder, 
 
 void CommandBuffer::CmdBindPipeline(const VkPipelineBindPoint bindPoint, Pipeline& pipeline) {
   vkCmdBindPipeline(commandBuffer, bindPoint, pipeline.pipeline);
+}
+
+void CommandBuffer::CmdPushConstants(PipelineLayout& pipelineLayout, const VkShaderStageFlags shaderStageFlags,
+                                     const u32 offset, const u32 size, void* values) {
+  vkCmdPushConstants(commandBuffer, pipelineLayout.pipelineLayout, shaderStageFlags, offset, size, values);
 }
 
 void CommandBuffer::CmdBindVertexBuffers(Buffer& buffer, const u32 binding) {

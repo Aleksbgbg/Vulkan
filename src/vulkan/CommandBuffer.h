@@ -44,6 +44,8 @@ public:
   CommandBuffer& End();
   Fence Submit();
   void Submit(const SynchronisationPack& synchronisationPack);
+  void Reset() const;
+  void Reset(const VkCommandBufferResetFlags flags) const;
 
   void CmdCopyBufferFull(Buffer& source, Buffer& dest);
   void CmdCopyBuffer(Buffer& source, Buffer& dest, const VkBufferCopy& copyRegion);
@@ -57,6 +59,12 @@ public:
 
   void CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder, const VkSubpassContents subpassContents, RenderPass& renderPass, Framebuffer& framebuffer);
   void CmdBindPipeline(const VkPipelineBindPoint bindPoint, Pipeline& pipeline);
+  void CmdPushConstants(
+      PipelineLayout& pipelineLayout,
+      const VkShaderStageFlags shaderStageFlags,
+      const u32 offset,
+      const u32 size,
+      void* values);
   void CmdBindVertexBuffers(Buffer& buffer, const u32 binding);
   void CmdBindIndexBuffer(Buffer& buffer, const VkIndexType indexType);
   void CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint, PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet);

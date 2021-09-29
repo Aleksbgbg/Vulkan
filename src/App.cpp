@@ -11,9 +11,6 @@
 #include <chrono>
 #include <cmath>
 
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <SDL.h>
 #include <vulkan/structures/DeviceQueueCreateInfo.h>
 #include <vulkan/Buffer.h>
@@ -23,10 +20,12 @@
 #include <vulkan/structures/AttachmentReference.h>
 #include <vulkan/structures/ClearValue.h>
 #include <vulkan/DescriptorPool.h>
+#include <vulkan/structures/PushConstantRange.h>
 
 #include "vulkan/util.h"
 #include "build_definition.h"
 #include "VertexBuilder.h"
+#include "TextRenderer.h"
 
 struct UiVertex {
   glm::vec2 position;
@@ -63,23 +62,6 @@ App::WindowInfo App::InitSdl() {
       .hinstance = sysWmInfo.info.win.hinstance,
       .hwnd = sysWmInfo.info.win.window,
       .rect = windowRect
-  };
-}
-
-struct Rect1 {
-  float x,y,width,height;
-};
-
-struct Rect2 {
-  float x1,y1,x2,y2;
-};
-
-Rect2 NormalizeRect(Rect1 rect, const glm::vec2 scale) {
-  return Rect2{
-    .x1 = (rect.x / scale.x),
-    .y1 = (rect.y / scale.y),
-    .x2 = ((rect.x + rect.width) / scale.x),
-    .y2 = ((rect.y + rect.height) / scale.y)
   };
 }
 
@@ -260,9 +242,14 @@ App::App()
     previousTime(std::chrono::high_resolution_clock::now()),
     cubeTransform(glm::mat4(1.0f)),
     cameraRotation(glm::vec2(0.0f)),
-    threadMessenger(), acquiredImage({ .exists = false, .index = 0 }) {
+    threadMessenger(),
+    acquiredImage({ .exists = false, .index = 0 }),
+    uiRotation(0.0f),
+    uiTranslation(glm::vec2(0.0f)) {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
+
+  auto x = VK_KHR_shader_non_semantic_info;
   const std::vector<const char*> requiredExtensions = {
       VK_KHR_SURFACE_EXTENSION_NAME,
       VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
@@ -399,16 +386,16 @@ App::App()
 
   Bitmap bitmap = ReadBitmap("Alice.bmp");
 
+  RenderText("Alice", bitmap.data.data(), bitmap.width, bitmap.height);
+
   const float pictureWidth = static_cast<float>(bitmap.width);
   const float pictureHeight = static_cast<float>(bitmap.height);
 
-  Rect2 pictureRect = NormalizeRect({850, 200, pictureWidth, pictureHeight}, glm::vec2(windowInfo.rect.size));
-
   const std::vector<UiVertex> uiVertices = {
-      /* 0 */ {{pictureRect.x1, pictureRect.y1}, {1.0f, 1.0f}},
-      /* 1 */ {{pictureRect.x1, pictureRect.y2}, {1.0f, 0.0f}},
-      /* 2 */ {{pictureRect.x2, pictureRect.y1}, {0.0f, 1.0f}},
-      /* 3 */ {{pictureRect.x2, pictureRect.y2}, {0.0f, 0.0f}},
+      /* 0 */ {{-(pictureWidth / 2.0f), -(pictureHeight / 2.0f)}, {1.0f, 1.0f}},
+      /* 1 */ {{-(pictureWidth / 2.0f), pictureHeight / 2.0f}, {1.0f, 0.0f}},
+      /* 2 */ {{pictureWidth / 2.0f, -(pictureHeight / 2.0f)}, {0.0f, 1.0f}},
+      /* 3 */ {{pictureWidth / 2.0f, pictureHeight / 2.0f}, {0.0f, 0.0f}},
   };
 
   const std::vector<u16> uiIndices = {
@@ -558,7 +545,7 @@ App::App()
               .SetAnisotropyEnable(VK_TRUE)
               .SetMaxAnisotropy(physicalDeviceProperties.limits.maxSamplerAnisotropy));
 
-  renderCommandPool = queue.CreateCommandPool();
+  renderCommandPool = queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
   shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_VERTEX_BIT, "shaders/shader.vert.spv"));
   shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/shader.frag.spv"));
@@ -606,6 +593,7 @@ void App::InitializeSwapchain() {
           0.1f,
           1000.0f);
   renderTransform.proj[1][1] *= -1;
+  // uiTransformation.model = glm::mat3(0.0f, 0.0f);
 
   Image depthStencilImage =
       virtualDevice.CreateImage(
@@ -844,7 +832,15 @@ void App::InitializeSwapchain() {
   uiPipeline =
       virtualDevice.CreateGraphicsPipeline(
           uiShaders,
-          virtualDevice.CreatePipelineLayout(uiDescriptorSetLayout),
+          virtualDevice.CreatePipelineLayout(
+              uiDescriptorSetLayout,
+              PipelineLayoutCreateInfoBuilder()
+                  .SetPushConstantRangeCount(1)
+                  .SetPPushConstantRanges(
+                      PushConstantRangeBuilder()
+                          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
+                          .SetOffset(0)
+                          .SetSize(sizeof(UiTransformation)))),
           renderPass,
           1,
           GraphicsPipelineCreateInfoBuilder()
@@ -867,8 +863,6 @@ void App::InitializeSwapchain() {
                       .SetPScissors(Rect2DBuilder().SetOffset(OFFSET2D_ZERO).SetExtent(swapchainExtent)))
               .SetPRasterizationState(
                   PipelineRasterizationStateCreateInfoBuilder()
-//                      .SetCullMode(VK_CULL_MODE_BACK_BIT)
-//                      .SetFrontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
                       .SetPolygonMode(VK_POLYGON_MODE_FILL)
                       .SetLineWidth(1.0f))
               .SetPMultisampleState(
@@ -891,7 +885,6 @@ void App::InitializeSwapchain() {
                               .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
                               .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
                               .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
-  uiFramebuffers = swapchain.GetFramebuffers(renderPass, depthStencilView);
 
   const u32 swapchainImages = swapchain.GetImageCount();
   const std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes {
@@ -910,7 +903,7 @@ void App::InitializeSwapchain() {
               .SetPoolSizeCount(descriptorPoolSizes.size())
               .SetPPoolSizes(descriptorPoolSizes.data())
               .SetMaxSets(swapchainImages));
-  std::vector<DescriptorSet> descriptorSets =
+  descriptorSets =
       descriptorPool.AllocateDescriptorSets(descriptorSetLayout, swapchainImages);
   const std::array<VkDescriptorPoolSize, 1> uiDescriptorPoolSizes {
       DescriptorPoolSizeBuilder()
@@ -924,17 +917,9 @@ void App::InitializeSwapchain() {
               .SetPoolSizeCount(uiDescriptorPoolSizes.size())
               .SetPPoolSizes(uiDescriptorPoolSizes.data())
               .SetMaxSets(swapchainImages));
-  std::vector<DescriptorSet> uiDescriptorSets =
+  uiDescriptorSets =
       uiDescriptorPool.AllocateDescriptorSets(uiDescriptorSetLayout, swapchainImages);
 
-  const std::array<VkClearValue, 2> clearValues{
-      ClearValueBuilder()
-          .SetColor(ClearColorValueBuilder().SetFloat0(0.2f).SetFloat1(0.2f).SetFloat2(0.2f).SetFloat3(1.0f))
-          .BuildObject(),
-      ClearValueBuilder()
-          .SetDepthStencil(ClearDepthStencilValueBuilder().SetDepth(1.0f))
-          .BuildObject()
-  };
   for (u32 renderIndex = 0; renderIndex < swapchainImages; ++renderIndex) {
     Buffer uniformBuffer =
         virtualDevice.CreateBuffer(
@@ -974,28 +959,6 @@ void App::InitializeSwapchain() {
     virtualDevice.UpdateDescriptorSets(uiDescriptorSetWrites.size(), uiDescriptorSetWrites.data());
 
     CommandBuffer renderPassCommandBuffer = renderCommandPool.AllocatePrimaryCommandBuffer();
-    renderPassCommandBuffer.Begin();
-    renderPassCommandBuffer.CmdBeginRenderPass(
-        RenderPassBeginInfoBuilder()
-            .SetRenderArea(Rect2DBuilder().SetExtent(swapchainExtent))
-            .SetClearValueCount(clearValues.size())
-            .SetPClearValues(clearValues.data()),
-        VK_SUBPASS_CONTENTS_INLINE,
-        renderPass,
-        swapchainFramebuffers[renderIndex]);
-    renderPassCommandBuffer.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-    renderPassCommandBuffer.CmdBindVertexBuffers(vertexMemoryBuffer.buffer, 0);
-    renderPassCommandBuffer.CmdBindIndexBuffer(indexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
-    renderPassCommandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), descriptorSets[0]);
-    renderPassCommandBuffer.CmdDrawIndexed(indexCount, /* instanceCount= */ 1); // TODO: More instances
-    renderPassCommandBuffer.CmdNextSubpass(VK_SUBPASS_CONTENTS_INLINE);
-    renderPassCommandBuffer.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, uiPipeline);
-    renderPassCommandBuffer.CmdBindVertexBuffers(uiVertexMemoryBuffer.buffer, 0);
-    renderPassCommandBuffer.CmdBindIndexBuffer(uiIndexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
-    renderPassCommandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, uiPipeline.GetLayout(), uiDescriptorSets[0]);
-    renderPassCommandBuffer.CmdDrawIndexed(uiIndexCount, /* instanceCount= */ 1); // TODO: More instances
-    renderPassCommandBuffer.CmdEndRenderPass();
-    renderPassCommandBuffer.End();
 
     swapchainRenderData.emplace_back(std::move<SwapchainRenderPass>({
         .renderData = {
@@ -1178,6 +1141,28 @@ void App::UpdateModel(const float deltaTime) {
     cameraRotation.y -= deltaTime * cameraRotationSpeed;
   }
 
+  constexpr float pictureMovementSpeed = 1000.0f;
+  if (keyboard.IsKeyDown(SDLK_j)) {
+    uiTranslation.x -= deltaTime * pictureMovementSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_l)) {
+    uiTranslation.x += deltaTime * pictureMovementSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_i)) {
+    uiTranslation.y -= deltaTime * pictureMovementSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_k)) {
+    uiTranslation.y += deltaTime * pictureMovementSpeed;
+  }
+
+  constexpr float pictureRotationSpeed = 90.0f;
+  if (keyboard.IsKeyDown(SDLK_u)) {
+    uiRotation -= deltaTime * pictureRotationSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_o)) {
+    uiRotation += deltaTime * pictureRotationSpeed;
+  }
+
   cubeRotation += deltaTime * 90.0f;
 
   constexpr glm::vec3 cameraStarePoint = glm::vec3(0.0f, -2.0f, -4.0f);
@@ -1196,9 +1181,19 @@ void App::UpdateModel(const float deltaTime) {
 
   renderTransform.model = rotatedCube;
   renderTransform.view = glm::lookAt(glm::vec3(0.0f), glm::vec3(cameraRotatedCenter), glm::vec3(0.0f, 1.0f, 0.0f));
+
+  glm::mat3 modelTransform = glm::mat3(1.0f);
+  modelTransform = glm::translate(modelTransform, uiTranslation);
+  // modelTransform = glm::translate(modelTransform, glm::vec2(1366.0f / 2.0f, 760.0f / 2.0f));
+  // modelTransform = glm::scale(modelTransform, glm::vec2(2.0f, 2.0f));
+  modelTransform = glm::rotate(modelTransform, glm::radians(uiRotation));
+  uiTransformation.model = modelTransform;
+  uiTransformation.proj = glm::mat3(1.0f);
+  uiTransformation.proj[0][0] = 1.0f / static_cast<float>(windowInfo.rect.size.x);
+  uiTransformation.proj[1][1] = 1.0f / static_cast<float>(windowInfo.rect.size.y);
 }
 
-void App::Render() {
+void App::Render() {  
   InFlightImage& synchronisation = imagesInFlightSynchronisation[currentInFlightImage];
 
   u32 imageIndex;
@@ -1226,6 +1221,41 @@ void App::Render() {
   swapchainRender.renderData.memory.MapCopy(&renderTransform, sizeof(renderTransform));
 
   swapchainRender.submitCompleteFence.Wait().Reset();
+  {
+    const std::array<VkClearValue, 2> clearValues{
+        ClearValueBuilder()
+            .SetColor(ClearColorValueBuilder().SetFloat0(0.2f).SetFloat1(0.2f).SetFloat2(0.2f).SetFloat3(1.0f))
+            .BuildObject(),
+        ClearValueBuilder()
+            .SetDepthStencil(ClearDepthStencilValueBuilder().SetDepth(1.0f))
+            .BuildObject()
+    };
+    
+    swapchainRender.commandBuffer.Begin();
+    swapchainRender.commandBuffer.CmdBeginRenderPass(
+        RenderPassBeginInfoBuilder()
+            .SetRenderArea(Rect2DBuilder().SetExtent(swapchain.GetImageExtent()))
+            .SetClearValueCount(clearValues.size())
+            .SetPClearValues(clearValues.data()),
+        VK_SUBPASS_CONTENTS_INLINE,
+        renderPass,
+        swapchainFramebuffers[imageIndex]);
+    swapchainRender.commandBuffer.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    swapchainRender.commandBuffer.CmdBindVertexBuffers(vertexMemoryBuffer.buffer, 0);
+    swapchainRender.commandBuffer.CmdBindIndexBuffer(indexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
+    swapchainRender.commandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), descriptorSets[0]);
+    swapchainRender.commandBuffer.CmdDrawIndexed(indexCount, /* instanceCount= */ 1); // TODO: More instances
+    swapchainRender.commandBuffer.CmdNextSubpass(VK_SUBPASS_CONTENTS_INLINE);
+    swapchainRender.commandBuffer.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, uiPipeline);
+    swapchainRender.commandBuffer.CmdPushConstants(uiPipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(UiTransformation), &uiTransformation);
+    swapchainRender.commandBuffer.CmdBindVertexBuffers(uiVertexMemoryBuffer.buffer, 0);
+    swapchainRender.commandBuffer.CmdBindIndexBuffer(uiIndexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
+    swapchainRender.commandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, uiPipeline.GetLayout(), uiDescriptorSets[0]);
+    swapchainRender.commandBuffer.CmdDrawIndexed(uiIndexCount, /* instanceCount= */ 1); // TODO: More instances
+    swapchainRender.commandBuffer.CmdEndRenderPass();
+    swapchainRender.commandBuffer.End();
+  }
+
   swapchainRender.commandBuffer.Submit(
       SynchronisationPack()
           .SetWaitSemaphore(&synchronisation.acquireImageSemaphore)
