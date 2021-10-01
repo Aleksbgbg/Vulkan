@@ -11,7 +11,6 @@
 #include <chrono>
 #include <cmath>
 
-#include <SDL.h>
 #include <vulkan/structures/DeviceQueueCreateInfo.h>
 #include <vulkan/Buffer.h>
 #include <vulkan/structures/default.h>
@@ -239,7 +238,7 @@ App::App()
     windowInfo(InitSdl()),
     renderTransform(),
     previousTime(std::chrono::high_resolution_clock::now()),
-    cubeTransform(glm::mat4(1.0f)),
+    cubePosition(),
     cameraRotation(glm::vec2(0.0f)),
     threadMessenger(),
     acquiredImage({ .exists = false, .index = 0 }) {
@@ -317,7 +316,7 @@ App::App()
   Log("Selecting GPU 0 as render target.");
 
   targetPhysicalDevice = physicalDevices[0];
-  VkPhysicalDeviceProperties physicalDeviceProperties = targetPhysicalDevice.GetProperties();
+  physicalDeviceProperties = targetPhysicalDevice.GetProperties();
 
   VkSurfaceCapabilitiesKHR surfaceCapabilities = windowSurface.GetCapabilities(targetPhysicalDevice);
   minSwapchainImages = std::min(surfaceCapabilities.minImageCount + 1, surfaceCapabilities.maxImageCount);
@@ -360,8 +359,14 @@ App::App()
       /* 6 */ {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
       /* 7 */ {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
   };
-
-  const std::vector<u16> indices = GenerateIndices(vertices);
+  const std::vector<u16> indices = {
+      0, 1, 2, 1, 2, 3, // bottom face
+      0, 4, 5, 0, 1, 5, // back face
+      1, 3, 7, 1, 5, 7, // left face
+      0, 2, 6, 0, 4, 6, // right face
+      2, 6, 7, 2, 3, 7, // front face
+      4, 5, 6, 5, 6, 7, // top face
+  };
   indexCount = indices.size();
 
   CommandPool memoryTransferCommandPool =
@@ -459,7 +464,7 @@ App::App()
   shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_VERTEX_BIT, "shaders/shader.vert.spv"));
   shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/shader.frag.spv"));
 
-  InitializeSwapchain();
+  InitializeSwapchain(memoryTransferCommandBuffer);
 
   for (u32 inFlightImage = 0; inFlightImage < framesInFlight; ++inFlightImage) {
     imagesInFlightSynchronisation.emplace_back(std::move<InFlightImage>({
@@ -468,7 +473,7 @@ App::App()
   }
 }
 
-void App::InitializeSwapchain() {
+void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
   VkSurfaceCapabilitiesKHR surfaceCapabilities = windowSurface.GetCapabilities(targetPhysicalDevice);
   VkSurfaceFormatKHR surfaceFormat = SelectSwapSurfaceFormat(windowSurface.GetFormats(targetPhysicalDevice));
   swapchain =
@@ -671,6 +676,7 @@ void App::InitializeSwapchain() {
                       .SetAttachmentCount(1)
                       .SetPAttachments(
                           PipelineColorBlendAttachmentStateBuilder()
+                              .SetBlendEnable(VK_TRUE)
                               .SetColorWriteMask(
                                   VK_COLOR_COMPONENT_R_BIT
                                   | VK_COLOR_COMPONENT_G_BIT
@@ -683,6 +689,18 @@ void App::InitializeSwapchain() {
                               .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
                               .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
   swapchainFramebuffers = swapchain.GetFramebuffers(renderPass, depthStencilView);
+
+  uiRenderer =
+      UiRenderer(
+          std::move(
+              ImGuiInstance(
+                  windowInfo.window,
+                  instance,
+                  targetPhysicalDevice,
+                  virtualDevice,
+                  queue,
+                  renderPass,
+                  transientCommandBuffer)));
 
   const u32 swapchainImages = swapchain.GetImageCount();
   const std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes {
@@ -799,6 +817,8 @@ void App::MainThread() {
   while (true) {
     SDL_Event event;
     while (SDL_WaitEvent(&event)) {
+      uiRenderer.ProcessEvent(event);
+
       switch (event.type) {
         case SDL_QUIT:
           threadMessenger.PostMessage(EventNotification::Unpaused);
@@ -855,7 +875,10 @@ void App::RenderThread() {
             virtualDevice.WaitIdle();
             swapchainRenderData.clear();
             Log("Recreating swapchain.");
-            InitializeSwapchain();
+            CommandPool temporaryCommandPool =
+                queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+            CommandBuffer temporaryCommandBuffer = temporaryCommandPool.AllocatePrimaryCommandBuffer();
+            InitializeSwapchain(temporaryCommandBuffer);
             Log("Swapchain recreated.");
             break;
         }
@@ -878,24 +901,31 @@ void App::MainLoop() {
 }
 
 void App::UpdateModel(const float deltaTime) {
+  uiRenderer.BeginFrame();
+  uiRenderer.ShowVulkanDebugInfo(VulkanDebugInfo{
+      .gpuName = physicalDeviceProperties.deviceName,
+      .frametime = deltaTime
+  });
+  uiRenderer.ShowKeyboardLayout(keyboard);
+
   constexpr float movementSpeed = 10.0f;
   if (keyboard.IsKeyDown(SDLK_a)) {
-    cubeTransform[3][0] -= deltaTime * movementSpeed;
+    cubePosition.x -= deltaTime * movementSpeed;
   }
   if (keyboard.IsKeyDown(SDLK_d)) {
-    cubeTransform[3][0] += deltaTime * movementSpeed;
+    cubePosition.x += deltaTime * movementSpeed;
   }
   if (keyboard.IsKeyDown(SDLK_w)) {
-    cubeTransform[3][1] += deltaTime * movementSpeed;
+    cubePosition.y += deltaTime * movementSpeed;
   }
   if (keyboard.IsKeyDown(SDLK_s)) {
-    cubeTransform[3][1] -= deltaTime * movementSpeed;
+    cubePosition.y -= deltaTime * movementSpeed;
   }
   if (keyboard.IsKeyDown(SDLK_q)) {
-    cubeTransform[3][2] -= deltaTime * movementSpeed;
+    cubePosition.z -= deltaTime * movementSpeed;
   }
   if (keyboard.IsKeyDown(SDLK_e)) {
-    cubeTransform[3][2] += deltaTime * movementSpeed;
+    cubePosition.z += deltaTime * movementSpeed;
   }
 
   constexpr float cameraRotationSpeed = 75.0f;
@@ -915,6 +945,10 @@ void App::UpdateModel(const float deltaTime) {
   cubeRotation += deltaTime * 90.0f;
 
   constexpr glm::vec3 cameraStarePoint = glm::vec3(0.0f, -2.0f, -4.0f);
+  glm::mat4 cubeTransform(1.0f);
+  cubeTransform[3][0] = cubePosition.x;
+  cubeTransform[3][1] = cubePosition.y;
+  cubeTransform[3][2] = cubePosition.z;
   const glm::mat4 cameraCenteredCube = glm::translate(cubeTransform, cameraStarePoint);
   const glm::mat4 rotatedCube = glm::rotate(cameraCenteredCube, glm::radians(cubeRotation), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -927,9 +961,19 @@ void App::UpdateModel(const float deltaTime) {
           glm::radians(cameraRotation.y),
           glm::vec3(1.0f, 0.0f, 0.0f));
   const glm::vec4 cameraRotatedCenter = rotateWorldRelativeToCamera * glm::vec4(cameraStarePoint, 1.0f);
+  const glm::vec3 cameraCenter = glm::vec3(cameraRotatedCenter);
 
   renderTransform.model = rotatedCube;
-  renderTransform.view = glm::lookAt(glm::vec3(0.0f), glm::vec3(cameraRotatedCenter), glm::vec3(0.0f, 1.0f, 0.0f));
+  renderTransform.view = glm::lookAt(glm::vec3(0.0f), cameraCenter, glm::vec3(0.0f, 1.0f, 0.0f));
+
+  std::vector<glm::vec3*> cubePositions {&cubePosition };
+  uiRenderer.ShowObjectsInScene(ObjectsInSceneInfo{
+    .cameraRotation = glm::vec2(cameraRotation.x, cameraRotation.y - 26.565f),
+    .cameraCenter = glm::vec3(cameraCenter.x, cameraCenter.y - cameraStarePoint.y, cameraCenter.z - cameraStarePoint.z),
+    .cameraPosition = glm::vec3(cameraStarePoint.x, -cameraStarePoint.y, -cameraStarePoint.z),
+    .cubePositions = cubePositions
+  });
+  uiRenderer.EndFrame();
 }
 
 void App::Render() {  
@@ -946,12 +990,12 @@ void App::Render() {
     imageIndex = nextImageResult.imageIndex;
 
     if ((nextImageResult.status == VK_SUBOPTIMAL_KHR) || (nextImageResult.status == VK_ERROR_OUT_OF_DATE_KHR)) {
-      acquiredImage.exists = true;
-      acquiredImage.index = imageIndex;
+//      acquiredImage.exists = true;
+//      acquiredImage.index = imageIndex;
       Log("A");
       // This semaphore no longer has a way to be signalled
       // synchronisation.acquireImageSemaphore = virtualDevice.MakeSemaphore();
-      return;
+      // return;
     }
   }
 
@@ -984,6 +1028,7 @@ void App::Render() {
     swapchainRender.commandBuffer.CmdBindIndexBuffer(indexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
     swapchainRender.commandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), descriptorSets[0]);
     swapchainRender.commandBuffer.CmdDrawIndexed(indexCount, /* instanceCount= */ 1); // TODO: More instances
+    uiRenderer.Render(swapchainRender.commandBuffer);
     swapchainRender.commandBuffer.CmdEndRenderPass();
     swapchainRender.commandBuffer.End();
   }
@@ -1001,7 +1046,7 @@ void App::Render() {
     // swapchainRender.submitCompleteFence.Wait();
     // synchronisation.acquireImageSemaphore = virtualDevice.MakeSemaphore();
     Log("B");
-    return;
+    // return;
   }
 
   currentInFlightImage = (currentInFlightImage + 1) % framesInFlight;

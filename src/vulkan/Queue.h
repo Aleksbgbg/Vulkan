@@ -8,6 +8,7 @@
 #include "Semaphore.h"
 
 class Queue {
+  friend class ImGuiInstance;
 public:
   Queue() = default;
   Queue(VkDevice device, VkQueue queue, const u32 familyIndex);

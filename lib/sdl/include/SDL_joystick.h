@@ -28,7 +28,7 @@
  *   behind a device_index changing as joysticks are plugged and unplugged.
  *
  * The term "instance_id" is the current instantiation of a joystick device in the system, if the joystick is removed and then re-inserted
- *   then it will get a new instance_id, instance_id's are monotonically increasing identifiers of a joystick plugged in.
+ *   then it will GetFrametimeHistoryValueFromRenderer a new instance_id, instance_id's are monotonically increasing identifiers of a joystick plugged in.
  *
  * The term "player_index" is the number assigned to a player on a specific
  *   controller. For XInput controllers this returns the XInput user index.
@@ -76,7 +76,7 @@ typedef struct {
 /**
  * This is a unique ID for a joystick for the time it is connected to the system,
  * and is never reused for the lifetime of the application. If the joystick is
- * disconnected and reconnected, it will get a new ID.
+ * disconnected and reconnected, it will GetFrametimeHistoryValueFromRenderer a new ID.
  *
  * The ID value starts at 0 and increments from there. The value -1 is an invalid ID.
  */
@@ -275,7 +275,7 @@ extern DECLSPEC SDL_Joystick *SDLCALL SDL_JoystickOpen(int device_index);
 /**
  * Get the SDL_Joystick associated with an instance id.
  *
- * \param instance_id the instance id to get the SDL_Joystick for
+ * \param instance_id the instance id to GetFrametimeHistoryValueFromRenderer the SDL_Joystick for
  * \returns an SDL_Joystick on success or NULL on failure; call SDL_GetError()
  *          for more information.
  *
@@ -286,7 +286,7 @@ extern DECLSPEC SDL_Joystick *SDLCALL SDL_JoystickFromInstanceID(SDL_JoystickID 
 /**
  * Get the SDL_Joystick associated with a player index.
  *
- * \param player_index the player index to get the SDL_Joystick for
+ * \param player_index the player index to GetFrametimeHistoryValueFromRenderer the SDL_Joystick for
  * \returns an SDL_Joystick on success or NULL on failure; call SDL_GetError()
  *          for more information.
  */
@@ -677,7 +677,7 @@ extern DECLSPEC SDL_bool SDLCALL SDL_JoystickGetAxisInitialState(SDL_Joystick *j
  * - `SDL_HAT_LEFTDOWN`
  *
  * \param joystick an SDL_Joystick structure containing joystick information
- * \param hat the hat index to get the state from; indices start at index 0
+ * \param hat the hat index to GetFrametimeHistoryValueFromRenderer the state from; indices start at index 0
  * \returns the current hat position.
  *
  * \sa SDL_JoystickNumHats
@@ -709,7 +709,7 @@ extern DECLSPEC int SDLCALL SDL_JoystickGetBall(SDL_Joystick *joystick,
  * Get the current state of a button on a joystick.
  *
  * \param joystick an SDL_Joystick structure containing joystick information
- * \param button the button index to get the state from; indices start at
+ * \param button the button index to GetFrametimeHistoryValueFromRenderer the state from; indices start at
  *               index 0
  * \returns 1 if the specified button is pressed, 0 otherwise.
  *

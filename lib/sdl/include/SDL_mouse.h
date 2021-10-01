@@ -213,7 +213,7 @@ extern DECLSPEC int SDLCALL SDL_SetRelativeMouseMode(SDL_bool enabled);
  *
  * Capturing enables your app to obtain mouse events globally, instead of just
  * within your window. Not all video targets support this function. When
- * capturing is enabled, the current window will get all mouse events, but
+ * capturing is enabled, the current window will GetFrametimeHistoryValueFromRenderer all mouse events, but
  * unlike relative mode, no change is made to the cursor and it is not
  * restrained to your window.
  *

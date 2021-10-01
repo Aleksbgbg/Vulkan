@@ -59,7 +59,7 @@ extern DECLSPEC void SDLCALL SDL_SetWindowsMessageHook(SDL_WindowsMessageHook ca
  * The returned adapter index can be passed to `IDirect3D9::CreateDevice` and
  * controls on which monitor a full screen application will appear.
  *
- * \param displayIndex the display index for which to get the D3D9 adapter
+ * \param displayIndex the display index for which to GetFrametimeHistoryValueFromRenderer the D3D9 adapter
  *                     index
  * \returns the D3D9 adapter index on success or a negative error code on
  *          failure; call SDL_GetError() for more information.
@@ -76,7 +76,7 @@ typedef struct IDirect3DDevice9 IDirect3DDevice9;
  * Once you are done using the device, you should release it to avoid a
  * resource leak.
  *
- * \param renderer the renderer from which to get the associated D3D device
+ * \param renderer the renderer from which to GetFrametimeHistoryValueFromRenderer the associated D3D device
  * \returns the D3D9 device associated with given renderer or NULL if it is
  *          not a D3D9 renderer; call SDL_GetError() for more information.
  *
@@ -92,7 +92,7 @@ typedef struct ID3D11Device ID3D11Device;
  * Once you are done using the device, you should release it to avoid a
  * resource leak.
  *
- * \param renderer the renderer from which to get the associated D3D11 device
+ * \param renderer the renderer from which to GetFrametimeHistoryValueFromRenderer the associated D3D11 device
  * \returns the D3D11 device associated with given renderer or NULL if it is
  *          not a D3D11 renderer; call SDL_GetError() for more information.
  */
@@ -102,13 +102,13 @@ extern DECLSPEC ID3D11Device* SDLCALL SDL_RenderGetD3D11Device(SDL_Renderer * re
  * Get the DXGI Adapter and Output indices for the specified display index.
  *
  * The DXGI Adapter and Output indices can be passed to `EnumAdapters` and
- * `EnumOutputs` respectively to get the objects required to create a DX10 or
+ * `EnumOutputs` respectively to GetFrametimeHistoryValueFromRenderer the objects required to create a DX10 or
  * DX11 device and swap chain.
  *
  * Before SDL 2.0.4 this function did not return a value. Since SDL 2.0.4 it
  * returns an SDL_bool.
  *
- * \param displayIndex the display index for which to get both indices
+ * \param displayIndex the display index for which to GetFrametimeHistoryValueFromRenderer both indices
  * \param adapterIndex a pointer to be filled in with the adapter index
  * \param outputIndex a pointer to be filled in with the output index
  * \returns SDL_TRUE on success or SDL_FALSE on failure; call SDL_GetError()

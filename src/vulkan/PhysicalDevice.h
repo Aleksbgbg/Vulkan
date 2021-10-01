@@ -12,6 +12,7 @@
 #include "Queue.h"
 
 class PhysicalDevice {
+  friend class ImGuiInstance;
 public:
   PhysicalDevice() = default;
   explicit PhysicalDevice(VkPhysicalDevice physicalDevice);

@@ -10,6 +10,7 @@ class RenderPass {
   friend class Swapchain;
   friend class Pipeline;
   friend class CommandBuffer;
+  friend class ImGuiInstance;
 public:
   VULKAN_OBJECT_MOVABLE_ROOT(RenderPass, device, renderPass)
 

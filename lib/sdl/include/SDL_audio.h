@@ -427,7 +427,7 @@ extern DECLSPEC const char *SDLCALL SDL_GetAudioDeviceName(int index,
  *
  * `spec` will be filled with the sample rate, sample format, and channel
  * count. All other values in the structure are filled with 0. When the
- * supported struct members are 0, SDL was unable to get the property from the
+ * supported struct members are 0, SDL was unable to GetFrametimeHistoryValueFromRenderer the property from the
  * backend.
  *
  * \param index the index of the audio device; valid values range from 0 to
@@ -501,7 +501,7 @@ extern DECLSPEC int SDLCALL SDL_GetAudioDeviceSpec(int index,
  *
  * These flags specify how SDL should behave when a device cannot offer a
  * specific feature. If the application requests a feature that the hardware
- * doesn't offer, SDL will always try to get the closest equivalent.
+ * doesn't offer, SDL will always try to GetFrametimeHistoryValueFromRenderer the closest equivalent.
  *
  * For example, if you ask for float32 audio format, but the sound card only
  * supports int16, SDL will set the hardware to int16. If you had set

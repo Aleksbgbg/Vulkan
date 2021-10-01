@@ -24,7 +24,7 @@
  *
  *  Official documentation for SDL configuration variables
  *
- *  This file contains functions to set and get configuration hints,
+ *  This file contains functions to set and GetFrametimeHistoryValueFromRenderer configuration hints,
  *  as well as listing each of them alphabetically.
  *
  *  The convention for naming hints is SDL_HINT_X, where "SDL_X" is
@@ -476,13 +476,13 @@ extern "C" {
 /**
  *  \brief  If set, game controller face buttons report their values according to their labels instead of their positional layout.
  * 
- *  For example, on Nintendo Switch controllers, normally you'd get:
+ *  For example, on Nintendo Switch controllers, normally you'd GetFrametimeHistoryValueFromRenderer:
  *
  *      (Y)
  *  (X)     (B)
  *      (A)
  *
- *  but if this hint is set, you'll get:
+ *  but if this hint is set, you'll GetFrametimeHistoryValueFromRenderer:
  *
  *      (X)
  *  (Y)     (A)
@@ -1587,7 +1587,7 @@ extern "C" {
  *  and SDL_KEYUP), each with a scancode of SDL_SCANCODE_AC_BACK, after which
  *  it will check the contents of the hint, SDL_HINT_WINRT_HANDLE_BACK_BUTTON.
  *  If the hint's value is set to "1", the back button event's Handled
- *  property will get set to 'true'.  If the hint's value is set to something
+ *  property will GetFrametimeHistoryValueFromRenderer set to 'true'.  If the hint's value is set to something
  *  else, or if it is unset, SDL will leave the event's Handled property
  *  alone.  (By default, the OS sets this property to 'false', to note.)
  *
@@ -1595,7 +1595,7 @@ extern "C" {
  *  back button is pressed, or can set it in direct-response to a back button
  *  being pressed.
  *
- *  In order to get notified when a back button is pressed, SDL apps should
+ *  In order to GetFrametimeHistoryValueFromRenderer notified when a back button is pressed, SDL apps should
  *  register a callback function with SDL_AddEventWatch(), and have it listen
  *  for SDL_KEYDOWN events that have a scancode of SDL_SCANCODE_AC_BACK.
  *  (Alternatively, SDL_KEYUP events can be listened-for.  Listening for
@@ -1651,7 +1651,7 @@ extern "C" {
  *
  *  Please note that on Windows Phone, Microsoft does not provide standard UI
  *  for displaying a privacy policy link, and as such, SDL_HINT_WINRT_PRIVACY_POLICY_URL
- *  will not get used on that platform.  Network-enabled phone apps should display
+ *  will not GetFrametimeHistoryValueFromRenderer used on that platform.  Network-enabled phone apps should display
  *  their privacy policy through some other, in-app means.
  */
 #define SDL_HINT_WINRT_PRIVACY_POLICY_URL "SDL_WINRT_PRIVACY_POLICY_URL"
@@ -1767,7 +1767,7 @@ extern DECLSPEC const char * SDLCALL SDL_GetHint(const char *name);
 /**
  * Get the boolean value of a hint variable.
  *
- * \param name the name of the hint to get the boolean value from
+ * \param name the name of the hint to GetFrametimeHistoryValueFromRenderer the boolean value from
  * \param default_value the value to return if the hint does not exist
  * \returns the boolean value of a hint or the provided default value if the
  *          hint does not exist.

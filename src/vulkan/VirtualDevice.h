@@ -27,6 +27,7 @@
 class Surface;
 
 class VirtualDevice {
+  friend class ImGuiInstance;
 public:
   VirtualDevice() = default;
   explicit VirtualDevice(VkPhysicalDevice physicalDevice,

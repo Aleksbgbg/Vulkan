@@ -13,6 +13,7 @@
 #include "PhysicalDevice.h"
 
 class VulkanInstance {
+  friend class ImGuiInstance;
 public:
   VULKAN_OBJECT_MOVABLE(VulkanInstance, instance)
 

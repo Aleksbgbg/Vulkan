@@ -492,7 +492,7 @@ extern DECLSPEC int SDLCALL SDL_GetTextureScaleMode(SDL_Texture * texture,
  * If the texture is intended to be updated often, it is preferred to create
  * the texture as streaming and use the locking functions referenced below.
  * While this function will work with streaming textures, for optimization
- * reasons you may not get the pixels back if you lock the texture afterward.
+ * reasons you may not GetFrametimeHistoryValueFromRenderer the pixels back if you lock the texture afterward.
  *
  * \param texture the texture to update
  * \param rect an SDL_Rect structure representing the area to update, or NULL
@@ -1519,7 +1519,7 @@ extern DECLSPEC void SDLCALL SDL_DestroyRenderer(SDL_Renderer * renderer);
  * should call SDL_RenderFlush() between calls to SDL's render API and the
  * low-level API you're using in cooperation.
  *
- * In all other cases, you can ignore this function. This is only here to get
+ * In all other cases, you can ignore this function. This is only here to GetFrametimeHistoryValueFromRenderer
  * maximum performance out of a specific situation. In all other cases, SDL
  * will do the right thing, perhaps at a performance loss.
  *

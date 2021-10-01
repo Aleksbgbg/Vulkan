@@ -72,7 +72,7 @@ typedef enum
                                      Called on iOS in applicationWillResignActive()
                                      Called on Android in onPause()
                                 */
-    SDL_APP_DIDENTERBACKGROUND, /**< The application did enter the background and may not get CPU for some time
+    SDL_APP_DIDENTERBACKGROUND, /**< The application did enter the background and may not GetFrametimeHistoryValueFromRenderer CPU for some time
                                      Called on iOS in applicationDidEnterBackground()
                                      Called on Android in onPause()
                                 */
@@ -891,11 +891,11 @@ extern DECLSPEC int SDLCALL SDL_WaitEventTimeout(SDL_Event * event,
  *
  * This function is thread-safe, and can be called from other threads safely.
  *
- * Note: Events pushed onto the queue with SDL_PushEvent() get passed through
+ * Note: Events pushed onto the queue with SDL_PushEvent() GetFrametimeHistoryValueFromRenderer passed through
  * the event filter but events added with SDL_PeepEvents() do not.
  *
  * For pushing application-specific events, please use SDL_RegisterEvents() to
- * get an event type that does not conflict with other code that also wants
+ * GetFrametimeHistoryValueFromRenderer an event type that does not conflict with other code that also wants
  * its own custom event types.
  *
  * \param event the SDL_Event to be added to the queue
@@ -950,7 +950,7 @@ typedef int (SDLCALL * SDL_EventFilter) (void *userdata, SDL_Event * event);
  * Note: If you just want to inspect events without filtering, you should use
  * SDL_AddEventWatch() instead.
  *
- * Note: Events pushed onto the queue with SDL_PushEvent() get passed through
+ * Note: Events pushed onto the queue with SDL_PushEvent() GetFrametimeHistoryValueFromRenderer passed through
  * the event filter, but events pushed onto the queue with SDL_PeepEvents() do
  * not.
  *

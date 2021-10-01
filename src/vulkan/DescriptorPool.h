@@ -13,6 +13,7 @@
 #include "Pipeline.h"
 
 class DescriptorPool {
+  friend class ImGuiInstance;
 public:
   VULKAN_OBJECT_MOVABLE_ROOT(DescriptorPool, device, descriptorPool)
 

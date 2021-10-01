@@ -9,20 +9,20 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/Swapchain.h>
 
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "vulkan/VulkanInstance.h"
 #include "vulkan/Semaphore.h"
 #include "vulkan/structures/ApplicationInfo.h"
+#include "vulkan/ImGuiInstance.h"
 #include "Keyboard.h"
+#include "SdlIncl.h"
+#include "GlmIncl.h"
 
 // Bad windows headers
 #include <vulkan/vulkan_win32.h>
 #undef PostMessage
 
 #include "MultithreadedMessageQueue.h"
+#include "UiRenderer.h"
 
 class App {
 public:
@@ -40,7 +40,7 @@ private:
   void UpdateModel(const float deltaTime);
   void Render();
 
-  void InitializeSwapchain();
+  void InitializeSwapchain(CommandBuffer& transientCommandBuffer);
 
 private:
   struct Rect {
@@ -122,6 +122,9 @@ private:
 
   DescriptorPool descriptorPool;
 
+  VkPhysicalDeviceProperties physicalDeviceProperties;
+  UiRenderer uiRenderer;
+
   UniformBufferObject renderTransform;
 
   struct SwapchainRenderPass {
@@ -155,7 +158,7 @@ private:
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
 
   float cubeRotation = 0.0f;
-  glm::mat4 cubeTransform;
+  glm::vec3 cubePosition;
 
   glm::vec2 cameraRotation;
 

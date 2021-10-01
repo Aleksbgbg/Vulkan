@@ -18,6 +18,7 @@
 #include "Image.h"
 
 class CommandBuffer {
+  friend class ImGuiInstance;
 public:
   CommandBuffer() = default;
   explicit CommandBuffer(VkDevice device, VkQueue queue, VkCommandPool commandPool, CommandBufferAllocateInfoBuilder& infoBuilder);

@@ -96,11 +96,11 @@ typedef enum
  * The functions SDL_SetRenderDrawBlendMode and SDL_SetTextureBlendMode accept
  * the SDL_BlendMode returned by this function if the renderer supports it.
  *
- * A blend mode controls how the pixels from a drawing operation (source) get
+ * A blend mode controls how the pixels from a drawing operation (source) GetFrametimeHistoryValueFromRenderer
  * combined with the pixels from the render target (destination). First, the
- * components of the source and destination pixels get multiplied with their
+ * components of the source and destination pixels GetFrametimeHistoryValueFromRenderer multiplied with their
  * blend factors. Then, the blend operation takes the two products and
- * calculates the result that will get stored in the render target.
+ * calculates the result that will GetFrametimeHistoryValueFromRenderer stored in the render target.
  *
  * Expressed in pseudocode, it would look like this:
  *

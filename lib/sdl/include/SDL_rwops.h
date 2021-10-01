@@ -182,9 +182,9 @@ extern DECLSPEC void SDLCALL SDL_FreeRW(SDL_RWops * area);
 #define RW_SEEK_END 2       /**< Seek relative to the end of data */
 
 /**
- * Use this macro to get the size of the data stream in an SDL_RWops.
+ * Use this macro to GetFrametimeHistoryValueFromRenderer the size of the data stream in an SDL_RWops.
  *
- * \param context the SDL_RWops to get the size of the data stream from
+ * \param context the SDL_RWops to GetFrametimeHistoryValueFromRenderer the size of the data stream from
  * \returns the size of the data stream in the SDL_RWops on success, -1 if
  *          unknown or a negative error code on failure; call SDL_GetError()
  *          for more information.
@@ -234,7 +234,7 @@ extern DECLSPEC Sint64 SDLCALL SDL_RWseek(SDL_RWops *context,
  * method, with an offset of 0 bytes from `RW_SEEK_CUR`, to simplify
  * application development.
  *
- * \param context a SDL_RWops data stream object from which to get the current
+ * \param context a SDL_RWops data stream object from which to GetFrametimeHistoryValueFromRenderer the current
  *                offset
  * \returns the current offset in the stream, or -1 if the information can not
  *          be determined.
