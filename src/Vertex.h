@@ -1,12 +1,11 @@
 #ifndef VULKAN_SRC_VERTEX_H
 #define VULKAN_SRC_VERTEX_H
 
-#include <glm/glm.hpp>
+#include "GlmIncl.h"
 
 struct Vertex {
-  glm::vec3 pos;
-  glm::vec3 color;
-  glm::vec2 texCoord;
+  glm::vec3 position;
+  glm::vec2 textureCoordinate;
 };
 
 #endif // VULKAN_SRC_VERTEX_H

@@ -65,10 +65,13 @@ private:
     DeviceMemory memory;
   };
 
-  struct UniformBufferObject {
+  struct ModelViewTransformation{
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
+  };
+
+  struct ProjectionTransformation{
+    alignas(16) glm::mat4 value;
   };
 
   BufferWithMemory TransferDataToGpuLocalMemory(
@@ -125,7 +128,8 @@ private:
   VkPhysicalDeviceProperties physicalDeviceProperties;
   UiRenderer uiRenderer;
 
-  UniformBufferObject renderTransform;
+  ModelViewTransformation renderTransform;
+  ProjectionTransformation projectionTransform;
 
   struct SwapchainRenderPass {
     BufferWithMemory renderData;

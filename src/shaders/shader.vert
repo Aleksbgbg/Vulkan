@@ -1,20 +1,24 @@
 #version 450
 
-layout(binding = 0) uniform UniformBufferObject {
+layout(push_constant) uniform ModelViewTransformation {
   mat4 model;
   mat4 view;
-  mat4 proj;
-} ubo;
+} renderTransofrm;
+
+layout(binding = 0) uniform ProjectionTransformation {
+  mat4 value;
+} projectionTransform;
 
 layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColor;
-layout(location = 2) in vec2 inTexCoord;
+layout(location = 1) in vec2 inTextureCoordinate;
 
-layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec2 fragTexCoord;
+layout(location = 0) out vec2 fragTextureCoordinate;
 
 void main() {
-  gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
-  fragColor = inColor;
-  fragTexCoord = inTexCoord;
+  gl_Position =
+    projectionTransform.value *
+    renderTransofrm.view *
+    renderTransofrm.model *
+    vec4(inPosition, 1.0);
+  fragTextureCoordinate = inTextureCoordinate;
 }

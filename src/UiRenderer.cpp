@@ -102,14 +102,16 @@ void UiRenderer::ShowObjectsInScene(const ObjectsInSceneInfo& info) const {
 }
 
 void UiRenderer::RenderKey(const Keyboard& keyboard, const KeyDescription& key) {
-  if (keyboard.IsKeyDown(key.code)) {
+  const bool isKeyDown = keyboard.IsKeyDown(key.code); // Race condition if not saved
+
+  if (isKeyDown) {
     ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
   }
   ImGui::Button(key.key, ImVec2(25.0f, 25.0f));
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(key.description);
   }
-  if (keyboard.IsKeyDown(key.code)) {
+  if (isKeyDown) {
     ImGui::PopStyleColor();
   }
 }

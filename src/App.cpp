@@ -182,7 +182,7 @@ std::vector<u16> GenerateIndices(const std::vector<Vertex>& vertices) {
       std::vector<u16> planeVertices;
 
       for (u16 vertexIndex = 0; vertexIndex < vertices.size(); ++vertexIndex) {
-        if (vertices[vertexIndex].pos[plane] == planeValue) {
+        if (vertices[vertexIndex].position[plane] == planeValue) {
           planeVertices.push_back(vertexIndex);
         }
       }
@@ -203,7 +203,7 @@ std::vector<u16> GenerateIndices(const std::vector<Vertex>& vertices) {
       u32 added = 1;
       indices.push_back(planeVertices[0]);
 
-      glm::vec3 vertex = vertices[planeVertices[0]].pos;
+      glm::vec3 vertex = vertices[planeVertices[0]].position;
 
       for (u32 index = 0; index < 4; ++index) {
         const u32 axisToModify = axesToModify[index];
@@ -215,7 +215,7 @@ std::vector<u16> GenerateIndices(const std::vector<Vertex>& vertices) {
         }
 
         for (u16 vertexIndex = 0; vertexIndex < vertices.size(); ++vertexIndex) {
-          if (vertices[vertexIndex].pos == vertex) {
+          if (vertices[vertexIndex].position == vertex) {
             ++added;
             indices.push_back(vertexIndex);
 
@@ -350,22 +350,33 @@ App::App()
   queue = virtualDevice.GetQueue(queueFamilyIndex.value(), 0);
 
   const std::vector<Vertex> vertices = {
-      /* 0 */ {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-      /* 1 */ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
-      /* 2 */ {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-      /* 3 */ {{1.0f, -1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
-      /* 4 */ {{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-      /* 5 */ {{1.0f, 1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
-      /* 6 */ {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-      /* 7 */ {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
+      // Sides:
+      /* 0  */ {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
+      /* 1  */ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}},
+      /* 2  */ {{-1.0f, -1.0f, 1.0f}, {0.0f, 1.0f}},
+      /* 3  */ {{1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
+      /* 4  */ {{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f}},
+      /* 5  */ {{1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
+      /* 6  */ {{-1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+      /* 7  */ {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
+      // Top
+      /* 8  */ {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f}},
+      /* 9  */ {{1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
+      /* 10 */ {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
+      /* 11 */ {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+      // Bottom
+      /* 12 */ {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
+      /* 13 */ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}},
+      /* 14 */ {{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f}},
+      /* 15 */ {{1.0f, -1.0f, 1.0f}, {1.0f, 1.0f}},
   };
   const std::vector<u16> indices = {
-      0, 1, 2, 1, 2, 3, // bottom face
-      0, 4, 5, 0, 1, 5, // back face
-      1, 3, 7, 1, 5, 7, // left face
-      0, 2, 6, 0, 4, 6, // right face
-      2, 6, 7, 2, 3, 7, // front face
-      4, 5, 6, 5, 6, 7, // top face
+      12, 13, 15, 15, 14, 12, // bottom face
+      0, 4, 5, 5, 1, 0, // back face
+      0, 2, 6, 6, 4, 0, // left face
+      3, 1, 5, 5, 7, 3, // right face
+      2, 3, 7, 7, 6, 2, // front face
+      8, 10, 11, 11, 9, 8, // top face
   };
   indexCount = indices.size();
 
@@ -497,13 +508,13 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
 
   const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
 
-  renderTransform.proj =
+  projectionTransform.value =
       glm::perspective(
           glm::radians(45.0f),
           static_cast<float>(swapchainExtent.width) / static_cast<float>(swapchainExtent.height),
           0.1f,
           1000.0f);
-  renderTransform.proj[1][1] *= -1;
+  projectionTransform.value[1][1] *= -1;
 
   Image depthStencilImage =
       virtualDevice.CreateImage(
@@ -556,24 +567,18 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX)
           .BuildObject(),
   };
-  const std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDescriptions {
+  const std::array<VkVertexInputAttributeDescription, 2> vertexAttributeDescriptions {
       VertexInputAttributeDescriptionBuilder()
           .SetBinding(0)
           .SetLocation(0)
           .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-          .SetOffset(offsetof(Vertex, pos))
+          .SetOffset(offsetof(Vertex, position))
           .BuildObject(),
       VertexInputAttributeDescriptionBuilder()
           .SetBinding(0)
           .SetLocation(1)
-          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-          .SetOffset(offsetof(Vertex, color))
-          .BuildObject(),
-      VertexInputAttributeDescriptionBuilder()
-          .SetBinding(0)
-          .SetLocation(2)
           .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-          .SetOffset(offsetof(Vertex, texCoord))
+          .SetOffset(offsetof(Vertex, textureCoordinate))
           .BuildObject(),
   };
   const std::array<VkDescriptorSetLayoutBinding, 2> descriptorSetLayoutBindings {
@@ -634,7 +639,15 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
   pipeline =
       virtualDevice.CreateGraphicsPipeline(
           shaders,
-          virtualDevice.CreatePipelineLayout(descriptorSetLayout),
+          virtualDevice.CreatePipelineLayout(
+              descriptorSetLayout,
+              PipelineLayoutCreateInfoBuilder()
+                  .SetPushConstantRangeCount(1)
+                  .SetPPushConstantRanges(
+                      PushConstantRangeBuilder()
+                          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
+                          .SetOffset(0)
+                          .SetSize(sizeof(ModelViewTransformation)))),
           renderPass,
           0,
           GraphicsPipelineCreateInfoBuilder()
@@ -692,15 +705,14 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
 
   uiRenderer =
       UiRenderer(
-          std::move(
-              ImGuiInstance(
-                  windowInfo.window,
-                  instance,
-                  targetPhysicalDevice,
-                  virtualDevice,
-                  queue,
-                  renderPass,
-                  transientCommandBuffer)));
+          ImGuiInstance(
+              windowInfo.window,
+              instance,
+              targetPhysicalDevice,
+              virtualDevice,
+              queue,
+              renderPass,
+              transientCommandBuffer));
 
   const u32 swapchainImages = swapchain.GetImageCount();
   const std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes {
@@ -723,17 +735,11 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
       descriptorPool.AllocateDescriptorSets(descriptorSetLayout, swapchainImages);
 
   for (u32 renderIndex = 0; renderIndex < swapchainImages; ++renderIndex) {
-    Buffer uniformBuffer =
-        virtualDevice.CreateBuffer(
-            BufferCreateInfoBuilder()
-                .SetUsage(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
-                .SetSize(sizeof(UniformBufferObject))
-                .SetSharingMode(VK_SHARING_MODE_EXCLUSIVE));
-    DeviceMemory uniformBufferMemory =
-        uniformBuffer.AllocateAndBindMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    BufferWithMemory uniformBufferMemory =
+        TransferDataToGpuLocalMemory(transientCommandBuffer, &projectionTransform, sizeof(projectionTransform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     DescriptorSet& descriptorSet = descriptorSets[renderIndex];
-    DescriptorSet::WriteDescriptorSetBuild bufferWrite = descriptorSet.CreateBufferWrite(uniformBuffer);
+    DescriptorSet::WriteDescriptorSetBuild bufferWrite = descriptorSet.CreateBufferWrite(uniformBufferMemory.buffer);
     DescriptorSet::WriteDescriptorSetBuild textureSamplerWrite =
         descriptorSet
             .CreateImageSamplerWrite(textureView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -750,10 +756,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
     CommandBuffer renderPassCommandBuffer = renderCommandPool.AllocatePrimaryCommandBuffer();
 
     swapchainRenderData.emplace_back(std::move<SwapchainRenderPass>({
-        .renderData = {
-            .buffer = std::move(uniformBuffer),
-            .memory = std::move(uniformBufferMemory)
-        },
+        .renderData = std::move(uniformBufferMemory),
         .commandBuffer = std::move(renderPassCommandBuffer),
         .renderCompleteSemaphore = virtualDevice.MakeSemaphore(),
         .submitCompleteFence = virtualDevice.MakeFence(VK_FENCE_CREATE_SIGNALED_BIT)
@@ -966,7 +969,7 @@ void App::UpdateModel(const float deltaTime) {
   renderTransform.model = rotatedCube;
   renderTransform.view = glm::lookAt(glm::vec3(0.0f), cameraCenter, glm::vec3(0.0f, 1.0f, 0.0f));
 
-  std::vector<glm::vec3*> cubePositions {&cubePosition };
+  std::vector<glm::vec3*> cubePositions { &cubePosition };
   uiRenderer.ShowObjectsInScene(ObjectsInSceneInfo{
     .cameraRotation = glm::vec2(cameraRotation.x, cameraRotation.y - 26.565f),
     .cameraCenter = glm::vec3(cameraCenter.x, cameraCenter.y - cameraStarePoint.y, cameraCenter.z - cameraStarePoint.z),
@@ -1001,9 +1004,6 @@ void App::Render() {
 
   SwapchainRenderPass& swapchainRender = swapchainRenderData[imageIndex];
 
-  swapchainRender.renderData.memory.MapCopy(&renderTransform, sizeof(renderTransform));
-
-  swapchainRender.submitCompleteFence.Wait().Reset();
   {
     const std::array<VkClearValue, 2> clearValues{
         ClearValueBuilder()
@@ -1027,12 +1027,14 @@ void App::Render() {
     swapchainRender.commandBuffer.CmdBindVertexBuffers(vertexMemoryBuffer.buffer, 0);
     swapchainRender.commandBuffer.CmdBindIndexBuffer(indexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
     swapchainRender.commandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), descriptorSets[0]);
+    swapchainRender.commandBuffer.CmdPushConstants(pipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(renderTransform), &renderTransform);
     swapchainRender.commandBuffer.CmdDrawIndexed(indexCount, /* instanceCount= */ 1); // TODO: More instances
     uiRenderer.Render(swapchainRender.commandBuffer);
     swapchainRender.commandBuffer.CmdEndRenderPass();
     swapchainRender.commandBuffer.End();
   }
 
+  swapchainRender.submitCompleteFence.Wait().Reset();
   swapchainRender.commandBuffer.Submit(
       SynchronisationPack()
           .SetWaitSemaphore(&synchronisation.acquireImageSemaphore)

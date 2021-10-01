@@ -13,7 +13,7 @@ VertexBuilder::VertexBuilder(const std::vector<Vertex>& vertices) : vertices(ver
       this->vertices.begin(),
       [](const Vertex& vertex) {
         return VertexInfo{
-          .pos = vertex.pos,
+          .pos = vertex.position,
           .visited = false
         };
       });
