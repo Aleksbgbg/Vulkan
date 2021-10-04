@@ -15,20 +15,28 @@ float Average(const float* const values, const u32 size) {
   return sum / size;
 }
 
+static constexpr float ButtonSize = 50.0f;
+
 UiRenderer::UiRenderer(ImGuiInstance imGuiInstance)
   :
   imGuiInstance(std::move(imGuiInstance)),
   valuesFilled(0),
   frametimeHistoryIndex(0),
   frametimeHistory(),
-  timeSum(0.0f)
+  timeSum(0.0f),
+  spawnCubeKey(KeyDescription("F", SDLK_f, "spawn cube")),
+  cameraKeys({
+    KeyDescription("\xEF\x84\x86", SDLK_UP, "pivot camera up"),
+    KeyDescription("\xEF\x84\x84", SDLK_LEFT, "pivot camera left"),
+    KeyDescription("\xEF\x84\x87", SDLK_DOWN, "pivot camera down"),
+    KeyDescription("\xEF\x84\x85", SDLK_RIGHT, "pivot camera right" )})
 {
-  sceneObjectControls[0].emplace_back(KeyDescription{ .key = "Q", .code = SDLK_q, .description = "decrease Z" });
-  sceneObjectControls[0].emplace_back(KeyDescription{ .key = "W", .code = SDLK_w, .description = "increase Y" });
-  sceneObjectControls[0].emplace_back(KeyDescription{ .key = "E", .code = SDLK_e, .description = "increase Z" });
-  sceneObjectControls[1].emplace_back(KeyDescription{ .key = "A", .code = SDLK_a, .description = "decrease X" });
-  sceneObjectControls[1].emplace_back(KeyDescription{ .key = "S", .code = SDLK_s, .description = "decrease Y" });
-  sceneObjectControls[1].emplace_back(KeyDescription{ .key = "D", .code = SDLK_d, .description = "increase X" });
+  sceneObjectControls[0].emplace_back(KeyDescription("Q", SDLK_q, "decrease Z"));
+  sceneObjectControls[0].emplace_back(KeyDescription("W", SDLK_w, "increase Y"));
+  sceneObjectControls[0].emplace_back(KeyDescription("E", SDLK_e, "increase Z"));
+  sceneObjectControls[1].emplace_back(KeyDescription("A", SDLK_a, "decrease X"));
+  sceneObjectControls[1].emplace_back(KeyDescription("S", SDLK_s, "decrease Y"));
+  sceneObjectControls[1].emplace_back(KeyDescription("D", SDLK_d, "increase X"));
 }
 
 void UiRenderer::ProcessEvent(const SDL_Event& event) const {
@@ -50,6 +58,7 @@ void UiRenderer::Render(const CommandBuffer& commandBuffer) const {
 void UiRenderer::ShowVulkanDebugInfo(const VulkanDebugInfo& info) {
   timeSum += info.frametime;
 
+  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
   ImGui::Begin("Vulkan Debug");
   ImGui::Text(info.gpuName);
 
@@ -83,31 +92,42 @@ float UiRenderer::GetFrametimeHistoryValue(void* data, int index) const {
 void UiRenderer::ShowObjectsInScene(const ObjectsInSceneInfo& info) const {
   ImGui::ShowDemoWindow();
 
+  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
   ImGui::Begin("Objects in Scene");
   ImGui::Text("Camera positioned at (%.3f, %.3f, %.3f)", info.cameraPosition.x, info.cameraPosition.y, info.cameraPosition.z);
   ImGui::Text("Camera looking at (%.3f, %.3f, %.3f)", info.cameraCenter.x, info.cameraCenter.y, info.cameraCenter.z);
   ImGui::Text("Camera rotated by (%.1f°, %.1f°)", info.cameraRotation.x, info.cameraRotation.y);
   ImGui::BeginTabBar("Cubes", ImGuiTabBarFlags_AutoSelectNewTabs);
-  u32 i = 0;
-  for (glm::vec3* value : info.cubePositions) {
-    if (ImGui::BeginTabItem(std::format("Cube {}", ++i).c_str())) {
+  for (u32 cubeIndex = 0; cubeIndex < info.cubePositions.size(); ++cubeIndex) {
+    if (ImGui::BeginTabItem(std::format("Cube {}", cubeIndex + 1).c_str())) {
+      glm::vec3* value = info.cubePositions[cubeIndex];
+
       ImGui::InputFloat("X", &value->x, 0.0f, 0.0f, "%.3f");
       ImGui::InputFloat("Y", &value->y, 0.0f, 0.0f, "%.3f");
       ImGui::InputFloat("Z", &value->z, 0.0f, 0.0f, "%.3f");
       ImGui::EndTabItem();
+
+      (*info.selectedObjectIndex) = cubeIndex;
     }
   }
   ImGui::EndTabBar();
   ImGui::End();
 }
 
-void UiRenderer::RenderKey(const Keyboard& keyboard, const KeyDescription& key) {
+void UiRenderer::RenderKey(Keyboard& keyboard, KeyDescription& key) {
   const bool isKeyDown = keyboard.IsKeyDown(key.code); // Race condition if not saved
 
   if (isKeyDown) {
     ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
   }
-  ImGui::Button(key.key, ImVec2(25.0f, 25.0f));
+  ImGui::Button(key.key, ImVec2(ButtonSize, ButtonSize));
+  if (ImGui::IsItemActive()) {
+    keyboard.Keydown(key.code);
+    key.pressed = true;
+  } else if (key.pressed) {
+    keyboard.Keyup(key.code);
+    key.pressed = false;
+  }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(key.description);
   }
@@ -116,13 +136,14 @@ void UiRenderer::RenderKey(const Keyboard& keyboard, const KeyDescription& key) 
   }
 }
 
-void UiRenderer::ShowKeyboardLayout(const Keyboard& keyboard) const {
+void UiRenderer::ShowKeyboardLayout(Keyboard& keyboard) {
+  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
   ImGui::Begin("Keyboard Layout");
 
   ImGui::Text("Move selected scene object");
-  for (const std::vector<KeyDescription>& row : sceneObjectControls) {
+  for (std::vector<KeyDescription>& row : sceneObjectControls) {
     for (u32 keyIndex = 0; keyIndex < (row.size() - 1); ++keyIndex) {
-      const KeyDescription& key = row[keyIndex];
+      KeyDescription& key = row[keyIndex];
       RenderKey(keyboard, key);
 
       ImGui::SameLine();
@@ -131,17 +152,17 @@ void UiRenderer::ShowKeyboardLayout(const Keyboard& keyboard) const {
   }
 
   ImGui::Text("Pivot camera");
-  ImGui::Dummy(ImVec2(25.0f, 25.0f));
+  ImGui::Dummy(ImVec2(ButtonSize, ButtonSize));
   ImGui::SameLine();
-  RenderKey(keyboard, KeyDescription{ .key = "\xEF\x84\x86", .code = SDLK_UP, .description = "pivot camera up" });
-  RenderKey(keyboard, KeyDescription{ .key = "\xEF\x84\x84", .code = SDLK_LEFT, .description = "pivot camera left" });
+  RenderKey(keyboard, cameraKeys[0]);
+  RenderKey(keyboard, cameraKeys[1]);
   ImGui::SameLine();
-  RenderKey(keyboard, KeyDescription{ .key = "\xEF\x84\x87", .code = SDLK_DOWN, .description = "pivot camera down" });
+  RenderKey(keyboard, cameraKeys[2]);
   ImGui::SameLine();
-  RenderKey(keyboard, KeyDescription{ .key = "\xEF\x84\x85", .code = SDLK_RIGHT, .description = "pivot camera right" });
+  RenderKey(keyboard, cameraKeys[3]);
 
   ImGui::Text("Spawn cube");
-  RenderKey(keyboard, KeyDescription{ .key = "F", .code = SDLK_f, .description = "spawn cube" });
+  RenderKey(keyboard, spawnCubeKey);
 
   ImGui::End();
 }

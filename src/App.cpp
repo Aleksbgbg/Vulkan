@@ -24,6 +24,7 @@
 #include "vulkan/util.h"
 #include "build_definition.h"
 #include "VertexBuilder.h"
+#include "GradientVertex.h"
 
 struct UiVertex {
   glm::vec2 position;
@@ -39,7 +40,7 @@ App::WindowInfo App::InitSdl() {
 
   Rect windowRect = {
       .position = glm::ivec2(50, 50),
-      .size = glm::ivec2(1366, 760)
+      .size = glm::ivec2(1920, 1080)
   };
 
   SDL_Window* window =
@@ -50,6 +51,8 @@ App::WindowInfo App::InitSdl() {
           windowRect.size.x,
           windowRect.size.y,
           SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
+//  SDL_GetWindowSize(window, &windowRect.size.x, &windowRect.size.y);
+//  SDL_Vulkan_GetDrawableSize(window, &windowRect.size.x, &windowRect.size.y);
 
   SDL_SysWMinfo sysWmInfo;
   SDL_VERSION(&sysWmInfo.version)
@@ -160,7 +163,7 @@ Bitmap ReadBitmap(const char* const path) {
   return bitmap;
 }
 
-std::vector<u16> GenerateIndices(const std::vector<Vertex>& vertices) {
+std::vector<u16> GenerateIndices(const std::vector<GradientVertex>& vertices) {
 //  std::vector<u16> indices = {
 //      0, 1, 2, 1, 2, 3, // bottom face
 //      0, 4, 5, 0, 1, 5, // back face
@@ -237,15 +240,16 @@ App::App()
     :
     windowInfo(InitSdl()),
     renderTransform(),
+    gradientRenderTransform(),
     previousTime(std::chrono::high_resolution_clock::now()),
     cubePosition(),
+    gradientCubePosition(),
     cameraRotation(glm::vec2(0.0f)),
     threadMessenger(),
     acquiredImage({ .exists = false, .index = 0 }) {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
 
-  auto x = VK_KHR_shader_non_semantic_info;
   const std::vector<const char*> requiredExtensions = {
       VK_KHR_SURFACE_EXTENSION_NAME,
       VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
@@ -322,7 +326,7 @@ App::App()
   minSwapchainImages = std::min(surfaceCapabilities.minImageCount + 1, surfaceCapabilities.maxImageCount);
   framesInFlight = minSwapchainImages;
 
-  std::optional<u32> queueFamilyIndex =
+  const std::optional<u32> queueFamilyIndex =
       targetPhysicalDevice.FindAppropriateQueueFamily(
           VK_QUEUE_GRAPHICS_BIT, [this](const u32 queueFamilyIndex) {
             return windowSurface.IsSupportedByPhysicalDevice(targetPhysicalDevice, queueFamilyIndex);
@@ -349,7 +353,15 @@ App::App()
               .SetPpEnabledExtensionNames(deviceExtensions.data()));
   queue = virtualDevice.GetQueue(queueFamilyIndex.value(), 0);
 
-  const std::vector<Vertex> vertices = {
+  deviceAllocator = virtualDevice.CreateMemoryAllocator();
+
+  fence = virtualDevice.CreateFence();
+
+  CommandPool memoryTransferCommandPool =
+      queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+  CommandBuffer memoryTransferCommandBuffer = memoryTransferCommandPool.AllocatePrimaryCommandBuffer();
+
+  const std::vector<TexturedVertex> vertices = {
       // Sides:
       /* 0  */ {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
       /* 1  */ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}},
@@ -380,10 +392,6 @@ App::App()
   };
   indexCount = indices.size();
 
-  CommandPool memoryTransferCommandPool =
-      queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
-  CommandBuffer memoryTransferCommandBuffer = memoryTransferCommandPool.AllocatePrimaryCommandBuffer();
-
   vertexMemoryBuffer =
       TransferDataToGpuLocalMemory(
           memoryTransferCommandBuffer,
@@ -397,6 +405,32 @@ App::App()
           sizeof(indices[0]) * indices.size(),
           VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
+  const std::vector<GradientVertex> gradientVertices = {
+      /* 0 */ {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
+      /* 1 */ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
+      /* 2 */ {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+      /* 3 */ {{1.0f, -1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
+      /* 4 */ {{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
+      /* 5 */ {{1.0f, 1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
+      /* 6 */ {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+      /* 7 */ {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
+  };
+  const std::vector<u16> gradientIndices = GenerateIndices(gradientVertices);
+  gradientIndexCount = gradientIndices.size();
+
+  gradientVertexMemoryBuffer =
+      TransferDataToGpuLocalMemory(
+          memoryTransferCommandBuffer,
+          gradientVertices.data(),
+          sizeof(gradientVertices[0]) * gradientVertices.size(),
+          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+  gradientIndexMemoryBuffer =
+      TransferDataToGpuLocalMemory(
+          memoryTransferCommandBuffer,
+          gradientIndices.data(),
+          sizeof(gradientIndices[0]) * gradientIndices.size(),
+          VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+
   Bitmap bitmap = ReadBitmap("Alice.bmp");
 
   const float pictureWidth = static_cast<float>(bitmap.width);
@@ -407,9 +441,9 @@ App::App()
           BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
               .SetSize(bitmap.size)
               .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  DeviceMemory stagingBufferMemory =
-      stagingBuffer.AllocateAndBindMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  stagingBufferMemory.MapCopy(bitmap.data.data(), stagingBuffer.Size());
+  ReservedMemory stagingBufferMemory =
+      deviceAllocator.BindMemory(stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  stagingBufferMemory.memoryBinding.GetMemory().MapCopy(bitmap.data.data(), stagingBufferMemory.offset, stagingBuffer.Size());
 
   Image textureImage =
       virtualDevice.CreateImage(
@@ -417,7 +451,8 @@ App::App()
               .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
               .SetExtent(Extent3DBuilder().SetWidth(bitmap.width).SetHeight(bitmap.height).SetDepth(1))
               .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT));
-  DeviceMemory textureImageMemory = textureImage.AllocateAndBindMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  ReservedMemory textureImageMemory =
+      deviceAllocator.BindMemory(textureImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   memoryTransferCommandBuffer.BeginOneTimeSubmit();
   memoryTransferCommandBuffer.CmdImageMemoryBarrier(
@@ -447,7 +482,7 @@ App::App()
           .SetOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
           .SetNewLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
           .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  memoryTransferCommandBuffer.End().Submit().Wait();
+  memoryTransferCommandBuffer.End().Submit(fence).Wait().Reset();
 
   textureView =
       textureImage.CreateView(
@@ -472,14 +507,16 @@ App::App()
 
   renderCommandPool = queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
-  shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_VERTEX_BIT, "shaders/shader.vert.spv"));
-  shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/shader.frag.spv"));
+  shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_VERTEX_BIT, "shaders/textured_cube.vert.spv"));
+  shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/textured_cube.frag.spv"));
+  gradientShaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_VERTEX_BIT, "shaders/gradient_cube.vert.spv"));
+  gradientShaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/gradient_cube.frag.spv"));
 
   InitializeSwapchain(memoryTransferCommandBuffer);
 
   for (u32 inFlightImage = 0; inFlightImage < framesInFlight; ++inFlightImage) {
     imagesInFlightSynchronisation.emplace_back(std::move<InFlightImage>({
-      .acquireImageSemaphore = virtualDevice.MakeSemaphore()
+      .acquireImageSemaphore = virtualDevice.CreateSemaphore()
     }));
   }
 }
@@ -491,7 +528,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
       virtualDevice.CreateSwapchain(
           windowSurface,
           SwapchainCreateInfoBuilder()
-              .SetMinImageCount(minSwapchainImages)
+              .SetMinImageCount(minSwapchainImages + 1)
               .SetImageFormat(surfaceFormat.format)
               .SetImageColorSpace(surfaceFormat.colorSpace)
               .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
@@ -522,7 +559,8 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
               .SetFormat(depthStencilFormat)
               .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
               .SetUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
-  DeviceMemory depthStencilMemory = depthStencilImage.AllocateAndBindMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  ReservedMemory depthStencilMemory =
+      deviceAllocator.BindMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   depthStencilView =
       depthStencilImage.CreateView(
           ImageViewCreateInfoBuilder()
@@ -560,58 +598,23 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           .SetFinalLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
           .BuildObject(),
   };
-  const std::array<VkVertexInputBindingDescription, 1> vertexBindingDescriptions {
-      VertexInputBindingDescriptionBuilder()
-          .SetBinding(0)
-          .SetStride(sizeof(Vertex))
-          .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX)
+  const std::array<VkAttachmentReference, 1> colorAttachments = {
+      AttachmentReferenceBuilder()
+          .SetAttachment(0)
+          .SetLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
           .BuildObject(),
   };
-  const std::array<VkVertexInputAttributeDescription, 2> vertexAttributeDescriptions {
-      VertexInputAttributeDescriptionBuilder()
-          .SetBinding(0)
-          .SetLocation(0)
-          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-          .SetOffset(offsetof(Vertex, position))
-          .BuildObject(),
-      VertexInputAttributeDescriptionBuilder()
-          .SetBinding(0)
-          .SetLocation(1)
-          .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-          .SetOffset(offsetof(Vertex, textureCoordinate))
-          .BuildObject(),
-  };
-  const std::array<VkDescriptorSetLayoutBinding, 2> descriptorSetLayoutBindings {
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(0)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
-          .BuildObject(),
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(1)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-          .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT)
-          .BuildObject(),
-  };
-  descriptorSetLayout =
-      virtualDevice.CreateDescriptorSetLayout(
-          DescriptorSetLayoutCreateInfoBuilder()
-              .SetBindingCount(descriptorSetLayoutBindings.size())
-              .SetPBindings(descriptorSetLayoutBindings.data()));
+  const VkAttachmentReference depthStencilAttachment =
+      AttachmentReferenceBuilder()
+          .SetAttachment(1)
+          .SetLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+          .BuildObject();
   const std::array<VkSubpassDescription, 1> subpasses {
       SubpassDescriptionBuilder()
           .SetPipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS)
-          .SetColorAttachmentCount(1)
-          .SetPColorAttachments(
-              AttachmentReferenceBuilder()
-                  .SetAttachment(0)
-                  .SetLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL))
-          .SetPDepthStencilAttachment(
-              AttachmentReferenceBuilder()
-                  .SetAttachment(1)
-                  .SetLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL))
+          .SetColorAttachmentCount(colorAttachments.size())
+          .SetPColorAttachments(colorAttachments.data())
+          .SetPDepthStencilAttachment(&depthStencilAttachment)
           .BuildObject(),
   };
   const std::array<VkSubpassDependency, 1> subpassDependencies {
@@ -636,6 +639,48 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
               .SetPSubpasses(subpasses.data())
               .SetDependencyCount(subpassDependencies.size())
               .SetPDependencies(subpassDependencies.data()));
+  swapchainFramebuffers = swapchain.GetFramebuffers(renderPass, depthStencilView);
+
+  const std::array<VkVertexInputBindingDescription, 1> vertexBindingDescriptions {
+      VertexInputBindingDescriptionBuilder()
+          .SetBinding(0)
+          .SetStride(sizeof(TexturedVertex))
+          .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX)
+          .BuildObject(),
+  };
+  const std::array<VkVertexInputAttributeDescription, 2> vertexAttributeDescriptions {
+      VertexInputAttributeDescriptionBuilder()
+          .SetBinding(0)
+          .SetLocation(0)
+          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+          .SetOffset(offsetof(TexturedVertex, position))
+          .BuildObject(),
+      VertexInputAttributeDescriptionBuilder()
+          .SetBinding(0)
+          .SetLocation(1)
+          .SetFormat(VK_FORMAT_R32G32_SFLOAT)
+          .SetOffset(offsetof(TexturedVertex, textureCoordinate))
+          .BuildObject(),
+  };
+  const std::array<VkDescriptorSetLayoutBinding, 2> descriptorSetLayoutBindings {
+      DescriptorSetLayoutBindingBuilder()
+          .SetBinding(0)
+          .SetDescriptorCount(1)
+          .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
+          .BuildObject(),
+      DescriptorSetLayoutBindingBuilder()
+          .SetBinding(1)
+          .SetDescriptorCount(1)
+          .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+          .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT)
+          .BuildObject(),
+  };
+  descriptorSetLayout =
+      virtualDevice.CreateDescriptorSetLayout(
+          DescriptorSetLayoutCreateInfoBuilder()
+              .SetBindingCount(descriptorSetLayoutBindings.size())
+              .SetPBindings(descriptorSetLayoutBindings.data()));
   pipeline =
       virtualDevice.CreateGraphicsPipeline(
           shaders,
@@ -648,8 +693,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
                           .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
                           .SetOffset(0)
                           .SetSize(sizeof(ModelViewTransformation)))),
-          renderPass,
-          0,
+          SubpassReference(renderPass, 0),
           GraphicsPipelineCreateInfoBuilder()
               .SetPDepthStencilState(
                   PipelineDepthStencilStateCreateInfoBuilder()
@@ -689,6 +733,104 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
                       .SetAttachmentCount(1)
                       .SetPAttachments(
                           PipelineColorBlendAttachmentStateBuilder()
+                              .SetColorWriteMask(
+                                  VK_COLOR_COMPONENT_R_BIT
+                                  | VK_COLOR_COMPONENT_G_BIT
+                                  | VK_COLOR_COMPONENT_B_BIT
+                                  | VK_COLOR_COMPONENT_A_BIT)
+                              .SetSrcColorBlendFactor(VK_BLEND_FACTOR_ONE)
+                              .SetDstColorBlendFactor(VK_BLEND_FACTOR_ZERO)
+                              .SetColorBlendOp(VK_BLEND_OP_ADD)
+                              .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
+                              .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
+                              .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
+
+  const std::array<VkVertexInputBindingDescription, 1> gradientVertexBindingDescriptions {
+      VertexInputBindingDescriptionBuilder()
+          .SetBinding(0)
+          .SetStride(sizeof(GradientVertex))
+          .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX)
+          .BuildObject(),
+  };
+  const std::array<VkVertexInputAttributeDescription, 2> gradientVertexAttributeDescriptions {
+      VertexInputAttributeDescriptionBuilder()
+          .SetBinding(0)
+          .SetLocation(0)
+          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+          .SetOffset(offsetof(GradientVertex, position))
+          .BuildObject(),
+      VertexInputAttributeDescriptionBuilder()
+          .SetBinding(0)
+          .SetLocation(1)
+          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+          .SetOffset(offsetof(GradientVertex, color))
+          .BuildObject(),
+  };
+  const std::array<VkDescriptorSetLayoutBinding, 1> gradientDescriptorSetLayoutBindings {
+      DescriptorSetLayoutBindingBuilder()
+          .SetBinding(0)
+          .SetDescriptorCount(1)
+          .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
+          .BuildObject(),
+  };
+  gradientDescriptorSetLayout =
+      virtualDevice.CreateDescriptorSetLayout(
+          DescriptorSetLayoutCreateInfoBuilder()
+              .SetBindingCount(gradientDescriptorSetLayoutBindings.size())
+              .SetPBindings(gradientDescriptorSetLayoutBindings.data()));
+  gradientPipeline =
+      virtualDevice.CreateGraphicsPipeline(
+          gradientShaders,
+          virtualDevice.CreatePipelineLayout(
+              gradientDescriptorSetLayout,
+              PipelineLayoutCreateInfoBuilder()
+                  .SetPushConstantRangeCount(1)
+                  .SetPPushConstantRanges(
+                      PushConstantRangeBuilder()
+                          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
+                          .SetOffset(0)
+                          .SetSize(sizeof(ModelViewTransformation)))),
+          SubpassReference(renderPass, 0),
+          GraphicsPipelineCreateInfoBuilder()
+              .SetPDepthStencilState(
+                  PipelineDepthStencilStateCreateInfoBuilder()
+                      .SetDepthTestEnable(VK_TRUE)
+                      .SetDepthWriteEnable(VK_TRUE)
+                      .SetDepthCompareOp(VK_COMPARE_OP_LESS)
+                      .SetDepthBoundsTestEnable(VK_FALSE))
+              .SetPVertexInputState(
+                  PipelineVertexInputStateCreateInfoBuilder()
+                      .SetVertexBindingDescriptionCount(gradientVertexBindingDescriptions.size())
+                      .SetPVertexBindingDescriptions(gradientVertexBindingDescriptions.data())
+                      .SetVertexAttributeDescriptionCount(gradientVertexAttributeDescriptions.size())
+                      .SetPVertexAttributeDescriptions(gradientVertexAttributeDescriptions.data()))
+              .SetPInputAssemblyState(
+                  PipelineInputAssemblyStateCreateInfoBuilder().SetTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST))
+              .SetPViewportState(
+                  PipelineViewportStateCreateInfoBuilder()
+                      .SetViewportCount(1)
+                      .SetPViewports(
+                          ViewportBuilder(VIEWPORT_BASE)
+                              .SetWidth(static_cast<float>(swapchainExtent.width))
+                              .SetHeight(static_cast<float>(swapchainExtent.height)))
+                      .SetScissorCount(1)
+                      .SetPScissors(Rect2DBuilder().SetOffset(OFFSET2D_ZERO).SetExtent(swapchainExtent)))
+              .SetPRasterizationState(
+                  PipelineRasterizationStateCreateInfoBuilder()
+                      .SetCullMode(VK_CULL_MODE_BACK_BIT)
+                      .SetFrontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
+                      .SetPolygonMode(VK_POLYGON_MODE_FILL)
+                      .SetLineWidth(1.0f))
+              .SetPMultisampleState(
+                  PipelineMultisampleStateCreateInfoBuilder()
+                      .SetRasterizationSamples(VK_SAMPLE_COUNT_1_BIT)
+                      .SetMinSampleShading(1.0f))
+              .SetPColorBlendState(
+                  PipelineColorBlendStateCreateInfoBuilder()
+                      .SetAttachmentCount(1)
+                      .SetPAttachments(
+                          PipelineColorBlendAttachmentStateBuilder()
                               .SetBlendEnable(VK_TRUE)
                               .SetColorWriteMask(
                                   VK_COLOR_COMPONENT_R_BIT
@@ -701,7 +843,6 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
                               .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
                               .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
                               .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
-  swapchainFramebuffers = swapchain.GetFramebuffers(renderPass, depthStencilView);
 
   uiRenderer =
       UiRenderer(
@@ -712,13 +853,14 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
               virtualDevice,
               queue,
               renderPass,
-              transientCommandBuffer));
+              transientCommandBuffer,
+              fence));
 
   const u32 swapchainImages = swapchain.GetImageCount();
   const std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes {
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-          .SetDescriptorCount(swapchainImages)
+          .SetDescriptorCount(swapchainImages * 2)
           .BuildObject(),
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
@@ -730,36 +872,42 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           DescriptorPoolCreateInfoBuilder()
               .SetPoolSizeCount(descriptorPoolSizes.size())
               .SetPPoolSizes(descriptorPoolSizes.data())
-              .SetMaxSets(swapchainImages));
+              .SetMaxSets(swapchainImages * 2));
   descriptorSets =
       descriptorPool.AllocateDescriptorSets(descriptorSetLayout, swapchainImages);
+  gradientDescriptorSets =
+      descriptorPool.AllocateDescriptorSets(gradientDescriptorSetLayout, swapchainImages);
 
   for (u32 renderIndex = 0; renderIndex < swapchainImages; ++renderIndex) {
     BufferWithMemory uniformBufferMemory =
-        TransferDataToGpuLocalMemory(transientCommandBuffer, &projectionTransform, sizeof(projectionTransform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        TransferDataToGpuLocalMemory(
+            transientCommandBuffer,
+            &projectionTransform,
+            sizeof(projectionTransform),
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     DescriptorSet& descriptorSet = descriptorSets[renderIndex];
-    DescriptorSet::WriteDescriptorSetBuild bufferWrite = descriptorSet.CreateBufferWrite(uniformBufferMemory.buffer);
-    DescriptorSet::WriteDescriptorSetBuild textureSamplerWrite =
-        descriptorSet
-            .CreateImageSamplerWrite(textureView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    std::array<VkWriteDescriptorSet, 2> descriptorSetWrites{
-        bufferWrite.builder.SetPBufferInfo(&bufferWrite.info.bufferInfo).BuildObject(),
-        textureSamplerWrite
-            .builder
-            .SetPImageInfo(&textureSamplerWrite.info.imageInfo)
-            .SetDstBinding(1)
-            .BuildObject(),
+    const std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> bufferWrite =
+        descriptorSet.CreateBufferWrite(uniformBufferMemory.buffer);
+    const std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> textureSamplerWrite =
+        descriptorSet.CreateImageSamplerWrite(textureView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    DescriptorSet& gradientDescriptorSet = gradientDescriptorSets[renderIndex];
+    const std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> gradientBufferWrite =
+        gradientDescriptorSet.CreateBufferWrite(uniformBufferMemory.buffer);
+    std::array<VkWriteDescriptorSet, 3> descriptorSetWrites{
+        bufferWrite->writeBuilder.BuildObject(),
+        textureSamplerWrite->writeBuilder.SetDstBinding(1).BuildObject(),
+        gradientBufferWrite->writeBuilder.BuildObject(),
     };
     virtualDevice.UpdateDescriptorSets(descriptorSetWrites.size(), descriptorSetWrites.data());
 
     CommandBuffer renderPassCommandBuffer = renderCommandPool.AllocatePrimaryCommandBuffer();
 
     swapchainRenderData.emplace_back(std::move<SwapchainRenderPass>({
-        .renderData = std::move(uniformBufferMemory),
-        .commandBuffer = std::move(renderPassCommandBuffer),
-        .renderCompleteSemaphore = virtualDevice.MakeSemaphore(),
-        .submitCompleteFence = virtualDevice.MakeFence(VK_FENCE_CREATE_SIGNALED_BIT)
+      .renderData = std::move(uniformBufferMemory),
+      .commandBuffer = std::move(renderPassCommandBuffer),
+      .renderCompleteSemaphore = virtualDevice.CreateSemaphore(),
+      .submitCompleteFence = virtualDevice.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)
     }));
   }
 }
@@ -782,26 +930,27 @@ App::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDeb
 }
 
 App::BufferWithMemory App::TransferDataToGpuLocalMemory(
-    CommandBuffer& commandBuffer, const void* data, const u32 size, const VkBufferUsageFlags usage) const {
+    CommandBuffer& commandBuffer, const void* data, const u32 size, const VkBufferUsageFlags usage) {
   Buffer stagingBuffer =
       virtualDevice.CreateBuffer(
           BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
               .SetSize(size)
               .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  DeviceMemory stagingBufferMemory =
-      stagingBuffer.AllocateAndBindMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  stagingBufferMemory.MapCopy(data, stagingBuffer.Size());
+  ReservedMemory stagingBufferMemory =
+      deviceAllocator.BindMemory(stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  stagingBufferMemory.memoryBinding.GetMemory().MapCopy(data, stagingBufferMemory.offset, stagingBuffer.Size());
 
   Buffer finalBuffer =
       virtualDevice.CreateBuffer(
           BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
               .SetSize(size)
               .SetUsage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage));
-  DeviceMemory finalBufferMemory = finalBuffer.AllocateAndBindMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  ReservedMemory finalBufferMemory =
+      deviceAllocator.BindMemory(finalBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   commandBuffer.BeginOneTimeSubmit();
   commandBuffer.CmdCopyBufferFull(stagingBuffer, finalBuffer);
-  commandBuffer.End().Submit().Wait();
+  commandBuffer.End().Submit(fence).Wait().Reset();
 
   return {
       .buffer = std::move(finalBuffer),
@@ -874,15 +1023,15 @@ void App::RenderThread() {
             break;
 
           case EventNotification::Resized:
-            acquiredImage.exists = false;
-            virtualDevice.WaitIdle();
-            swapchainRenderData.clear();
-            Log("Recreating swapchain.");
-            CommandPool temporaryCommandPool =
-                queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
-            CommandBuffer temporaryCommandBuffer = temporaryCommandPool.AllocatePrimaryCommandBuffer();
-            InitializeSwapchain(temporaryCommandBuffer);
-            Log("Swapchain recreated.");
+//            acquiredImage.exists = false;
+//            virtualDevice.WaitIdle();
+//            swapchainRenderData.clear();
+//            Log("Recreating swapchain.");
+//            CommandPool temporaryCommandPool =
+//                queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+//            CommandBuffer temporaryCommandBuffer = temporaryCommandPool.AllocatePrimaryCommandBuffer();
+//            InitializeSwapchain(temporaryCommandBuffer);
+//            Log("Swapchain recreated.");
             break;
         }
       }
@@ -911,42 +1060,6 @@ void App::UpdateModel(const float deltaTime) {
   });
   uiRenderer.ShowKeyboardLayout(keyboard);
 
-  constexpr float movementSpeed = 10.0f;
-  if (keyboard.IsKeyDown(SDLK_a)) {
-    cubePosition.x -= deltaTime * movementSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_d)) {
-    cubePosition.x += deltaTime * movementSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_w)) {
-    cubePosition.y += deltaTime * movementSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_s)) {
-    cubePosition.y -= deltaTime * movementSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_q)) {
-    cubePosition.z -= deltaTime * movementSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_e)) {
-    cubePosition.z += deltaTime * movementSpeed;
-  }
-
-  constexpr float cameraRotationSpeed = 75.0f;
-  if (keyboard.IsKeyDown(SDLK_LEFT)) {
-    cameraRotation.x -= deltaTime * cameraRotationSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_RIGHT)) {
-    cameraRotation.x += deltaTime * cameraRotationSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_UP)) {
-    cameraRotation.y += deltaTime * cameraRotationSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_DOWN)) {
-    cameraRotation.y -= deltaTime * cameraRotationSpeed;
-  }
-
-  cubeRotation += deltaTime * 90.0f;
-
   constexpr glm::vec3 cameraStarePoint = glm::vec3(0.0f, -2.0f, -4.0f);
   glm::mat4 cubeTransform(1.0f);
   cubeTransform[3][0] = cubePosition.x;
@@ -969,13 +1082,59 @@ void App::UpdateModel(const float deltaTime) {
   renderTransform.model = rotatedCube;
   renderTransform.view = glm::lookAt(glm::vec3(0.0f), cameraCenter, glm::vec3(0.0f, 1.0f, 0.0f));
 
-  std::vector<glm::vec3*> cubePositions { &cubePosition };
+  glm::mat4 gradientCubeTransform(1.0f);
+  gradientCubeTransform[3][0] = gradientCubePosition.x;
+  gradientCubeTransform[3][1] = gradientCubePosition.y;
+  gradientCubeTransform[3][2] = gradientCubePosition.z;
+  gradientRenderTransform.model = glm::translate(gradientCubeTransform, cameraStarePoint);
+  gradientRenderTransform.view = glm::lookAt(glm::vec3(0.0f), cameraCenter, glm::vec3(0.0f, 1.0f, 0.0f));
+
+  std::vector<glm::vec3*> cubePositions { &cubePosition, &gradientCubePosition };
+  u32 selectedObjectIndex = 0;
   uiRenderer.ShowObjectsInScene(ObjectsInSceneInfo{
-    .cameraRotation = glm::vec2(cameraRotation.x, cameraRotation.y - 26.565f),
-    .cameraCenter = glm::vec3(cameraCenter.x, cameraCenter.y - cameraStarePoint.y, cameraCenter.z - cameraStarePoint.z),
-    .cameraPosition = glm::vec3(cameraStarePoint.x, -cameraStarePoint.y, -cameraStarePoint.z),
-    .cubePositions = cubePositions
+      .cameraRotation = glm::vec2(cameraRotation.x, cameraRotation.y - 26.565f),
+      .cameraCenter = glm::vec3(cameraCenter.x, cameraCenter.y - cameraStarePoint.y, cameraCenter.z - cameraStarePoint.z),
+      .cameraPosition = glm::vec3(cameraStarePoint.x, -cameraStarePoint.y, -cameraStarePoint.z),
+      .cubePositions = cubePositions,
+      .selectedObjectIndex = &selectedObjectIndex
   });
+
+  constexpr float movementSpeed = 10.0f;
+  if (keyboard.IsKeyDown(SDLK_a)) {
+    cubePositions[selectedObjectIndex]->x -= deltaTime * movementSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_d)) {
+    cubePositions[selectedObjectIndex]->x += deltaTime * movementSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_w)) {
+    cubePositions[selectedObjectIndex]->y += deltaTime * movementSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_s)) {
+    cubePositions[selectedObjectIndex]->y -= deltaTime * movementSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_q)) {
+    cubePositions[selectedObjectIndex]->z -= deltaTime * movementSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_e)) {
+    cubePositions[selectedObjectIndex]->z += deltaTime * movementSpeed;
+  }
+
+  constexpr float cameraRotationSpeed = 75.0f;
+  if (keyboard.IsKeyDown(SDLK_LEFT)) {
+    cameraRotation.x += deltaTime * cameraRotationSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_RIGHT)) {
+    cameraRotation.x -= deltaTime * cameraRotationSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_UP)) {
+    cameraRotation.y += deltaTime * cameraRotationSpeed;
+  }
+  if (keyboard.IsKeyDown(SDLK_DOWN)) {
+    cameraRotation.y -= deltaTime * cameraRotationSpeed;
+  }
+
+  cubeRotation += deltaTime * 90.0f;
+
   uiRenderer.EndFrame();
 }
 
@@ -995,7 +1154,7 @@ void App::Render() {
     if ((nextImageResult.status == VK_SUBOPTIMAL_KHR) || (nextImageResult.status == VK_ERROR_OUT_OF_DATE_KHR)) {
 //      acquiredImage.exists = true;
 //      acquiredImage.index = imageIndex;
-      Log("A");
+      // Log("A");
       // This semaphore no longer has a way to be signalled
       // synchronisation.acquireImageSemaphore = virtualDevice.MakeSemaphore();
       // return;
@@ -1004,6 +1163,7 @@ void App::Render() {
 
   SwapchainRenderPass& swapchainRender = swapchainRenderData[imageIndex];
 
+  swapchainRender.submitCompleteFence.Wait().Reset();
   {
     const std::array<VkClearValue, 2> clearValues{
         ClearValueBuilder()
@@ -1029,12 +1189,17 @@ void App::Render() {
     swapchainRender.commandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), descriptorSets[0]);
     swapchainRender.commandBuffer.CmdPushConstants(pipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(renderTransform), &renderTransform);
     swapchainRender.commandBuffer.CmdDrawIndexed(indexCount, /* instanceCount= */ 1); // TODO: More instances
+    swapchainRender.commandBuffer.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, gradientPipeline);
+    swapchainRender.commandBuffer.CmdBindVertexBuffers(gradientVertexMemoryBuffer.buffer, 0);
+    swapchainRender.commandBuffer.CmdBindIndexBuffer(gradientIndexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
+    swapchainRender.commandBuffer.CmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, gradientPipeline.GetLayout(), gradientDescriptorSets[0]);
+    swapchainRender.commandBuffer.CmdPushConstants(gradientPipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(gradientRenderTransform), &gradientRenderTransform);
+    swapchainRender.commandBuffer.CmdDrawIndexed(gradientIndexCount, /* instanceCount= */ 1); // TODO: More instances
     uiRenderer.Render(swapchainRender.commandBuffer);
     swapchainRender.commandBuffer.CmdEndRenderPass();
     swapchainRender.commandBuffer.End();
   }
 
-  swapchainRender.submitCompleteFence.Wait().Reset();
   swapchainRender.commandBuffer.Submit(
       SynchronisationPack()
           .SetWaitSemaphore(&synchronisation.acquireImageSemaphore)
@@ -1047,7 +1212,7 @@ void App::Render() {
   if ((result == VK_SUBOPTIMAL_KHR) || (result == VK_ERROR_OUT_OF_DATE_KHR)) {
     // swapchainRender.submitCompleteFence.Wait();
     // synchronisation.acquireImageSemaphore = virtualDevice.MakeSemaphore();
-    Log("B");
+    // Log("B");
     // return;
   }
 

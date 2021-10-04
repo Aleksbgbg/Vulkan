@@ -57,12 +57,12 @@ private:
 
   struct BufferWithMemory {
     Buffer buffer;
-    DeviceMemory memory;
+    ReservedMemory memory;
   };
 
   struct ImageWithMemory {
     Image image;
-    DeviceMemory memory;
+    ReservedMemory memory;
   };
 
   struct ModelViewTransformation{
@@ -75,7 +75,7 @@ private:
   };
 
   BufferWithMemory TransferDataToGpuLocalMemory(
-      CommandBuffer& commandBuffer, const void* data, const u32 size, const VkBufferUsageFlags usage) const;
+      CommandBuffer& commandBuffer, const void* data, const u32 size, const VkBufferUsageFlags usage);
 
   VkFormat SelectDepthStencilFormat(const std::vector<VkFormat>& potentialFormats) const;
 
@@ -103,9 +103,17 @@ private:
   VirtualDevice virtualDevice;
   Queue queue;
 
+  DeviceMemoryAllocator deviceAllocator;
+
+  Fence fence;
+
   BufferWithMemory vertexMemoryBuffer;
   BufferWithMemory indexMemoryBuffer;
   u32 indexCount;
+
+  BufferWithMemory gradientVertexMemoryBuffer;
+  BufferWithMemory gradientIndexMemoryBuffer;
+  u32 gradientIndexCount;
 
   ImageWithMemory texture;
   ImageView textureView;
@@ -115,18 +123,25 @@ private:
 
   CommandPool renderCommandPool;
   std::vector<ShaderModule> shaders;
+  std::vector<ShaderModule> gradientShaders;
   Swapchain swapchain;
 
   ImageWithMemory depthStencil;
   ImageView depthStencilView;
+  std::vector<Framebuffer> swapchainFramebuffers;
+
   DescriptorSetLayout descriptorSetLayout;
   Pipeline pipeline;
-  std::vector<Framebuffer> swapchainFramebuffers;
+
+  DescriptorSetLayout gradientDescriptorSetLayout;
+  Pipeline gradientPipeline;
 
   DescriptorPool descriptorPool;
 
   VkPhysicalDeviceProperties physicalDeviceProperties;
   UiRenderer uiRenderer;
+
+  ModelViewTransformation gradientRenderTransform;
 
   ModelViewTransformation renderTransform;
   ProjectionTransformation projectionTransform;
@@ -164,11 +179,14 @@ private:
   float cubeRotation = 0.0f;
   glm::vec3 cubePosition;
 
+  glm::vec3 gradientCubePosition;
+
   glm::vec2 cameraRotation;
 
   Keyboard keyboard;
 
   std::vector<DescriptorSet> descriptorSets;
+  std::vector<DescriptorSet> gradientDescriptorSets;
 };
 
 #endif // VULKAN_SRC_APP_H

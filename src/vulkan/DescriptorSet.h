@@ -2,6 +2,7 @@
 #define VULKAN_SRC_VULKAN_DESCRIPTORSET_H
 
 #include <vulkan/vulkan.h>
+#include <memory>
 #include "Buffer.h"
 #include "ImageView.h"
 #include "Sampler.h"
@@ -12,7 +13,10 @@ class DescriptorSet {
   friend class CommandBuffer;
 public:
   struct WriteDescriptorSetBuild {
-    WriteDescriptorSetBuilder builder;
+  public:
+    WriteDescriptorSetBuilder writeBuilder;
+  private:
+    friend class DescriptorSet;
     union {
       VkDescriptorImageInfo imageInfo;
       VkDescriptorBufferInfo bufferInfo;
@@ -27,8 +31,8 @@ public:
   DescriptorSet& operator=(const DescriptorSet&) = delete;
   DescriptorSet& operator=(DescriptorSet&&) = default;
 
-  WriteDescriptorSetBuild CreateBufferWrite(const Buffer& buffer) const;
-  WriteDescriptorSetBuild CreateImageSamplerWrite(
+  std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> CreateBufferWrite(const Buffer& buffer) const;
+  std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> CreateImageSamplerWrite(
       const ImageView& samplerImageView, const Sampler& sampler, const VkImageLayout imageLayout) const;
 
 private:

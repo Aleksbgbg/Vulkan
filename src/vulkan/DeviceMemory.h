@@ -6,6 +6,8 @@
 
 #include "lifetime_semantics.h"
 #include "structures/MemoryAllocateInfo.h"
+#include "Buffer.h"
+#include "Image.h"
 
 class DeviceMemory {
 public:
@@ -20,11 +22,14 @@ public:
 
   DeviceMemory& operator=(const DeviceMemory&) = delete;
 
+  void Bind(const Buffer& buffer, const VkDeviceSize offset) const;
+  void Bind(const Image& image, const VkDeviceSize offset) const;
+
   DeviceMemory& BindAll(VkBuffer buffer);
   DeviceMemory& Bind(VkBuffer buffer, const VkDeviceSize offset);
   DeviceMemory& BindAll(VkImage image);
   DeviceMemory& Bind(VkImage image, const VkDeviceSize offset);
-  void MapCopy(const void* data, const u64 size);
+  void MapCopy(const void* data, const VkDeviceSize offset, const VkDeviceSize size);
 
   static std::optional<u32> FindSuitableMemoryTypeIndex(
       const VkPhysicalDeviceMemoryProperties& memoryProperties,

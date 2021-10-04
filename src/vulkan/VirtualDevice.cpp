@@ -1,10 +1,10 @@
 #include "VirtualDevice.h"
 
-#include <fstream>
-
 #include "util.h"
 #include "error.h"
 #include "Surface.h"
+
+#undef CreateSemaphore
 
 VirtualDevice::VirtualDevice(
     VkPhysicalDevice physicalDevice,
@@ -70,15 +70,13 @@ RenderPass VirtualDevice::CreateRenderPass(RenderPassCreateInfoBuilder& infoBuil
 
 Pipeline VirtualDevice::CreateGraphicsPipeline(const std::vector<ShaderModule>& shaders,
                                                PipelineLayout pipelineLayout,
-                                               const RenderPass& renderPass,
-                                               const u32 subpass,
+                                               const SubpassReference subpassReference,
                                                GraphicsPipelineCreateInfoBuilder& infoBuilder) const {
-  return Pipeline(device, shaders, std::move(pipelineLayout), renderPass, subpass, infoBuilder);
+  return Pipeline(device, shaders, std::move(pipelineLayout), subpassReference, infoBuilder);
 }
 
-Semaphore VirtualDevice::MakeSemaphore() const {
-  auto builder = SemaphoreCreateInfoBuilder();
-  return Semaphore(device, builder);
+Semaphore VirtualDevice::CreateSemaphore() const {
+  return Semaphore(device, SemaphoreCreateInfoBuilder().Reference());
 }
 
 void VirtualDevice::UpdateDescriptorSets(const u32 count, VkWriteDescriptorSet* writes) {
@@ -89,11 +87,11 @@ DescriptorPool VirtualDevice::CreateDescriptorPool(DescriptorPoolCreateInfoBuild
   return DescriptorPool(device, infoBuilder);
 }
 
-Fence VirtualDevice::MakeFence() const {
+Fence VirtualDevice::CreateFence() const {
   return Fence(device);
 }
 
-Fence VirtualDevice::MakeFence(const VkFenceCreateFlags flags) const {
+Fence VirtualDevice::CreateFence(const VkFenceCreateFlags flags) const {
   return Fence(device, flags);
 }
 
@@ -103,4 +101,8 @@ void VirtualDevice::WaitIdle() const {
 
 Sampler VirtualDevice::CreateSampler(SamplerCreateInfoBuilder& infoBuilder) const {
   return Sampler(device, infoBuilder);
+}
+
+DeviceMemoryAllocator VirtualDevice::CreateMemoryAllocator() const {
+  return DeviceMemoryAllocator(device, memoryProperties);
 }

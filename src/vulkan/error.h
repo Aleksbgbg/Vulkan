@@ -6,6 +6,7 @@
 
 #include "build_definition.h"
 
+#ifdef DIAGNOSTICS
 class VulkanResultException : public std::exception {
 private:
   std::string message;
@@ -22,10 +23,6 @@ public:
     return message.c_str();
   }
 };
-
-#ifdef RELEASE
-#define PROCEED_ON_VALID_RESULT(invocation) invocation;
-#else
 #define PROCEED_ON_VALID_RESULT(invocation)                                 \
   {                                                                         \
     const VkResult result = invocation;                                     \
@@ -33,6 +30,8 @@ public:
       throw VulkanResultException(__FILE__, __LINE__, #invocation, result); \
     }                                                                       \
   }
+#else
+#define PROCEED_ON_VALID_RESULT(invocation) invocation;
 #endif
 
 #endif // VULKAN_SRC_VULKAN_ERROR_H

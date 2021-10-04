@@ -1,9 +1,10 @@
+#include "Buffer.h"
+
 #include <stdexcept>
 
-#include "Buffer.h"
-#include "CommandBuffer.h"
-
 #include "error.h"
+#include "CommandBuffer.h"
+#include "DeviceMemory.h"
 
 Buffer::Buffer(
     VkDevice device,
@@ -22,10 +23,9 @@ Buffer::~Buffer() {
 }
 
 DeviceMemory Buffer::AllocateAndBindMemory(const VkMemoryPropertyFlags requiredProperties) const {
-  VkMemoryRequirements memoryRequirements;
-  vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+  const VkMemoryRequirements memoryRequirements = GetMemoryRequirements();
 
-  std::optional<u32> memoryTypeIndex =
+  const std::optional<u32> memoryTypeIndex =
       DeviceMemory::FindSuitableMemoryTypeIndex(
           *memoryProperties, requiredProperties, memoryRequirements.memoryTypeBits);
 
@@ -45,4 +45,10 @@ DeviceMemory Buffer::AllocateAndBindMemory(const VkMemoryPropertyFlags requiredP
 
 VkDeviceSize Buffer::Size() const {
   return size;
+}
+
+VkMemoryRequirements Buffer::GetMemoryRequirements() const {
+  VkMemoryRequirements memoryRequirements;
+  vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+  return memoryRequirements;
 }

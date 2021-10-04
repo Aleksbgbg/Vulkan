@@ -5,11 +5,11 @@
 
 #include "lifetime_semantics.h"
 #include "structures/BufferCreateInfo.h"
-#include "DeviceMemory.h"
 
 class CommandBuffer;
 
 class Buffer {
+  friend class DeviceMemory;
   friend class CommandBuffer;
   friend class DescriptorSet;
 public:
@@ -38,6 +38,8 @@ public:
   DeviceMemory AllocateAndBindMemory(const VkMemoryPropertyFlags requiredProperties) const;
 
   VkDeviceSize Size() const;
+
+  VkMemoryRequirements GetMemoryRequirements() const;
 
 private:
   VkDevice device;

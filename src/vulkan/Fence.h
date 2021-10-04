@@ -10,8 +10,9 @@ class Fence {
 public:
   VULKAN_OBJECT_MOVABLE_ROOT(Fence, device, fence)
 
-  explicit Fence(VkDevice device);
-  Fence(VkDevice device, const VkFenceCreateFlags createFlags);
+  Fence() = default;
+  explicit Fence(const VkDevice device);
+  Fence(const VkDevice device, const VkFenceCreateFlags createFlags);
 
   Fence(const Fence&) = delete;
 
@@ -19,10 +20,10 @@ public:
 
   Fence& operator=(const Fence&) = delete;
 
-  VkFence Raw();
+  VkFence Raw() const;
 
-  Fence& Wait();
-  Fence& Reset();
+  const Fence& Wait() const;
+  const Fence& Reset() const;
 
 private:
   VkDevice device;

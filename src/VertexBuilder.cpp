@@ -4,14 +4,14 @@
 #include <array>
 #include <iterator>
 
-#include "Vertex.h"
+#include "TexturedVertex.h"
 
-VertexBuilder::VertexBuilder(const std::vector<Vertex>& vertices) : vertices(vertices.size()) {
+VertexBuilder::VertexBuilder(const std::vector<TexturedVertex>& vertices) : vertices(vertices.size()) {
   std::transform(
       vertices.begin(),
       vertices.end(),
       this->vertices.begin(),
-      [](const Vertex& vertex) {
+      [](const TexturedVertex& vertex) {
         return VertexInfo{
           .pos = vertex.position,
           .visited = false

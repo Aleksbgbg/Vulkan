@@ -1,7 +1,9 @@
-#include <stdexcept>
 #include "Image.h"
+
+#include <stdexcept>
+
 #include "error.h"
-#include "ImageView.h"
+#include "DeviceMemory.h"
 
 Image::Image(VkDevice device, VkPhysicalDeviceMemoryProperties* memoryProperties, ImageCreateInfoBuilder& infoBuilder)
   : device(device), memoryProperties(memoryProperties), createInfo(infoBuilder.BuildObject()) {
@@ -34,6 +36,12 @@ DeviceMemory Image::AllocateAndBindMemory(const VkMemoryPropertyFlags requiredPr
                   .SetAllocationSize(memoryRequirements.size)
                   .SetMemoryTypeIndex(memoryTypeIndex.value()))
               .BindAll(image));
+}
+
+VkMemoryRequirements Image::GetMemoryRequirements() const {
+  VkMemoryRequirements memoryRequirements;
+  vkGetImageMemoryRequirements(device, image, &memoryRequirements);
+  return memoryRequirements;
 }
 
 ImageView Image::CreateView(ImageViewCreateInfoBuilder& infoBuilder) {

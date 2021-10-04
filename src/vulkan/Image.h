@@ -5,10 +5,10 @@
 
 #include "lifetime_semantics.h"
 #include "structures/ImageCreateInfo.h"
-#include "DeviceMemory.h"
 #include "ImageView.h"
 
 class Image {
+  friend class DeviceMemory;
   friend class CommandBuffer;
 public:
   Image() = default;
@@ -30,6 +30,8 @@ public:
     createInfo = other.createInfo;
     return *this;
   }
+
+  VkMemoryRequirements GetMemoryRequirements() const;
 
   DeviceMemory AllocateAndBindMemory(const VkMemoryPropertyFlags requiredProperties) const;
   ImageView CreateView(ImageViewCreateInfoBuilder& infoBuilder);

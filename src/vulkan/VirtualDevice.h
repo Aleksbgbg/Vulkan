@@ -23,6 +23,9 @@
 #include "Image.h"
 #include "DescriptorPool.h"
 #include "Sampler.h"
+#include "memory/DeviceMemoryAllocator.h"
+
+#undef CreateSemaphore
 
 class Surface;
 
@@ -54,10 +57,9 @@ public:
 
   ShaderModule LoadShader(const VkShaderStageFlagBits stage, const char* const shaderFilename) const;
 
-  // CreateSemaphore is a windows macro
-  Semaphore MakeSemaphore() const;
-  Fence MakeFence() const;
-  Fence MakeFence(const VkFenceCreateFlags flags) const;
+  Semaphore CreateSemaphore() const;
+  Fence CreateFence() const;
+  Fence CreateFence(const VkFenceCreateFlags flags) const;
 
   Buffer CreateBuffer(BufferCreateInfoBuilder& infoBuilder) const;
   Swapchain CreateSwapchain(Surface& surface, SwapchainCreateInfoBuilder& infoBuilder) const;
@@ -70,11 +72,12 @@ public:
   RenderPass CreateRenderPass(RenderPassCreateInfoBuilder& infoBuilder) const;
   Pipeline CreateGraphicsPipeline(const std::vector<ShaderModule>& shaders,
                                   PipelineLayout pipelineLayout,
-                                  const RenderPass& renderPass,
-                                  const u32 subpass,
+                                  const SubpassReference subpassReference,
                                   GraphicsPipelineCreateInfoBuilder& infoBuilder) const;
   DescriptorPool CreateDescriptorPool(DescriptorPoolCreateInfoBuilder& infoBuilder) const;
   Sampler CreateSampler(SamplerCreateInfoBuilder& infoBuilder) const;
+
+  DeviceMemoryAllocator CreateMemoryAllocator() const;
 
   void UpdateDescriptorSets(const u32 count, VkWriteDescriptorSet* writes);
 

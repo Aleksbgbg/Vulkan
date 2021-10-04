@@ -18,6 +18,7 @@ struct ObjectsInSceneInfo {
   glm::vec3 cameraCenter;
   glm::vec3 cameraPosition;
   std::vector<glm::vec3*>& cubePositions;
+  u32* selectedObjectIndex;
 };
 
 class UiRenderer {
@@ -33,16 +34,21 @@ public:
 
   void ShowVulkanDebugInfo(const VulkanDebugInfo& info);
   void ShowObjectsInScene(const ObjectsInSceneInfo& info) const;
-  void ShowKeyboardLayout(const Keyboard& keyboard) const;
+  void ShowKeyboardLayout(Keyboard& keyboard);
 
 private:
   struct KeyDescription{
-    bool hasKey = true;
-    const char* const key;
+    KeyDescription() : hasKey(false), key(nullptr), code(0), description(nullptr), pressed(false) {}
+    KeyDescription(const char* const key, SDL_KeyCode code, const char* description)
+      : hasKey(true), key(key), code(code), description(description), pressed(false) {}
+
+    bool hasKey;
+    const char* key;
     SDL_Keycode code;
-    const char* const description;
+    const char* description;
+    bool pressed;
   };
-  static void RenderKey(const Keyboard& keyboard, const KeyDescription& key);
+  static void RenderKey(Keyboard& keyboard, KeyDescription& key);
 
   static float GetFrametimeHistoryValueFromRenderer(void* data, int index);
   float GetFrametimeHistoryValue(void* data, int index) const;
@@ -55,6 +61,10 @@ private:
   float timeSum;
 
   std::array<std::vector<KeyDescription>, 2> sceneObjectControls;
+
+  std::array<KeyDescription, 4> cameraKeys;
+
+  KeyDescription spawnCubeKey;
 };
 
 #endif // VULKAN_SRC_UIRENDERER_H

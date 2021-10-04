@@ -1,5 +1,6 @@
-#include <algorithm>
 #include "Pipeline.h"
+
+#include <algorithm>
 
 #include "error.h"
 
@@ -7,8 +8,7 @@ Pipeline::Pipeline(
     VkDevice device,
     const std::vector<ShaderModule>& shaderModules,
     PipelineLayout pipelineLayout,
-    const RenderPass& renderPass,
-    const u32 subpass,
+    const SubpassReference subpassReference,
     GraphicsPipelineCreateInfoBuilder& infoBuilder)
   :
     device(device),
@@ -34,8 +34,8 @@ Pipeline::Pipeline(
               .SetStageCount(shaderCreateInfos.size())
               .SetPStages(shaderCreateInfos.data())
               .SetLayout(this->pipelineLayout.pipelineLayout)
-              .SetRenderPass(renderPass.renderPass)
-              .SetSubpass(subpass)
+              .SetRenderPass(subpassReference.renderPass.renderPass)
+              .SetSubpass(subpassReference.subpass)
               .Build(),
           nullptr,
           &pipeline))

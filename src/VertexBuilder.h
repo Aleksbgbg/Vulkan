@@ -4,13 +4,13 @@
 #include <vector>
 
 #include "types.h"
-#include "Vertex.h"
+#include "TexturedVertex.h"
 
 typedef u16 Index;
 
 class VertexBuilder {
 public:
-  explicit VertexBuilder(const std::vector<Vertex>& vertices);
+  explicit VertexBuilder(const std::vector<TexturedVertex>& vertices);
   std::vector<Index> GenerateIndices();
 
 private:

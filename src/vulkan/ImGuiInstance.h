@@ -17,7 +17,8 @@ public:
       const VirtualDevice& virtualDevice,
       const Queue& queue,
       const RenderPass& renderPass,
-      CommandBuffer& temporaryCommandBuffer);
+      CommandBuffer& temporaryCommandBuffer,
+      const Fence& fence);
   ~ImGuiInstance();
 
   ImGuiInstance(ImGuiInstance&& other) noexcept;

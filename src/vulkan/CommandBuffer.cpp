@@ -32,8 +32,7 @@ CommandBuffer& CommandBuffer::End() {
   return *this;
 }
 
-Fence CommandBuffer::Submit() {
-  Fence fence(device);
+const Fence& CommandBuffer::Submit(const Fence& fence) {
   PROCEED_ON_VALID_RESULT(
       vkQueueSubmit(
           queue,

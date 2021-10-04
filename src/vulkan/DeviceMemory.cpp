@@ -30,9 +30,9 @@ DeviceMemory& DeviceMemory::Bind(VkImage image, const VkDeviceSize offset) {
   return *this;
 }
 
-void DeviceMemory::MapCopy(const void* data, const u64 size) {
+void DeviceMemory::MapCopy(const void* data, const VkDeviceSize offset, const VkDeviceSize size) {
   void* mappedMemory;
-  PROCEED_ON_VALID_RESULT(vkMapMemory(device, memory, 0, size, 0, &mappedMemory))
+  PROCEED_ON_VALID_RESULT(vkMapMemory(device, memory, offset, size, 0, &mappedMemory))
   memcpy(mappedMemory, data, size);
   vkUnmapMemory(device, memory);
 }
@@ -53,4 +53,12 @@ std::optional<u32> DeviceMemory::FindSuitableMemoryTypeIndex(
   }
 
   return std::nullopt;
+}
+
+void DeviceMemory::Bind(const Buffer& buffer, const VkDeviceSize offset) const {
+  PROCEED_ON_VALID_RESULT(vkBindBufferMemory(device, buffer.buffer, memory, offset))
+}
+
+void DeviceMemory::Bind(const Image& image, const VkDeviceSize offset) const {
+  PROCEED_ON_VALID_RESULT(vkBindImageMemory(device, image.image, memory, offset))
 }

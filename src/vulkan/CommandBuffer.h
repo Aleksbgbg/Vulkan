@@ -43,7 +43,7 @@ public:
   void Begin();
   void BeginOneTimeSubmit();
   CommandBuffer& End();
-  Fence Submit();
+  const Fence& Submit(const Fence& fence);
   void Submit(const SynchronisationPack& synchronisationPack);
   void Reset() const;
   void Reset(const VkCommandBufferResetFlags flags) const;

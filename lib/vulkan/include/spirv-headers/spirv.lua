@@ -60,7 +60,7 @@ spv = {
     },
 
     ExecutionModel = {
-        Vertex = 0,
+        TexturedVertex = 0,
         TessellationControl = 1,
         TessellationEvaluation = 2,
         Geometry = 3,
@@ -410,7 +410,7 @@ spv = {
     Decoration = {
         RelaxedPrecision = 0,
         SpecId = 1,
-        Block = 2,
+        MemoryBlock = 2,
         BufferBlock = 3,
         RowMajor = 4,
         ColMajor = 5,

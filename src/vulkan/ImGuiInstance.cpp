@@ -11,7 +11,8 @@ ImGuiInstance::ImGuiInstance(
     const VirtualDevice& virtualDevice,
     const Queue& queue,
     const RenderPass& renderPass,
-    CommandBuffer& temporaryCommandBuffer)
+    CommandBuffer& temporaryCommandBuffer,
+    const Fence& fence)
   :  sdlWindow(sdlWindow) {
   constexpr u32 poolSize = 1000;
   VkDescriptorPoolSize poolSizes[] =
@@ -54,18 +55,19 @@ ImGuiInstance::ImGuiInstance(
 
   ImGui_ImplVulkan_Init(&imguiVulkanInitInfo, renderPass.renderPass);
 
+  constexpr float textSize = 32.0f;
   ImGuiIO& io = ImGui::GetIO();
-  io.Fonts->AddFontFromFileTTF("SEGOEUI.TTF", 16.0f);
+  io.Fonts->AddFontFromFileTTF("SEGOEUI.TTF", textSize);
   ImFontConfig fontConfig;
   fontConfig.MergeMode = true;
-  io.Fonts->AddFontFromFileTTF("IBMPlexSansKR-Regular.ttf", 16.0f, &fontConfig, io.Fonts->GetGlyphRangesKorean());
+  // io.Fonts->AddFontFromFileTTF("IBMPlexSansKR-Regular.ttf", textSize, &fontConfig, io.Fonts->GetGlyphRangesKorean());
   const ImWchar iconRanges[] = { 0xf104, 0xf107 };
-  io.Fonts->AddFontFromFileTTF("fontawesome-webfont.ttf", 16.0f, &fontConfig, iconRanges);
+  io.Fonts->AddFontFromFileTTF("fontawesome-webfont.ttf", textSize, &fontConfig, iconRanges);
   io.Fonts->Build();
 
   temporaryCommandBuffer.BeginOneTimeSubmit();
   ImGui_ImplVulkan_CreateFontsTexture(temporaryCommandBuffer.commandBuffer);
-  temporaryCommandBuffer.End().Submit().Wait();
+  temporaryCommandBuffer.End().Submit(fence).Wait().Reset();
 
   ImGui_ImplVulkan_DestroyFontUploadObjects();
 }

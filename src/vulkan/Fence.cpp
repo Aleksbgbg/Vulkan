@@ -1,9 +1,9 @@
 #include "Fence.h"
 #include "error.h"
 
-Fence::Fence(VkDevice device) : Fence(device, 0) {}
+Fence::Fence(const VkDevice device) : Fence(device, 0) {}
 
-Fence::Fence(VkDevice device, const VkFenceCreateFlags createFlags) : device(device) {
+Fence::Fence(const VkDevice device, const VkFenceCreateFlags createFlags) : device(device) {
   PROCEED_ON_VALID_RESULT(
       vkCreateFence(device, FenceCreateInfoBuilder().SetFlags(createFlags).Build(), nullptr, &fence))
 }
@@ -14,16 +14,16 @@ Fence::~Fence() {
   }
 }
 
-VkFence Fence::Raw() {
+VkFence Fence::Raw() const {
   return fence;
 }
 
-Fence& Fence::Wait() {
+const Fence& Fence::Wait() const {
   PROCEED_ON_VALID_RESULT(vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX))
   return *this;
 }
 
-Fence& Fence::Reset() {
+const Fence& Fence::Reset() const {
   PROCEED_ON_VALID_RESULT(vkResetFences(device, 1, &fence))
   return *this;
 }

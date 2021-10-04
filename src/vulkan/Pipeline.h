@@ -8,6 +8,7 @@
 #include "ShaderModule.h"
 #include "PipelineLayout.h"
 #include "RenderPass.h"
+#include "SubpassReference.h"
 
 class Pipeline {
   friend class CommandBuffer;
@@ -16,8 +17,7 @@ public:
   Pipeline(VkDevice shaderModule,
            const std::vector<ShaderModule>& shaderModules,
            PipelineLayout pipelineLayout,
-           const RenderPass& renderPass,
-           const u32 subpass,
+           const SubpassReference subpassReference,
            GraphicsPipelineCreateInfoBuilder& infoBuilder);
 
   Pipeline(const Pipeline&) = delete;
