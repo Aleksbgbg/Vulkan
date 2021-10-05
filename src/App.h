@@ -7,8 +7,8 @@
 
 #include <SDL_syswm.h>
 #include <vulkan/vulkan.h>
-#include <vulkan/Swapchain.h>
 
+#include "vulkan/Swapchain.h"
 #include "vulkan/VulkanInstance.h"
 #include "vulkan/Semaphore.h"
 #include "vulkan/structures/ApplicationInfo.h"
@@ -16,6 +16,7 @@
 #include "Keyboard.h"
 #include "SdlIncl.h"
 #include "GlmIncl.h"
+#include "memory/DeviceMemoryAllocator.h"
 
 // Bad windows headers
 #include <vulkan/vulkan_win32.h>

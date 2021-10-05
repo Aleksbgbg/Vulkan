@@ -10,11 +10,13 @@
 #if defined(DEBUG)
 #define VALIDATION
 #define DIAGNOSTICS
+#define TOOLS
 #endif
 
 #if defined(RELEASE)
 // #define VALIDATION
 #define DIAGNOSTICS
+// #define TOOLS
 #endif
 
 #endif // VULKAN_SRC_BUILD_DEFINITION_H

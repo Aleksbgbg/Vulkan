@@ -4,8 +4,8 @@
 #include <vector>
 
 #include <vulkan/vulkan.h>
-#include <vulkan/structures/DescriptorSetAllocateInfo.h>
 
+#include "structures/DescriptorSetAllocateInfo.h"
 #include "lifetime_semantics.h"
 #include "structures/DescriptorPoolCreateInfo.h"
 #include "DescriptorSet.h"

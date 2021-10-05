@@ -1,19 +1,21 @@
 #ifndef VULKAN_SRC_VULKAN_VIRTUALDEVICE_H
 #define VULKAN_SRC_VULKAN_VIRTUALDEVICE_H
 
-#include <vulkan/vulkan.h>
-#include <vulkan/structures/BufferCreateInfo.h>
-#include <vulkan/structures/SwapchainCreateInfo.h>
 #include <vector>
-#include <vulkan/structures/RenderPassCreateInfo.h>
-#include <vulkan/structures/DescriptorSetLayoutCreateInfo.h>
-#include <vulkan/structures/ImageCreateInfo.h>
-#include <vulkan/structures/WriteDescriptorSet.h>
 
+#include <vulkan/vulkan.h>
+
+#include "structures/BufferCreateInfo.h"
+#include "structures/SwapchainCreateInfo.h"
+#include "structures/RenderPassCreateInfo.h"
+#include "structures/DescriptorSetLayoutCreateInfo.h"
+#include "structures/ImageCreateInfo.h"
+#include "structures/WriteDescriptorSet.h"
 #include "lifetime_semantics.h"
 #include "structures/DeviceCreateInfo.h"
 #include "Buffer.h"
 #include "Queue.h"
+#include "DeviceMemory.h"
 #include "Swapchain.h"
 #include "Pipeline.h"
 #include "ShaderModule.h"
@@ -23,7 +25,6 @@
 #include "Image.h"
 #include "DescriptorPool.h"
 #include "Sampler.h"
-#include "memory/DeviceMemoryAllocator.h"
 
 #undef CreateSemaphore
 
@@ -61,6 +62,8 @@ public:
   Fence CreateFence() const;
   Fence CreateFence(const VkFenceCreateFlags flags) const;
 
+  DeviceMemory AllocateDeviceMemory(const u32 memoryTypeIndex, const VkDeviceSize size) const;
+
   Buffer CreateBuffer(BufferCreateInfoBuilder& infoBuilder) const;
   Swapchain CreateSwapchain(Surface& surface, SwapchainCreateInfoBuilder& infoBuilder) const;
   Image CreateImage(ImageCreateInfoBuilder& infoBuilder) const;
@@ -76,8 +79,6 @@ public:
                                   GraphicsPipelineCreateInfoBuilder& infoBuilder) const;
   DescriptorPool CreateDescriptorPool(DescriptorPoolCreateInfoBuilder& infoBuilder) const;
   Sampler CreateSampler(SamplerCreateInfoBuilder& infoBuilder) const;
-
-  DeviceMemoryAllocator CreateMemoryAllocator() const;
 
   void UpdateDescriptorSets(const u32 count, VkWriteDescriptorSet* writes);
 

@@ -2,7 +2,8 @@
 #define VULKAN_SRC_VULKAN_QUEUE_H
 
 #include <vulkan/vulkan.h>
-#include <types.h>
+
+#include "types.h"
 #include "CommandPool.h"
 #include "Swapchain.h"
 #include "Semaphore.h"

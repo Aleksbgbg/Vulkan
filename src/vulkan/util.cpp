@@ -7,7 +7,7 @@ std::vector<u8> ReadFile(const char* const filename) {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
-    throw std::runtime_error("Failed to open file.");
+    throw std::runtime_error(std::string("Failed to open file '") + filename + "'.");
   }
 
   const u32 fileSize = file.tellg();

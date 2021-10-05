@@ -11,16 +11,15 @@
 #include <chrono>
 #include <cmath>
 
-#include <vulkan/structures/DeviceQueueCreateInfo.h>
-#include <vulkan/Buffer.h>
-#include <vulkan/structures/default.h>
-#include <vulkan/structures/DescriptorSetLayoutBinding.h>
-#include <vulkan/structures/SubpassDescription.h>
-#include <vulkan/structures/AttachmentReference.h>
-#include <vulkan/structures/ClearValue.h>
-#include <vulkan/DescriptorPool.h>
-#include <vulkan/structures/PushConstantRange.h>
-
+#include "vulkan/structures/DeviceQueueCreateInfo.h"
+#include "vulkan/Buffer.h"
+#include "vulkan/structures/default.h"
+#include "vulkan/structures/DescriptorSetLayoutBinding.h"
+#include "vulkan/structures/SubpassDescription.h"
+#include "vulkan/structures/AttachmentReference.h"
+#include "vulkan/structures/ClearValue.h"
+#include "vulkan/DescriptorPool.h"
+#include "vulkan/structures/PushConstantRange.h"
 #include "vulkan/util.h"
 #include "build_definition.h"
 #include "VertexBuilder.h"
@@ -353,7 +352,7 @@ App::App()
               .SetPpEnabledExtensionNames(deviceExtensions.data()));
   queue = virtualDevice.GetQueue(queueFamilyIndex.value(), 0);
 
-  deviceAllocator = virtualDevice.CreateMemoryAllocator();
+  deviceAllocator = DeviceMemoryAllocator(&virtualDevice, targetPhysicalDevice.GetMemoryProperties());
 
   fence = virtualDevice.CreateFence();
 
@@ -431,7 +430,7 @@ App::App()
           sizeof(gradientIndices[0]) * gradientIndices.size(),
           VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
-  Bitmap bitmap = ReadBitmap("Alice.bmp");
+  Bitmap bitmap = ReadBitmap("resources/Alice.bmp");
 
   const float pictureWidth = static_cast<float>(bitmap.width);
   const float pictureHeight = static_cast<float>(bitmap.height);
@@ -443,7 +442,7 @@ App::App()
               .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
   ReservedMemory stagingBufferMemory =
       deviceAllocator.BindMemory(stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  stagingBufferMemory.memoryBinding.GetMemory().MapCopy(bitmap.data.data(), stagingBufferMemory.offset, stagingBuffer.Size());
+  stagingBufferMemory.memory->MapCopy(bitmap.data.data(), stagingBufferMemory.offset, stagingBuffer.Size());
 
   Image textureImage =
       virtualDevice.CreateImage(
@@ -938,7 +937,7 @@ App::BufferWithMemory App::TransferDataToGpuLocalMemory(
               .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
   ReservedMemory stagingBufferMemory =
       deviceAllocator.BindMemory(stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  stagingBufferMemory.memoryBinding.GetMemory().MapCopy(data, stagingBufferMemory.offset, stagingBuffer.Size());
+  stagingBufferMemory.memory->MapCopy(data, stagingBufferMemory.offset, stagingBuffer.Size());
 
   Buffer finalBuffer =
       virtualDevice.CreateBuffer(

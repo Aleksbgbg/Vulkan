@@ -1,15 +1,13 @@
 #ifndef VULKAN_SRC_VULKAN_IMGUIINSTANCE_H
 #define VULKAN_SRC_VULKAN_IMGUIINSTANCE_H
 
-#include <SDL.h>
-#undef main
-
+#include "SdlIncl.h"
 #include "VulkanInstance.h"
 #include "VirtualDevice.h"
 
 class ImGuiInstance {
 public:
-  ImGuiInstance() = default;
+  ImGuiInstance();
   ImGuiInstance(
       SDL_Window* const sdlWindow,
       const VulkanInstance& instance,

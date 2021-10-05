@@ -1,7 +1,6 @@
-#include <stdexcept>
-#include <iostream>
-#include <cstdio>
 #include <fstream>
+#include <iostream>
+#include <stdexcept>
 
 #include "App.h"
 
@@ -9,7 +8,7 @@ void WriteFile(const char* const filename, std::string content) {
   std::ofstream file(filename);
 
   if (!file.is_open()) {
-    throw std::runtime_error("Failed to open file.");
+    throw std::runtime_error(std::string("Failed to open file '") + filename + "'.");
   }
 
   file.write(content.c_str(), content.size());
@@ -17,23 +16,15 @@ void WriteFile(const char* const filename, std::string content) {
 
 int run() {
   try {
-    auto a = App();
-    auto b = a.Run();
-    return b;
-    // return App().Run();
+    return App().Run();
   } catch (const std::exception& exception) {
-    std::string str = std::string() + "Error during run:\n" + exception.what() + "\nPress any key to continue...";
-    std::cout << str << std::endl;
-    WriteFile("RunDebug.txt", str);
-    std::getchar();
-    std::getchar();
-    std::getchar();
+    const std::string errorString = std::string("Error during run:\n") + exception.what();
+    std::cout << errorString << std::endl;
+    WriteFile("RunDebug.txt", errorString);
     throw;
   }
 }
 
 int main() {
-  auto r = run();
-  int x =5;
-  return r;
+  return run();
 }

@@ -47,6 +47,15 @@ ShaderModule VirtualDevice::LoadShader(const VkShaderStageFlagBits stage, const 
           .SetPCode(reinterpret_cast<const u32*>(code.data())));
 }
 
+DeviceMemory VirtualDevice::AllocateDeviceMemory(const u32 memoryTypeIndex, const VkDeviceSize size) const {
+  return
+      DeviceMemory(
+          device,
+          MemoryAllocateInfoBuilder()
+              .SetAllocationSize(size)
+              .SetMemoryTypeIndex(memoryTypeIndex));
+}
+
 DescriptorSetLayout VirtualDevice::CreateDescriptorSetLayout(DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const {
   return DescriptorSetLayout(device, infoBuilder);
 }
@@ -101,8 +110,4 @@ void VirtualDevice::WaitIdle() const {
 
 Sampler VirtualDevice::CreateSampler(SamplerCreateInfoBuilder& infoBuilder) const {
   return Sampler(device, infoBuilder);
-}
-
-DeviceMemoryAllocator VirtualDevice::CreateMemoryAllocator() const {
-  return DeviceMemoryAllocator(device, memoryProperties);
 }

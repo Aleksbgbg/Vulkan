@@ -5,6 +5,8 @@
 
 #include <imgui.h>
 
+#include "build_definition.h"
+
 float Average(const float* const values, const u32 size) {
   float sum = 0.0f;
 
@@ -48,6 +50,10 @@ void UiRenderer::BeginFrame() const {
 }
 
 void UiRenderer::EndFrame() const {
+#ifdef TOOLS
+  ImGui::ShowDemoWindow();
+#endif
+
   imGuiInstance.RenderFrame();
 }
 
@@ -90,8 +96,6 @@ float UiRenderer::GetFrametimeHistoryValue(void* data, int index) const {
 }
 
 void UiRenderer::ShowObjectsInScene(const ObjectsInSceneInfo& info) const {
-  ImGui::ShowDemoWindow();
-
   ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
   ImGui::Begin("Objects in Scene");
   ImGui::Text("Camera positioned at (%.3f, %.3f, %.3f)", info.cameraPosition.x, info.cameraPosition.y, info.cameraPosition.z);

@@ -79,3 +79,7 @@ VkImageFormatProperties PhysicalDevice::GetSurfaceImageFormatProperties(const Vk
           &properties))
   return properties;
 }
+
+const VkPhysicalDeviceMemoryProperties* PhysicalDevice::GetMemoryProperties() const {
+  return &memoryProperties;
+}

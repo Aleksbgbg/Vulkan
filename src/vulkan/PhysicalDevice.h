@@ -18,6 +18,7 @@ public:
   explicit PhysicalDevice(VkPhysicalDevice physicalDevice);
 
   VkPhysicalDeviceProperties GetProperties() const;
+  const VkPhysicalDeviceMemoryProperties* GetMemoryProperties() const;
   std::optional<u32> FindAppropriateQueueFamily(const VkQueueFlags requiredProperties,
                                                 const std::function<bool(u32)>& predicate) const;
   VirtualDevice CreateVirtualDevice(DeviceCreateInfoBuilder& infoBuilder);

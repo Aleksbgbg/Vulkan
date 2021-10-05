@@ -5,84 +5,56 @@
 #include <vector>
 
 #include "types.h"
-#include "vulkan/DeviceMemory.h"
+#include "AllocatedBlock.h"
+#include "Allocator.h"
+#include "MemoryBlock.h"
 #include "MemoryAllocation.h"
-
-class VirtualDevice;
-
-struct MemoryAllocation {
-  VkDeviceSize size;
-  VkDeviceSize alignment;
-};
-
-struct MemoryBlock {
-  DeviceMemory* memory;
-
-  u32 allocationIndex;
-  u32 offset;
-  u32 size;
-};
-
-class MemoryBinding {
-  friend class DeviceHeap;
-public:
-  MemoryBinding();
-  ~MemoryBinding();
-
-  MemoryBinding(MemoryBinding&) = delete;
-  MemoryBinding(MemoryBinding&& other) noexcept;
-
-  MemoryBinding& operator=(MemoryBinding&) = delete;
-  MemoryBinding& operator=(MemoryBinding&& other) noexcept;
-
-  DeviceMemory& GetMemory() const;
-
-private:
-  MemoryBinding(DeviceHeap* heap, const MemoryBlock memoryBlock);
-
-  DeviceHeap* heap;
-  MemoryBlock memoryBlock;
-};
-
-struct ReservedMemory {
-  MemoryBinding memoryBinding;
-  VkDeviceSize offset;
-};
+#include "ReservedBlock.h"
 
 class DeviceHeap {
-  friend MemoryBinding;
+  friend ReservedBlock;
 public:
-  DeviceHeap() = default;
-  explicit DeviceHeap(VkDevice device, const u32 memoryTypeIndex);
+  DeviceHeap();
+  DeviceHeap(u64 initialAllocationSize, Allocator* allocator);
+  DeviceHeap(u64 initialAllocationSize, float enlargementFactor, Allocator* allocator);
 
-  ReservedMemory ReserveMemoryBlock(const VkMemoryRequirements& memoryRequirements);
+  ReservedBlock ReserveMemory(const MemoryAllocation requestedAllocation);
 
 private:
-  struct AvailableBlock {
-    MemoryBlock memoryBlock;
+  struct AllocationChain {
+    AllocatedBlock block;
 
-    std::shared_ptr<AvailableBlock> previous;
-    std::shared_ptr<AvailableBlock> next;
+    std::unique_ptr<AllocationChain> next;
   };
 
-  void FreeMemoryBlock(const MemoryBlock memoryBlock);
+  class AllocationList {
+  public:
+    AllocationChain* First();
 
-  void Enlarge();
-  void UpdateLastBlock(const std::shared_ptr<AvailableBlock>& newLastBlock);
+    void Add(const AllocatedBlock block);
+    void InsertAfter(AllocationChain* previous, const AllocatedBlock block);
+    void Remove(AllocationChain* block, AllocationChain* previous);
 
-  std::optional<std::shared_ptr<AvailableBlock>> TryFindAvailableBlock(const MemoryAllocation requestedAllocation);
-  MemoryBlock ReserveBlock(const std::shared_ptr<AvailableBlock>& block, const MemoryAllocation requestedAllocation);
+  private:
+    std::unique_ptr<AllocationChain> first;
+    AllocationChain* last;
+  };
+
+  struct AllocatedMemory {
+    u64 allocationIndex;
+    AllocationList list;
+    std::unique_ptr<MemoryObject> memory;
+  };
+
+  void Return(const AllocatedBlock block);
 
 private:
-  VkDevice device;
+  u64 initialAllocationSize;
+  float enlargementFactor;
+  Allocator* allocator;
 
-  u32 memoryTypeIndex;
-  u32 totalSize;
-
-  std::shared_ptr<AvailableBlock> firstAvailableBlock;
-  std::shared_ptr<AvailableBlock> lastAvailableBlock;
-
-  std::vector<std::shared_ptr<DeviceMemory>> allocatedMemory;
+  u32 enlargementIndex;
+  std::vector<AllocatedMemory> allocations;
 };
 
 #endif // VULKAN_SRC_MEMORY_DEVICEHEAP_H

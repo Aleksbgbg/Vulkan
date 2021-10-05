@@ -2,10 +2,10 @@
 #define VULKAN_SRC_VULKAN_COMMANDBUFFER_H
 
 #include <vulkan/vulkan.h>
-#include <vulkan/structures/RenderPassBeginInfo.h>
-#include <vulkan/structures/BufferImageCopy.h>
-#include <vulkan/structures/ImageMemoryBarrier.h>
 
+#include "structures/RenderPassBeginInfo.h"
+#include "structures/BufferImageCopy.h"
+#include "structures/ImageMemoryBarrier.h"
 #include "lifetime_semantics.h"
 #include "structures/CommandBufferAllocateInfo.h"
 #include "Fence.h"
