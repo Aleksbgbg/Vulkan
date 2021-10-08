@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
+#include <filesystem>
 #include <format>
 #include <iostream>
 #include <memory>
@@ -14,6 +15,8 @@
 #include "GradientVertex.h"
 #include "VertexBuilder.h"
 #include "build_definition.h"
+#include "file.h"
+#include "filenames.h"
 #include "include_sdl.h"
 #include "read_bitmap.h"
 #include "vulkan/Buffer.h"
@@ -235,6 +238,13 @@ App::App()
           .SetEnabledExtensionCount(deviceExtensions.size())
           .SetPpEnabledExtensionNames(deviceExtensions.data()));
   queue = virtualDevice.GetQueue(queueFamilyIndex.value(), 0);
+
+  if (std::filesystem::exists(PipelineCacheFilename)) {
+    pipelineCache =
+        virtualDevice.LoadPipelineCache(ReadFile(PipelineCacheFilename));
+  } else {
+    pipelineCache = virtualDevice.CreatePipelineCache();
+  }
 
   deviceAllocator = DeviceMemoryAllocator(
       &virtualDevice, targetPhysicalDevice.GetMemoryProperties());
@@ -559,6 +569,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           .SetBindingCount(descriptorSetLayoutBindings.size())
           .SetPBindings(descriptorSetLayoutBindings.data()));
   pipeline = virtualDevice.CreateGraphicsPipeline(
+      pipelineCache,
       shaders,
       virtualDevice.CreatePipelineLayout(
           descriptorSetLayout,
@@ -663,6 +674,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           .SetBindingCount(gradientDescriptorSetLayoutBindings.size())
           .SetPBindings(gradientDescriptorSetLayoutBindings.data()));
   gradientPipeline = virtualDevice.CreateGraphicsPipeline(
+      pipelineCache,
       gradientShaders,
       virtualDevice.CreatePipelineLayout(
           gradientDescriptorSetLayout,
@@ -847,6 +859,7 @@ int App::Run() {
   std::thread renderThread(&App::RenderThread, this);
   MainThread();
   renderThread.join();
+  WriteFile(PipelineCacheFilename, pipelineCache.GetPipelineCacheData());
   return 0;
 }
 

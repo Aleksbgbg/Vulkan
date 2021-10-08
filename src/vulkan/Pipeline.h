@@ -3,11 +3,11 @@
 
 #include <vulkan/vulkan.h>
 
+#include "PipelineCache.h"
 #include "PipelineLayout.h"
 #include "RenderPass.h"
 #include "ShaderModule.h"
 #include "SubpassReference.h"
-#include "lifetime_semantics.h"
 #include "structures/GraphicsPipelineCreateInfo.h"
 
 class Pipeline {
@@ -15,7 +15,7 @@ class Pipeline {
 
  public:
   Pipeline() = default;
-  Pipeline(VkDevice shaderModule,
+  Pipeline(VkDevice shaderModule, const PipelineCache& pipelineCache,
            const std::vector<ShaderModule>& shaderModules,
            PipelineLayout pipelineLayout,
            const SubpassReference subpassReference,

@@ -11,6 +11,7 @@
 #include "DeviceMemory.h"
 #include "Image.h"
 #include "Pipeline.h"
+#include "PipelineCache.h"
 #include "PipelineLayout.h"
 #include "Queue.h"
 #include "RenderPass.h"
@@ -83,12 +84,15 @@ class VirtualDevice {
       const;
   RenderPass CreateRenderPass(RenderPassCreateInfoBuilder& infoBuilder) const;
   Pipeline CreateGraphicsPipeline(
+      const PipelineCache& pipelineCache,
       const std::vector<ShaderModule>& shaders, PipelineLayout pipelineLayout,
       const SubpassReference subpassReference,
       GraphicsPipelineCreateInfoBuilder& infoBuilder) const;
   DescriptorPool CreateDescriptorPool(
       DescriptorPoolCreateInfoBuilder& infoBuilder) const;
   Sampler CreateSampler(SamplerCreateInfoBuilder& infoBuilder) const;
+  PipelineCache CreatePipelineCache() const;
+  PipelineCache LoadPipelineCache(const std::vector<u8>& data) const;
 
   void UpdateDescriptorSets(const u32 count, VkWriteDescriptorSet* writes);
 

@@ -4,7 +4,7 @@
 
 #include "error.h"
 
-Pipeline::Pipeline(VkDevice device,
+Pipeline::Pipeline(VkDevice device, const PipelineCache& pipelineCache,
                    const std::vector<ShaderModule>& shaderModules,
                    PipelineLayout pipelineLayout,
                    const SubpassReference subpassReference,
@@ -22,7 +22,7 @@ Pipeline::Pipeline(VkDevice device,
                        .BuildObject();
                  });
   PROCEED_ON_VALID_RESULT(vkCreateGraphicsPipelines(
-      device, VK_NULL_HANDLE, 1,
+      device, pipelineCache.pipelineCache, 1,
       infoBuilder.SetStageCount(shaderCreateInfos.size())
           .SetPStages(shaderCreateInfos.data())
           .SetLayout(this->pipelineLayout.pipelineLayout)

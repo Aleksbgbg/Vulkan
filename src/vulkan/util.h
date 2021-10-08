@@ -7,8 +7,6 @@
 
 #include "types.h"
 
-std::vector<u8> ReadFile(const char* const filename);
-
 template <typename>
 struct second_arg;
 

@@ -1,6 +1,6 @@
 #include "read_bitmap.h"
 
-#include "vulkan/util.h"
+#include "file.h"
 
 #pragma pack(push, r1, 1)
 struct BitmapHeader {

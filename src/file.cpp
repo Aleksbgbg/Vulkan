@@ -1,14 +1,19 @@
-#include "util.h"
+#include "file.h"
 
 #include <fstream>
+#include <stdexcept>
 #include <string>
+
+std::runtime_error CannotOpen(const char* const filename) {
+  return std::runtime_error(std::string("Failed to open file '") + filename +
+                            "'.");
+}
 
 std::vector<u8> ReadFile(const char* const filename) {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
-    throw std::runtime_error(std::string("Failed to open file '") + filename +
-                             "'.");
+    throw CannotOpen(filename);
   }
 
   const u32 fileSize = file.tellg();
@@ -22,4 +27,13 @@ std::vector<u8> ReadFile(const char* const filename) {
   }
 
   return buffer;
+}
+void WriteFile(const char* const filename, const std::vector<u8>& data) {
+  std::ofstream file(filename, std::ios::binary);
+
+  if (!file.is_open()) {
+    throw CannotOpen(filename);
+  }
+
+  file.write(reinterpret_cast<const char*>(data.data()), data.size());
 }

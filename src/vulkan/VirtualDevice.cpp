@@ -2,9 +2,8 @@
 
 #include "Surface.h"
 #include "error.h"
+#include "file.h"
 #include "util.h"
-
-#undef CreateSemaphore
 
 VirtualDevice::VirtualDevice(VkPhysicalDevice physicalDevice,
                              VkPhysicalDeviceMemoryProperties* memoryProperties,
@@ -84,11 +83,12 @@ RenderPass VirtualDevice::CreateRenderPass(
 }
 
 Pipeline VirtualDevice::CreateGraphicsPipeline(
+    const PipelineCache& pipelineCache,
     const std::vector<ShaderModule>& shaders, PipelineLayout pipelineLayout,
     const SubpassReference subpassReference,
     GraphicsPipelineCreateInfoBuilder& infoBuilder) const {
-  return Pipeline(device, shaders, std::move(pipelineLayout), subpassReference,
-                  infoBuilder);
+  return Pipeline(device, pipelineCache, shaders, std::move(pipelineLayout),
+                  subpassReference, infoBuilder);
 }
 
 Semaphore VirtualDevice::CreateSemaphore() const {
@@ -120,4 +120,15 @@ void VirtualDevice::WaitIdle() const {
 Sampler VirtualDevice::CreateSampler(
     SamplerCreateInfoBuilder& infoBuilder) const {
   return Sampler(device, infoBuilder);
+}
+
+PipelineCache VirtualDevice::CreatePipelineCache() const {
+  return PipelineCache(device, PipelineCacheCreateInfoBuilder().Reference());
+}
+
+PipelineCache VirtualDevice::LoadPipelineCache(
+    const std::vector<u8>& data) const {
+  return PipelineCache(device, PipelineCacheCreateInfoBuilder()
+                                   .SetInitialDataSize(data.size())
+                                   .SetPInitialData(data.data()));
 }

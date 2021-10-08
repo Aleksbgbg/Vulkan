@@ -100,6 +100,8 @@ class App {
   VirtualDevice virtualDevice;
   Queue queue;
 
+  PipelineCache pipelineCache;
+
   DeviceMemoryAllocator deviceAllocator;
 
   Fence fence;
