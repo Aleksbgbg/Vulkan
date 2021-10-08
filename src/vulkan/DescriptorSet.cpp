@@ -1,18 +1,16 @@
-#include <vulkan/structures/WriteDescriptorSet.h>
 #include "DescriptorSet.h"
 
-DescriptorSet::DescriptorSet(VkDescriptorSet descriptorSet) : descriptorSet(descriptorSet) {
-
-}
+DescriptorSet::DescriptorSet(VkDescriptorSet descriptorSet)
+    : descriptorSet(descriptorSet) {}
 
 void DescriptorSet::CreateBufferWrite(
-    const Buffer& buffer, DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const {
-  writeDescriptorSet.info.bufferInfo =
-      DescriptorBufferInfoBuilder()
-          .SetBuffer(buffer.buffer)
-          .SetOffset(0)
-          .SetRange(buffer.Size())
-          .BuildObject();
+    const Buffer& buffer,
+    DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const {
+  writeDescriptorSet.info.bufferInfo = DescriptorBufferInfoBuilder()
+                                           .SetBuffer(buffer.buffer)
+                                           .SetOffset(0)
+                                           .SetRange(buffer.Size())
+                                           .BuildObject();
   writeDescriptorSet.writeBuilder =
       WriteDescriptorSetBuilder()
           .SetDstSet(descriptorSet)
@@ -22,8 +20,7 @@ void DescriptorSet::CreateBufferWrite(
 }
 
 void DescriptorSet::CreateImageSamplerWrite(
-    const ImageView& samplerImageView,
-    const Sampler& sampler,
+    const ImageView& samplerImageView, const Sampler& sampler,
     const VkImageLayout imageLayout,
     DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const {
   writeDescriptorSet.info.imageInfo =

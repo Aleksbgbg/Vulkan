@@ -2,19 +2,21 @@
 #define VULKAN_SRC_VULKAN_DEVICEMEMORY_H
 
 #include <vulkan/vulkan_core.h>
+
 #include <optional>
 
-#include "lifetime_semantics.h"
-#include "structures/MemoryAllocateInfo.h"
 #include "Buffer.h"
 #include "Image.h"
+#include "lifetime_semantics.h"
+#include "structures/MemoryAllocateInfo.h"
 
 class DeviceMemory {
-public:
+ public:
   VULKAN_OBJECT_MOVABLE_ROOT(DeviceMemory, device, memory)
 
   DeviceMemory() = default;
-  explicit DeviceMemory(VkDevice device, MemoryAllocateInfoBuilder& infoBuilder);
+  explicit DeviceMemory(VkDevice device,
+                        MemoryAllocateInfoBuilder& infoBuilder);
 
   DeviceMemory(const DeviceMemory&) = delete;
 
@@ -29,16 +31,16 @@ public:
   DeviceMemory& Bind(VkBuffer buffer, const VkDeviceSize offset);
   DeviceMemory& BindAll(VkImage image);
   DeviceMemory& Bind(VkImage image, const VkDeviceSize offset);
-  void MapCopy(const void* data, const VkDeviceSize offset, const VkDeviceSize size);
+  void MapCopy(const void* data, const VkDeviceSize offset,
+               const VkDeviceSize size);
 
   static std::optional<u32> FindSuitableMemoryTypeIndex(
       const VkPhysicalDeviceMemoryProperties& memoryProperties,
-      const VkMemoryPropertyFlags requiredProperties,
-      const u32 memoryTypeBits);
+      const VkMemoryPropertyFlags requiredProperties, const u32 memoryTypeBits);
 
-private:
+ private:
   VkDevice device;
   VkDeviceMemory memory = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_DEVICEMEMORY_H
+#endif  // VULKAN_SRC_VULKAN_DEVICEMEMORY_H

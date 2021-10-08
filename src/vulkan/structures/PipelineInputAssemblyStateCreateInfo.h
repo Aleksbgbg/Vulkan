@@ -3,12 +3,16 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include "types.h"
 #include "define_structure.h"
+#include "types.h"
 
-STRUCTURE_BUILDER(PipelineInputAssemblyStateCreateInfoBuilder, VkPipelineInputAssemblyStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO)
-  STRUCTURE_SETTER(PipelineInputAssemblyStateCreateInfoBuilder, Topology, const VkPrimitiveTopology, topology)
-  STRUCTURE_SETTER(PipelineInputAssemblyStateCreateInfoBuilder, PrimitiveRestartEnable, const VkBool32, primitiveRestartEnable)
+STRUCTURE_BUILDER(PipelineInputAssemblyStateCreateInfoBuilder,
+                  VkPipelineInputAssemblyStateCreateInfo,
+                  VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO)
+STRUCTURE_SETTER(PipelineInputAssemblyStateCreateInfoBuilder, Topology,
+                 const VkPrimitiveTopology, topology)
+STRUCTURE_SETTER(PipelineInputAssemblyStateCreateInfoBuilder,
+                 PrimitiveRestartEnable, const VkBool32, primitiveRestartEnable)
 END_STRUCTURE_BUILDER
 
-#endif // VULKAN_SRC_VULKAN_STRUCTURES_PIPELINEINPUTASSEMBLYSTATECREATEINFO_H
+#endif  // VULKAN_SRC_VULKAN_STRUCTURES_PIPELINEINPUTASSEMBLYSTATECREATEINFO_H

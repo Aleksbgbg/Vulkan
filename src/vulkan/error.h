@@ -2,22 +2,22 @@
 #define VULKAN_SRC_VULKAN_ERROR_H
 
 #include <vulkan/vulkan.h>
+
 #include <string>
 
 #include "build_definition.h"
 
 #ifdef DIAGNOSTICS
 class VulkanResultException : public std::exception {
-private:
+ private:
   std::string message;
 
-public:
-  VulkanResultException(
-      const char* const file, const int line, const char* const invocation, const VkResult result)
-      : message(
-      std::string() + "[" + file + ":" + std::to_string(line) + "] " + invocation
-      + ": VkResult was not success. Was: " + std::to_string(result)
-      + " but expected VK_SUCCESS (0).") {}
+ public:
+  VulkanResultException(const char* const file, const int line,
+                        const char* const invocation, const VkResult result)
+      : message(std::string() + "[" + file + ":" + std::to_string(line) + "] " +
+                invocation + ": VkResult was not success. Was: " +
+                std::to_string(result) + " but expected VK_SUCCESS (0).") {}
 
   const char* what() const override {
     return message.c_str();
@@ -34,4 +34,4 @@ public:
 #define PROCEED_ON_VALID_RESULT(invocation) invocation;
 #endif
 
-#endif // VULKAN_SRC_VULKAN_ERROR_H
+#endif  // VULKAN_SRC_VULKAN_ERROR_H

@@ -3,16 +3,17 @@
 
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
-#include "structures/GraphicsPipelineCreateInfo.h"
-#include "ShaderModule.h"
 #include "PipelineLayout.h"
 #include "RenderPass.h"
+#include "ShaderModule.h"
 #include "SubpassReference.h"
+#include "lifetime_semantics.h"
+#include "structures/GraphicsPipelineCreateInfo.h"
 
 class Pipeline {
   friend class CommandBuffer;
-public:
+
+ public:
   Pipeline() = default;
   Pipeline(VkDevice shaderModule,
            const std::vector<ShaderModule>& shaderModules,
@@ -22,10 +23,9 @@ public:
 
   Pipeline(const Pipeline&) = delete;
   Pipeline(Pipeline&& other) noexcept
-    :
-      device(other.device),
-      pipeline(other.pipeline),
-      pipelineLayout(std::move(other.pipelineLayout)) {
+      : device(other.device),
+        pipeline(other.pipeline),
+        pipelineLayout(std::move(other.pipelineLayout)) {
     other.pipeline = nullptr;
   }
 
@@ -41,10 +41,10 @@ public:
 
   PipelineLayout& GetLayout();
 
-private:
+ private:
   VkDevice device;
   VkPipeline pipeline = nullptr;
   PipelineLayout pipelineLayout;
 };
 
-#endif // VULKAN_SRC_VULKAN_PIPELINE_H
+#endif  // VULKAN_SRC_VULKAN_PIPELINE_H

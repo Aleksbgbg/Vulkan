@@ -1,38 +1,28 @@
 #ifndef VULKAN_SRC_APP_H
 #define VULKAN_SRC_APP_H
 
-#include <chrono>
-#include <vector>
-#include <semaphore>
-
-#include <SDL_syswm.h>
 #include <vulkan/vulkan.h>
 
-#include "vulkan/Swapchain.h"
-#include "vulkan/VulkanInstance.h"
-#include "vulkan/Semaphore.h"
-#include "vulkan/structures/ApplicationInfo.h"
-#include "vulkan/ImGuiInstance.h"
+#include <chrono>
+#include <vector>
+
 #include "Keyboard.h"
-#include "SdlIncl.h"
-#include "GlmIncl.h"
-#include "memory/DeviceMemoryAllocator.h"
-
-// Bad windows headers
-#include <vulkan/vulkan_win32.h>
-#undef PostMessage
-
 #include "MultithreadedMessageQueue.h"
 #include "UiRenderer.h"
+#include "include_glm.h"
+#include "memory/DeviceMemoryAllocator.h"
+#include "vulkan/ImGuiInstance.h"
+#include "vulkan/Swapchain.h"
+#include "vulkan/VulkanInstance.h"
 
 class App {
-public:
+ public:
   App();
   ~App();
 
   int Run();
 
-private:
+ private:
   void MainThread();
   void RenderThread();
 
@@ -43,7 +33,7 @@ private:
 
   void InitializeSwapchain(CommandBuffer& transientCommandBuffer);
 
-private:
+ private:
   struct Rect {
     glm::ivec2 position;
     glm::ivec2 size;
@@ -66,29 +56,35 @@ private:
     ReservedMemory memory;
   };
 
-  struct ModelViewTransformation{
+  struct ModelViewTransformation {
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
   };
 
-  struct ProjectionTransformation{
+  struct ProjectionTransformation {
     alignas(16) glm::mat4 value;
   };
 
-  BufferWithMemory TransferDataToGpuLocalMemory(
-      CommandBuffer& commandBuffer, const void* data, const u32 size, const VkBufferUsageFlags usage);
+  BufferWithMemory TransferDataToGpuLocalMemory(CommandBuffer& commandBuffer,
+                                                const void* data,
+                                                const u32 size,
+                                                const VkBufferUsageFlags usage);
 
-  VkFormat SelectDepthStencilFormat(const std::vector<VkFormat>& potentialFormats) const;
+  VkFormat SelectDepthStencilFormat(
+      const std::vector<VkFormat>& potentialFormats) const;
 
-  VkSurfaceFormatKHR SelectSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableSurfaceFormats) const;
-  static VkExtent2D SelectSwapExtent(const VkSurfaceCapabilitiesKHR surfaceCapabilities);
-  static VkPresentModeKHR SelectSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+  VkSurfaceFormatKHR SelectSwapSurfaceFormat(
+      const std::vector<VkSurfaceFormatKHR>& availableSurfaceFormats) const;
+  static VkExtent2D SelectSwapExtent(
+      const VkSurfaceCapabilitiesKHR surfaceCapabilities);
+  static VkPresentModeKHR SelectSwapPresentMode(
+      const std::vector<VkPresentModeKHR>& availablePresentModes);
 
-  static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-      VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-      VkDebugUtilsMessageTypeFlagsEXT messageType,
-      const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-      void* pUserData);
+  static VKAPI_ATTR VkBool32 VKAPI_CALL
+  DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                VkDebugUtilsMessageTypeFlagsEXT messageType,
+                const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                void* pUserData);
 
   static WindowInfo InitSdl();
 
@@ -161,12 +157,7 @@ private:
   std::vector<InFlightImage> imagesInFlightSynchronisation;
   u32 currentInFlightImage = 0;
 
-  enum class EventNotification {
-    Exited,
-    Paused,
-    Unpaused,
-    Resized
-  };
+  enum class EventNotification { Exited, Paused, Unpaused, Resized };
   MultithreadedMessageQueue<EventNotification> threadMessenger;
 
   struct AcquiredImage {
@@ -190,4 +181,4 @@ private:
   std::vector<DescriptorSet> gradientDescriptorSets;
 };
 
-#endif // VULKAN_SRC_APP_H
+#endif  // VULKAN_SRC_APP_H

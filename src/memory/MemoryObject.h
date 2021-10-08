@@ -2,8 +2,8 @@
 #define VULKAN_SRC_MEMORY_MEMORYOBJECT_H
 
 class MemoryObject {
-public:
+ public:
   virtual ~MemoryObject() = default;
 };
 
-#endif // VULKAN_SRC_MEMORY_MEMORYOBJECT_H
+#endif  // VULKAN_SRC_MEMORY_MEMORYOBJECT_H

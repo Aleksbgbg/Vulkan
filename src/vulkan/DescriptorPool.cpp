@@ -5,8 +5,11 @@
 
 #include "error.h"
 
-DescriptorPool::DescriptorPool(VkDevice device, DescriptorPoolCreateInfoBuilder& infoBuilder) : device(device) {
-  PROCEED_ON_VALID_RESULT(vkCreateDescriptorPool(device, infoBuilder.Build(), nullptr, &descriptorPool))
+DescriptorPool::DescriptorPool(VkDevice device,
+                               DescriptorPoolCreateInfoBuilder& infoBuilder)
+    : device(device) {
+  PROCEED_ON_VALID_RESULT(vkCreateDescriptorPool(device, infoBuilder.Build(),
+                                                 nullptr, &descriptorPool));
 }
 
 DescriptorPool::~DescriptorPool() {
@@ -17,7 +20,8 @@ DescriptorPool::~DescriptorPool() {
 
 std::vector<DescriptorSet> DescriptorPool::AllocateDescriptorSets(
     DescriptorSetLayout& descriptorSetLayout, const u32 count) const {
-  std::vector<VkDescriptorSetLayout> rawLayouts(count, descriptorSetLayout.descriptorSetLayout);
+  std::vector<VkDescriptorSetLayout> rawLayouts(
+      count, descriptorSetLayout.descriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo =
       DescriptorSetAllocateInfoBuilder()
           .SetDescriptorPool(descriptorPool)
@@ -25,14 +29,13 @@ std::vector<DescriptorSet> DescriptorPool::AllocateDescriptorSets(
           .SetPSetLayouts(rawLayouts.data())
           .BuildObject();
   std::vector<VkDescriptorSet> rawDescriptorSets(count);
-  PROCEED_ON_VALID_RESULT(vkAllocateDescriptorSets(device, &allocateInfo, rawDescriptorSets.data()))
+  PROCEED_ON_VALID_RESULT(
+      vkAllocateDescriptorSets(device, &allocateInfo, rawDescriptorSets.data()))
   std::vector<DescriptorSet> descriptorSets;
-  std::transform(
-      rawDescriptorSets.begin(),
-      rawDescriptorSets.end(),
-      std::back_inserter(descriptorSets),
-      [](VkDescriptorSet descriptorSet) {
-        return DescriptorSet(descriptorSet);
-      });
+  std::transform(rawDescriptorSets.begin(), rawDescriptorSets.end(),
+                 std::back_inserter(descriptorSets),
+                 [](VkDescriptorSet descriptorSet) {
+                   return DescriptorSet(descriptorSet);
+                 });
   return descriptorSets;
 }

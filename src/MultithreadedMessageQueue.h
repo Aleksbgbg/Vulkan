@@ -2,12 +2,12 @@
 #define VULKAN_SRC_MULTITHREADEDMESSAGEQUEUE_H
 
 #include <queue>
-#include <unordered_map>
 #include <semaphore>
+#include <unordered_map>
 
-template<typename TMessage>
+template <typename TMessage>
 class MultithreadedMessageQueue {
-public:
+ public:
   MultithreadedMessageQueue() : messageQueue(), messageAwaiters() {}
 
   void PostMessage(TMessage message) {
@@ -34,9 +34,9 @@ public:
     messageAwaiters.erase(message);
   }
 
-private:
+ private:
   std::queue<TMessage> messageQueue;
   std::unordered_map<TMessage, std::binary_semaphore*> messageAwaiters;
 };
 
-#endif // VULKAN_SRC_MULTITHREADEDMESSAGEQUEUE_H
+#endif  // VULKAN_SRC_MULTITHREADEDMESSAGEQUEUE_H

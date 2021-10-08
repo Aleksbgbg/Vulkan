@@ -19,4 +19,4 @@
 // #define TOOLS
 #endif
 
-#endif // VULKAN_SRC_BUILD_DEFINITION_H
+#endif  // VULKAN_SRC_BUILD_DEFINITION_H

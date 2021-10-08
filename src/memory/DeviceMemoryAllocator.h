@@ -4,11 +4,11 @@
 #include <memory>
 #include <vector>
 
+#include "DeviceHeap.h"
 #include "vulkan/Buffer.h"
 #include "vulkan/DeviceMemory.h"
 #include "vulkan/Image.h"
 #include "vulkan/VirtualDevice.h"
-#include "DeviceHeap.h"
 
 struct ReservedMemory {
   friend class DeviceMemoryAllocator;
@@ -16,31 +16,36 @@ struct ReservedMemory {
   DeviceMemory* memory;
   VkDeviceSize offset;
 
-private:
+ private:
   ReservedBlock reservedBlock;
 };
 
 class DeviceMemoryAllocator {
-public:
+ public:
   DeviceMemoryAllocator() = default;
-  DeviceMemoryAllocator(VirtualDevice* virtualDevice, const VkPhysicalDeviceMemoryProperties* const memoryProperties);
+  DeviceMemoryAllocator(
+      VirtualDevice* virtualDevice,
+      const VkPhysicalDeviceMemoryProperties* const memoryProperties);
 
-  ReservedMemory BindMemory(const Buffer& buffer, const VkMemoryPropertyFlags requiredProperties);
-  ReservedMemory BindMemory(const Image& image, const VkMemoryPropertyFlags requiredProperties);
+  ReservedMemory BindMemory(const Buffer& buffer,
+                            const VkMemoryPropertyFlags requiredProperties);
+  ReservedMemory BindMemory(const Image& image,
+                            const VkMemoryPropertyFlags requiredProperties);
 
-private:
+ private:
   ReservedMemory ReserveMemoryBlock(
-      const VkMemoryRequirements& memoryRequirements, const VkMemoryPropertyFlags requiredProperties);
+      const VkMemoryRequirements& memoryRequirements,
+      const VkMemoryPropertyFlags requiredProperties);
 
-private:
+ private:
   class HeapAllocator : public Allocator {
-  public:
+   public:
     HeapAllocator() = default;
     HeapAllocator(VirtualDevice* virtualDevice, u32 memoryTypeIndex);
 
     std::unique_ptr<MemoryObject> Allocate(VkDeviceSize size) override;
 
-  private:
+   private:
     VirtualDevice* virtualDevice;
     u32 memoryTypeIndex;
   };
@@ -56,4 +61,4 @@ private:
   std::vector<Heap> heapsPerMemoryIndex;
 };
 
-#endif // VULKAN_SRC_MEMORY_DEVICEMEMORYALLOCATOR_H
+#endif  // VULKAN_SRC_MEMORY_DEVICEMEMORYALLOCATOR_H

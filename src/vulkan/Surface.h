@@ -3,17 +3,19 @@
 
 #include <vulkan/vulkan.h>
 
+#include "PhysicalDevice.h"
 #include "lifetime_semantics.h"
 #include "vulkan/structures/Win32SurfaceCreateInfo.h"
-#include "PhysicalDevice.h"
 
 class Surface {
   friend class VirtualDevice;
-public:
+
+ public:
   VULKAN_OBJECT_MOVABLE_ROOT(Surface, instance, surface)
 
   Surface() = default;
-  explicit Surface(VkInstance instance, Win32SurfaceCreateInfoBuilder& infoBuilder);
+  explicit Surface(VkInstance instance,
+                   Win32SurfaceCreateInfoBuilder& infoBuilder);
 
   Surface(const Surface&) = delete;
 
@@ -21,14 +23,18 @@ public:
 
   Surface& operator=(const Surface&) = delete;
 
-  bool IsSupportedByPhysicalDevice(const PhysicalDevice& physicalDevice, const u32 queueFamilyIndex) const;
-  VkSurfaceCapabilitiesKHR GetCapabilities(const PhysicalDevice& physicalDevice) const;
-  std::vector<VkSurfaceFormatKHR> GetFormats(const PhysicalDevice& physicalDevice) const;
-  std::vector<VkPresentModeKHR> GetPresentModes(const PhysicalDevice& physicalDevice) const;
+  bool IsSupportedByPhysicalDevice(const PhysicalDevice& physicalDevice,
+                                   const u32 queueFamilyIndex) const;
+  VkSurfaceCapabilitiesKHR GetCapabilities(
+      const PhysicalDevice& physicalDevice) const;
+  std::vector<VkSurfaceFormatKHR> GetFormats(
+      const PhysicalDevice& physicalDevice) const;
+  std::vector<VkPresentModeKHR> GetPresentModes(
+      const PhysicalDevice& physicalDevice) const;
 
-private:
+ private:
   VkInstance instance;
   VkSurfaceKHR surface = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_SURFACE_H
+#endif  // VULKAN_SRC_VULKAN_SURFACE_H

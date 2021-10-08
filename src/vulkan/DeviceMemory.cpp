@@ -2,8 +2,11 @@
 
 #include "error.h"
 
-DeviceMemory::DeviceMemory(VkDevice device, MemoryAllocateInfoBuilder& infoBuilder) : device(device) {
-  PROCEED_ON_VALID_RESULT(vkAllocateMemory(device, infoBuilder.Build(), nullptr, &memory))
+DeviceMemory::DeviceMemory(VkDevice device,
+                           MemoryAllocateInfoBuilder& infoBuilder)
+    : device(device) {
+  PROCEED_ON_VALID_RESULT(
+      vkAllocateMemory(device, infoBuilder.Build(), nullptr, &memory));
 }
 
 DeviceMemory::~DeviceMemory() {
@@ -30,22 +33,24 @@ DeviceMemory& DeviceMemory::Bind(VkImage image, const VkDeviceSize offset) {
   return *this;
 }
 
-void DeviceMemory::MapCopy(const void* data, const VkDeviceSize offset, const VkDeviceSize size) {
+void DeviceMemory::MapCopy(const void* data, const VkDeviceSize offset,
+                           const VkDeviceSize size) {
   void* mappedMemory;
-  PROCEED_ON_VALID_RESULT(vkMapMemory(device, memory, offset, size, 0, &mappedMemory))
+  PROCEED_ON_VALID_RESULT(
+      vkMapMemory(device, memory, offset, size, 0, &mappedMemory))
   memcpy(mappedMemory, data, size);
   vkUnmapMemory(device, memory);
 }
 
 std::optional<u32> DeviceMemory::FindSuitableMemoryTypeIndex(
     const VkPhysicalDeviceMemoryProperties& memoryProperties,
-    const VkMemoryPropertyFlags requiredProperties,
-    const u32 memoryTypeBits) {
+    const VkMemoryPropertyFlags requiredProperties, const u32 memoryTypeBits) {
   for (u32 index = 0; index < memoryProperties.memoryTypeCount; ++index) {
     const VkMemoryType memoryType = memoryProperties.memoryTypes[index];
 
     const bool isValidMemoryType = memoryTypeBits & (1 << index);
-    const bool hasRequiredProperties = (memoryType.propertyFlags & requiredProperties) == requiredProperties;
+    const bool hasRequiredProperties =
+        (memoryType.propertyFlags & requiredProperties) == requiredProperties;
 
     if (isValidMemoryType && hasRequiredProperties) {
       return index;
@@ -56,9 +61,11 @@ std::optional<u32> DeviceMemory::FindSuitableMemoryTypeIndex(
 }
 
 void DeviceMemory::Bind(const Buffer& buffer, const VkDeviceSize offset) const {
-  PROCEED_ON_VALID_RESULT(vkBindBufferMemory(device, buffer.buffer, memory, offset))
+  PROCEED_ON_VALID_RESULT(
+      vkBindBufferMemory(device, buffer.buffer, memory, offset))
 }
 
 void DeviceMemory::Bind(const Image& image, const VkDeviceSize offset) const {
-  PROCEED_ON_VALID_RESULT(vkBindImageMemory(device, image.image, memory, offset))
+  PROCEED_ON_VALID_RESULT(
+      vkBindImageMemory(device, image.image, memory, offset))
 }

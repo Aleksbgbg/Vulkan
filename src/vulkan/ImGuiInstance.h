@@ -1,22 +1,18 @@
 #ifndef VULKAN_SRC_VULKAN_IMGUIINSTANCE_H
 #define VULKAN_SRC_VULKAN_IMGUIINSTANCE_H
 
-#include "SdlIncl.h"
-#include "VulkanInstance.h"
 #include "VirtualDevice.h"
+#include "VulkanInstance.h"
+#include "include_sdl.h"
 
 class ImGuiInstance {
-public:
+ public:
   ImGuiInstance();
-  ImGuiInstance(
-      SDL_Window* const sdlWindow,
-      const VulkanInstance& instance,
-      const PhysicalDevice& physicalDevice,
-      const VirtualDevice& virtualDevice,
-      const Queue& queue,
-      const RenderPass& renderPass,
-      CommandBuffer& temporaryCommandBuffer,
-      const Fence& fence);
+  ImGuiInstance(SDL_Window* const sdlWindow, const VulkanInstance& instance,
+                const PhysicalDevice& physicalDevice,
+                const VirtualDevice& virtualDevice, const Queue& queue,
+                const RenderPass& renderPass,
+                CommandBuffer& temporaryCommandBuffer, const Fence& fence);
   ~ImGuiInstance();
 
   ImGuiInstance(ImGuiInstance&& other) noexcept;
@@ -28,9 +24,9 @@ public:
   void RenderFrame() const;
   void SubmitFrame(const CommandBuffer& commandBuffer) const;
 
-private:
+ private:
   SDL_Window* sdlWindow;
   DescriptorPool descriptorPool;
 };
 
-#endif // VULKAN_SRC_VULKAN_IMGUIINSTANCE_H
+#endif  // VULKAN_SRC_VULKAN_IMGUIINSTANCE_H

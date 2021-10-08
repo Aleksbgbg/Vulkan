@@ -8,4 +8,4 @@ struct MemoryAllocation {
   VkDeviceSize alignment;
 };
 
-#endif // VULKAN_SRC_MEMORY_MEMORYALLOCATION_H
+#endif  // VULKAN_SRC_MEMORY_MEMORYALLOCATION_H

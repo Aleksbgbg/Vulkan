@@ -9,11 +9,13 @@
 class DescriptorSetLayout {
   friend class PipelineLayout;
   friend class DescriptorPool;
-public:
+
+ public:
   VULKAN_OBJECT_MOVABLE_ROOT(DescriptorSetLayout, device, descriptorSetLayout)
 
   DescriptorSetLayout() = default;
-  DescriptorSetLayout(VkDevice device, DescriptorSetLayoutCreateInfoBuilder& infoBuilder);
+  DescriptorSetLayout(VkDevice device,
+                      DescriptorSetLayoutCreateInfoBuilder& infoBuilder);
 
   DescriptorSetLayout(const DescriptorSetLayout&) = delete;
 
@@ -21,9 +23,9 @@ public:
 
   DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
 
-private:
+ private:
   VkDevice device;
   VkDescriptorSetLayout descriptorSetLayout = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_DESCRIPTORSETLAYOUT_H
+#endif  // VULKAN_SRC_VULKAN_DESCRIPTORSETLAYOUT_H

@@ -13,4 +13,4 @@ struct AllocatedBlock {
   }
 };
 
-#endif // VULKAN_SRC_MEMORY_ALLOCATEDBLOCK_H
+#endif  // VULKAN_SRC_MEMORY_ALLOCATEDBLOCK_H

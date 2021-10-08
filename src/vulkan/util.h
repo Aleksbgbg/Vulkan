@@ -9,15 +9,15 @@
 
 std::vector<u8> ReadFile(const char* const filename);
 
-template<typename>
+template <typename>
 struct second_arg;
 
-template<typename T2>
+template <typename T2>
 struct second_arg<std::function<void(u32*, T2*)>> {
-using type = T2;
+  using type = T2;
 };
 
-template<typename TFunc>
+template <typename TFunc>
 auto LoadArray(const TFunc& func) {
   using TElement = typename second_arg<decltype(std::function{func})>::type;
 
@@ -30,12 +30,12 @@ auto LoadArray(const TFunc& func) {
   return elements;
 }
 
-template<typename TElement, typename TFunc>
+template <typename TElement, typename TFunc>
 bool RequiredValuesAreAvailable(
     const std::vector<TElement>& availableElements,
-    const std::vector<const char*>& requiredElements,
-    const TFunc& transform) {
-  std::set<std::string> requiredElementsSet(requiredElements.begin(), requiredElements.end());
+    const std::vector<const char*>& requiredElements, const TFunc& transform) {
+  std::set<std::string> requiredElementsSet(requiredElements.begin(),
+                                            requiredElements.end());
 
   for (const TElement& element : availableElements) {
     requiredElementsSet.erase(transform(element));
@@ -44,4 +44,4 @@ bool RequiredValuesAreAvailable(
   return requiredElementsSet.empty();
 }
 
-#endif // VULKAN_SRC_VULKAN_UTIL_H
+#endif  // VULKAN_SRC_VULKAN_UTIL_H

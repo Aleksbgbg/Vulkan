@@ -8,4 +8,4 @@ struct MemoryBlock {
   VkDeviceSize size;
 };
 
-#endif // VULKAN_SRC_MEMORY_MEMORYBLOCK_H
+#endif  // VULKAN_SRC_MEMORY_MEMORYBLOCK_H

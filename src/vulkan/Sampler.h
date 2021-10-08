@@ -8,7 +8,8 @@
 
 class Sampler {
   friend class DescriptorSet;
-public:
+
+ public:
   VULKAN_OBJECT_MOVABLE_ROOT(Sampler, device, sampler)
 
   Sampler() = default;
@@ -20,9 +21,9 @@ public:
 
   Sampler& operator=(const Sampler&) = delete;
 
-private:
+ private:
   VkDevice device;
   VkSampler sampler = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_SAMPLER_H
+#endif  // VULKAN_SRC_VULKAN_SAMPLER_H

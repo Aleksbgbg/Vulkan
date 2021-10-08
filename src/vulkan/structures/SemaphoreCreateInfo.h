@@ -3,10 +3,11 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include "types.h"
 #include "define_structure.h"
+#include "types.h"
 
-STRUCTURE_BUILDER(SemaphoreCreateInfoBuilder, VkSemaphoreCreateInfo, VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO)
+STRUCTURE_BUILDER(SemaphoreCreateInfoBuilder, VkSemaphoreCreateInfo,
+                  VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO)
 END_STRUCTURE_BUILDER
 
-#endif // VULKAN_SRC_VULKAN_STRUCTURES_SEMAPHORECREATEINFO_H
+#endif  // VULKAN_SRC_VULKAN_STRUCTURES_SEMAPHORECREATEINFO_H

@@ -4,23 +4,25 @@
 #include <memory>
 #include <vector>
 
-#include "types.h"
 #include "AllocatedBlock.h"
 #include "Allocator.h"
-#include "MemoryBlock.h"
 #include "MemoryAllocation.h"
+#include "MemoryBlock.h"
 #include "ReservedBlock.h"
+#include "types.h"
 
 class DeviceHeap {
   friend ReservedBlock;
-public:
+
+ public:
   DeviceHeap();
   DeviceHeap(u64 initialAllocationSize, Allocator* allocator);
-  DeviceHeap(u64 initialAllocationSize, float enlargementFactor, Allocator* allocator);
+  DeviceHeap(u64 initialAllocationSize, float enlargementFactor,
+             Allocator* allocator);
 
   ReservedBlock ReserveMemory(const MemoryAllocation requestedAllocation);
 
-private:
+ private:
   struct AllocationChain {
     AllocatedBlock block;
 
@@ -28,14 +30,14 @@ private:
   };
 
   class AllocationList {
-  public:
+   public:
     AllocationChain* First();
 
     void Add(const AllocatedBlock block);
     void InsertAfter(AllocationChain* previous, const AllocatedBlock block);
     void Remove(AllocationChain* block, AllocationChain* previous);
 
-  private:
+   private:
     std::unique_ptr<AllocationChain> first;
     AllocationChain* last;
   };
@@ -48,7 +50,7 @@ private:
 
   void Return(const AllocatedBlock block);
 
-private:
+ private:
   u64 initialAllocationSize;
   float enlargementFactor;
   Allocator* allocator;
@@ -57,4 +59,4 @@ private:
   std::vector<AllocatedMemory> allocations;
 };
 
-#endif // VULKAN_SRC_MEMORY_DEVICEHEAP_H
+#endif  // VULKAN_SRC_MEMORY_DEVICEHEAP_H

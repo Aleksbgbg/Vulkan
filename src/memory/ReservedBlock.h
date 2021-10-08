@@ -7,7 +7,8 @@
 
 class ReservedBlock {
   friend class DeviceHeap;
-public:
+
+ public:
   MemoryBlock GetMemoryBlock() const;
   MemoryObject* GetMemoryObject() const;
 
@@ -20,7 +21,7 @@ public:
   ReservedBlock& operator=(ReservedBlock&) = delete;
   ReservedBlock& operator=(ReservedBlock&& other) noexcept;
 
-private:
+ private:
   struct AllocationInfo {
     u64 allocationIndex;
     u64 allocationOffset;
@@ -32,10 +33,10 @@ private:
 
   ReservedBlock(DeviceHeap* heap, MemoryObject* memory, AllocationInfo info);
 
-private:
+ private:
   DeviceHeap* heap;
   MemoryObject* memory;
   AllocationInfo info;
 };
 
-#endif // VULKAN_SRC_MEMORY_RESERVEDBLOCK_H
+#endif  // VULKAN_SRC_MEMORY_RESERVEDBLOCK_H

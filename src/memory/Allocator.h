@@ -6,8 +6,8 @@
 #include "MemoryObject.h"
 
 class Allocator {
-public:
+ public:
   virtual std::unique_ptr<MemoryObject> Allocate(VkDeviceSize size) = 0;
 };
 
-#endif // VULKAN_SRC_MEMORY_ALLOCATOR_H
+#endif  // VULKAN_SRC_MEMORY_ALLOCATOR_H

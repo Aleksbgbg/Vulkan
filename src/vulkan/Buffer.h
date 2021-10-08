@@ -12,7 +12,8 @@ class Buffer {
   friend class DeviceMemory;
   friend class CommandBuffer;
   friend class DescriptorSet;
-public:
+
+ public:
   Buffer() = default;
   explicit Buffer(VkDevice device,
                   VkPhysicalDeviceMemoryProperties* memoryProperties,
@@ -20,7 +21,10 @@ public:
 
   Buffer(const Buffer&) = delete;
   Buffer(Buffer&& other) noexcept
-    : device(other.device), memoryProperties(other.memoryProperties), buffer(other.buffer), size(other.size) {
+      : device(other.device),
+        memoryProperties(other.memoryProperties),
+        buffer(other.buffer),
+        size(other.size) {
     other.buffer = nullptr;
   }
 
@@ -35,17 +39,18 @@ public:
     return *this;
   }
 
-  DeviceMemory AllocateAndBindMemory(const VkMemoryPropertyFlags requiredProperties) const;
+  DeviceMemory AllocateAndBindMemory(
+      const VkMemoryPropertyFlags requiredProperties) const;
 
   VkDeviceSize Size() const;
 
   VkMemoryRequirements GetMemoryRequirements() const;
 
-private:
+ private:
   VkDevice device;
   VkPhysicalDeviceMemoryProperties* memoryProperties;
   VkBuffer buffer = nullptr;
   VkDeviceSize size;
 };
 
-#endif // VULKAN_SRC_VULKAN_BUFFER_H
+#endif  // VULKAN_SRC_VULKAN_BUFFER_H

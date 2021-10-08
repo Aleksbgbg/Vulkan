@@ -1,9 +1,12 @@
 #include "DescriptorSetLayout.h"
+
 #include "error.h"
 
-DescriptorSetLayout::DescriptorSetLayout(VkDevice device, DescriptorSetLayoutCreateInfoBuilder& infoBuilder)
-  : device(device) {
-  PROCEED_ON_VALID_RESULT(vkCreateDescriptorSetLayout(device, infoBuilder.Build(), nullptr, &descriptorSetLayout))
+DescriptorSetLayout::DescriptorSetLayout(
+    VkDevice device, DescriptorSetLayoutCreateInfoBuilder& infoBuilder)
+    : device(device) {
+  PROCEED_ON_VALID_RESULT(vkCreateDescriptorSetLayout(
+      device, infoBuilder.Build(), nullptr, &descriptorSetLayout));
 }
 
 DescriptorSetLayout::~DescriptorSetLayout() {

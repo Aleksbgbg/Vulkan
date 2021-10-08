@@ -7,7 +7,7 @@
 #include "structures/SemaphoreCreateInfo.h"
 
 class Semaphore {
-public:
+ public:
   VULKAN_OBJECT_MOVABLE_ROOT(Semaphore, device, semaphore)
 
   Semaphore() = default;
@@ -24,9 +24,9 @@ public:
   VkSemaphore* Pointer();
   VkSemaphore Raw();
 
-private:
+ private:
   VkDevice device;
   VkSemaphore semaphore = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_SEMAPHORE_H
+#endif  // VULKAN_SRC_VULKAN_SEMAPHORE_H

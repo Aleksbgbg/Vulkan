@@ -9,7 +9,8 @@
 class ImageView {
   friend class Swapchain;
   friend class DescriptorSet;
-public:
+
+ public:
   VULKAN_OBJECT_MOVABLE_ROOT(ImageView, device, imageView)
 
   ImageView() = default;
@@ -21,9 +22,9 @@ public:
 
   ImageView& operator=(const ImageView&) = delete;
 
-private:
+ private:
   VkDevice device;
   VkImageView imageView = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_IMAGEVIEW_H
+#endif  // VULKAN_SRC_VULKAN_IMAGEVIEW_H

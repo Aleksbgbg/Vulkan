@@ -3,17 +3,17 @@
 
 #include <vector>
 
-#include "types.h"
 #include "TexturedVertex.h"
+#include "types.h"
 
 typedef u16 Index;
 
 class VertexBuilder {
-public:
+ public:
   explicit VertexBuilder(const std::vector<TexturedVertex>& vertices);
   std::vector<Index> GenerateIndices();
 
-private:
+ private:
   struct VertexInfo {
     glm::vec3 pos;
     bool visited;
@@ -23,8 +23,8 @@ private:
 
   std::vector<Index> FindNeighbours(const Index index) const;
 
-private:
+ private:
   std::vector<VertexInfo> vertices;
 };
 
-#endif // VULKAN_SRC_VERTEXBUILDER_H
+#endif  // VULKAN_SRC_VERTEXBUILDER_H

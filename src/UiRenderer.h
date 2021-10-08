@@ -3,10 +3,10 @@
 
 #include <array>
 
-#include "vulkan/ImGuiInstance.h"
-#include "GlmIncl.h"
 #include "Iterable.h"
 #include "Keyboard.h"
+#include "include_glm.h"
+#include "vulkan/ImGuiInstance.h"
 
 struct VulkanDebugInfo {
   char* const gpuName;
@@ -22,7 +22,7 @@ struct ObjectsInSceneInfo {
 };
 
 class UiRenderer {
-public:
+ public:
   UiRenderer() = default;
   explicit UiRenderer(ImGuiInstance imGuiInstance);
 
@@ -36,11 +36,21 @@ public:
   void ShowObjectsInScene(const ObjectsInSceneInfo& info) const;
   void ShowKeyboardLayout(Keyboard& keyboard);
 
-private:
-  struct KeyDescription{
-    KeyDescription() : hasKey(false), key(nullptr), code(0), description(nullptr), pressed(false) {}
-    KeyDescription(const char* const key, SDL_KeyCode code, const char* description)
-      : hasKey(true), key(key), code(code), description(description), pressed(false) {}
+ private:
+  struct KeyDescription {
+    KeyDescription()
+        : hasKey(false),
+          key(nullptr),
+          code(0),
+          description(nullptr),
+          pressed(false) {}
+    KeyDescription(const char* const key, SDL_KeyCode code,
+                   const char* description)
+        : hasKey(true),
+          key(key),
+          code(code),
+          description(description),
+          pressed(false) {}
 
     bool hasKey;
     const char* key;
@@ -67,4 +77,4 @@ private:
   KeyDescription spawnCubeKey;
 };
 
-#endif // VULKAN_SRC_UIRENDERER_H
+#endif  // VULKAN_SRC_UIRENDERER_H

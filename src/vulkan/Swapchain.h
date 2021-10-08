@@ -1,34 +1,34 @@
 #ifndef VULKAN_SRC_VULKAN_SWAPCHAIN_H
 #define VULKAN_SRC_VULKAN_SWAPCHAIN_H
 
-#include <vector>
-
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
-#include "structures/SwapchainCreateInfo.h"
-#include "Framebuffer.h"
-#include "RenderPass.h"
-#include "Image.h"
+#include <vector>
+
 #include "Fence.h"
+#include "Framebuffer.h"
+#include "Image.h"
+#include "RenderPass.h"
 #include "Semaphore.h"
 #include "SynchronisationPack.h"
+#include "lifetime_semantics.h"
+#include "structures/SwapchainCreateInfo.h"
 
 class Swapchain {
   friend class Queue;
-public:
+
+ public:
   Swapchain() = default;
   Swapchain(VkDevice device, SwapchainCreateInfoBuilder& infoBuilder);
 
   Swapchain(const Swapchain&) = delete;
   Swapchain(Swapchain&& other) noexcept
-    :
-    device(other.device),
-    swapchain(other.swapchain),
-    images(std::move(other.images)),
-    imageViews(std::move(other.imageViews)),
-    imageFormat(other.imageFormat),
-    imageExtent(other.imageExtent) {
+      : device(other.device),
+        swapchain(other.swapchain),
+        images(std::move(other.images)),
+        imageViews(std::move(other.imageViews)),
+        imageFormat(other.imageFormat),
+        imageExtent(other.imageExtent) {
     other.swapchain = nullptr;
   }
 
@@ -52,14 +52,16 @@ public:
     u32 imageIndex;
     VkResult status;
   };
-  AcquireNextImageResult AcquireNextImage(const SynchronisationPack& synchronisation) const;
+  AcquireNextImageResult AcquireNextImage(
+      const SynchronisationPack& synchronisation) const;
 
   u32 GetImageCount() const;
 
   std::vector<Framebuffer> GetFramebuffers(RenderPass& renderPass);
-  std::vector<Framebuffer> GetFramebuffers(RenderPass& renderPass, ImageView& depthImageView);
+  std::vector<Framebuffer> GetFramebuffers(RenderPass& renderPass,
+                                           ImageView& depthImageView);
 
-private:
+ private:
   VkDevice device;
   VkSwapchainKHR swapchain = nullptr;
   std::vector<VkImage> images;
@@ -68,4 +70,4 @@ private:
   VkExtent2D imageExtent;
 };
 
-#endif // VULKAN_SRC_VULKAN_SWAPCHAIN_H
+#endif  // VULKAN_SRC_VULKAN_SWAPCHAIN_H

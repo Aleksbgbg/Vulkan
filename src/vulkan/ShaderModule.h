@@ -8,13 +8,17 @@
 
 class ShaderModule {
   friend class Pipeline;
-public:
+
+ public:
   ShaderModule() = default;
-  ShaderModule(VkDevice device, const VkShaderStageFlagBits stage, ShaderModuleCreateInfoBuilder& infoBuilder);
+  ShaderModule(VkDevice device, const VkShaderStageFlagBits stage,
+               ShaderModuleCreateInfoBuilder& infoBuilder);
 
   ShaderModule(const ShaderModule&) = delete;
   ShaderModule(ShaderModule&& other) noexcept
-    : device(other.device), shaderModule(other.shaderModule), stage(other.stage) {
+      : device(other.device),
+        shaderModule(other.shaderModule),
+        stage(other.stage) {
     other.shaderModule = nullptr;
   }
 
@@ -28,10 +32,10 @@ public:
     return *this;
   }
 
-private:
+ private:
   VkDevice device;
   VkShaderModule shaderModule = nullptr;
   VkShaderStageFlagBits stage;
 };
 
-#endif // VULKAN_SRC_VULKAN_SHADERMODULE_H
+#endif  // VULKAN_SRC_VULKAN_SHADERMODULE_H

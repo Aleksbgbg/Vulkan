@@ -8,7 +8,8 @@
 
 class Framebuffer {
   friend class CommandBuffer;
-public:
+
+ public:
   VULKAN_OBJECT_MOVABLE_ROOT(Framebuffer, device, framebuffer)
 
   Framebuffer() = default;
@@ -20,9 +21,9 @@ public:
 
   Framebuffer& operator=(const Framebuffer&) = delete;
 
-private:
+ private:
   VkDevice device;
   VkFramebuffer framebuffer = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_FRAMEBUFFER_H
+#endif  // VULKAN_SRC_VULKAN_FRAMEBUFFER_H

@@ -2,7 +2,9 @@
 #define VULKAN_SRC_VULKAN_DESCRIPTORSET_H
 
 #include <vulkan/vulkan.h>
+
 #include <memory>
+
 #include "Buffer.h"
 #include "ImageView.h"
 #include "Sampler.h"
@@ -11,10 +13,12 @@
 class DescriptorSet {
   friend class VirtualDevice;
   friend class CommandBuffer;
-public:
+
+ public:
   class WriteDescriptorSet {
     friend class DescriptorSet;
-  public:
+
+   public:
     WriteDescriptorSetBuilder& Builder() {
       return writeBuilder;
     }
@@ -23,7 +27,7 @@ public:
       return writeBuilder.BuildObject();
     }
 
-  private:
+   private:
     WriteDescriptorSetBuilder writeBuilder;
 
     union {
@@ -40,15 +44,16 @@ public:
   DescriptorSet& operator=(const DescriptorSet&) = delete;
   DescriptorSet& operator=(DescriptorSet&&) = default;
 
-  void CreateBufferWrite(const Buffer& buffer, DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
+  void CreateBufferWrite(
+      const Buffer& buffer,
+      DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
   void CreateImageSamplerWrite(
-      const ImageView& samplerImageView,
-      const Sampler& sampler,
+      const ImageView& samplerImageView, const Sampler& sampler,
       const VkImageLayout imageLayout,
       DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
 
-private:
+ private:
   VkDescriptorSet descriptorSet = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_DESCRIPTORSET_H
+#endif  // VULKAN_SRC_VULKAN_DESCRIPTORSET_H

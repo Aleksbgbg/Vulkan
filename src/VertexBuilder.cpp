@@ -6,17 +6,12 @@
 
 #include "TexturedVertex.h"
 
-VertexBuilder::VertexBuilder(const std::vector<TexturedVertex>& vertices) : vertices(vertices.size()) {
-  std::transform(
-      vertices.begin(),
-      vertices.end(),
-      this->vertices.begin(),
-      [](const TexturedVertex& vertex) {
-        return VertexInfo{
-          .pos = vertex.position,
-          .visited = false
-        };
-      });
+VertexBuilder::VertexBuilder(const std::vector<TexturedVertex>& vertices)
+    : vertices(vertices.size()) {
+  std::transform(vertices.begin(), vertices.end(), this->vertices.begin(),
+                 [](const TexturedVertex& vertex) {
+                   return VertexInfo{.pos = vertex.position, .visited = false};
+                 });
 }
 
 std::vector<Index> VertexBuilder::GenerateIndices() {
@@ -34,15 +29,16 @@ std::vector<Index> VertexBuilder::GenerateIndices() {
     std::vector<Index> neighbours = FindNeighbours(index);
     bool shouldGenerateMesh = true;
 
-//    for (Index neighbour : neighbours) {
-//      if (vertices[neighbour].visited) {
-//        shouldGenerateMesh = false;
-//        break;
-//      }
-//    }
+    //    for (Index neighbour : neighbours) {
+    //      if (vertices[neighbour].visited) {
+    //        shouldGenerateMesh = false;
+    //        break;
+    //      }
+    //    }
 
     if (shouldGenerateMesh) {
-      for (u32 neighbourIndex = 0; neighbourIndex < neighbours.size(); ++neighbourIndex) {
+      for (u32 neighbourIndex = 0; neighbourIndex < neighbours.size();
+           ++neighbourIndex) {
         Index neighbour = neighbours[neighbourIndex];
 
         indices.push_back(index);
@@ -74,17 +70,17 @@ std::vector<Index> VertexBuilder::FindNeighbours(const Index index) const {
     }
 
     neighbours.emplace_back(NeighbourInfo{
-      .index = neighbour,
-      .distance = glm::distance(rootPosition, Position(neighbour))
-    });
+        .index = neighbour,
+        .distance = glm::distance(rootPosition, Position(neighbour))});
   }
 
   std::vector<Index> indices;
-  std::sort(neighbours.begin(), neighbours.end(), [](const NeighbourInfo a, const NeighbourInfo b) {
-    return a.distance < b.distance;
-  });
-  std::transform(neighbours.begin(), neighbours.begin() + 3, std::back_inserter(indices), [](const NeighbourInfo neighbourInfo) {
-    return neighbourInfo.index;
-  });
+  std::sort(neighbours.begin(), neighbours.end(),
+            [](const NeighbourInfo a, const NeighbourInfo b) {
+              return a.distance < b.distance;
+            });
+  std::transform(
+      neighbours.begin(), neighbours.begin() + 3, std::back_inserter(indices),
+      [](const NeighbourInfo neighbourInfo) { return neighbourInfo.index; });
   return indices;
 }

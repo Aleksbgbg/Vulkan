@@ -7,7 +7,7 @@
 #include "structures/FenceCreateInfo.h"
 
 class Fence {
-public:
+ public:
   VULKAN_OBJECT_MOVABLE_ROOT(Fence, device, fence)
 
   Fence() = default;
@@ -25,9 +25,9 @@ public:
   const Fence& Wait() const;
   const Fence& Reset() const;
 
-private:
+ private:
   VkDevice device;
   VkFence fence = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_FENCE_H
+#endif  // VULKAN_SRC_VULKAN_FENCE_H

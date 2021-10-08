@@ -3,17 +3,19 @@
 
 #include <vulkan/vulkan.h>
 
+#include "CommandBuffer.h"
 #include "lifetime_semantics.h"
 #include "structures/CommandPoolCreateInfo.h"
-#include "CommandBuffer.h"
 
 class CommandPool {
-public:
+ public:
   CommandPool() = default;
-  CommandPool(VkDevice device, VkQueue queue, CommandPoolCreateInfoBuilder& infoBuilder);
+  CommandPool(VkDevice device, VkQueue queue,
+              CommandPoolCreateInfoBuilder& infoBuilder);
 
   CommandPool(const CommandPool&) = delete;
-  CommandPool(CommandPool&& other) noexcept : device(other.device), queue(other.queue) {
+  CommandPool(CommandPool&& other) noexcept
+      : device(other.device), queue(other.queue) {
     other.commandPool = nullptr;
   }
 
@@ -30,10 +32,10 @@ public:
   CommandBuffer AllocatePrimaryCommandBuffer();
   CommandBuffer AllocateCommandBuffer(const VkCommandBufferLevel level);
 
-private:
+ private:
   VkDevice device;
   VkQueue queue;
   VkCommandPool commandPool = nullptr;
 };
 
-#endif // VULKAN_SRC_VULKAN_COMMANDPOOL_H
+#endif  // VULKAN_SRC_VULKAN_COMMANDPOOL_H

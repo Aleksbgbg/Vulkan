@@ -1,11 +1,11 @@
 #ifndef VULKAN_SRC_VULKAN_SYNCHRONISATIONPACK_H
 #define VULKAN_SRC_VULKAN_SYNCHRONISATIONPACK_H
 
-#include "Semaphore.h"
 #include "Fence.h"
+#include "Semaphore.h"
 
 class SynchronisationPack {
-public:
+ public:
   Semaphore* GetWaitSemaphore() const;
   Semaphore* GetSignalSemaphore() const;
   Fence* GetSignalFence() const;
@@ -14,10 +14,10 @@ public:
   SynchronisationPack& SetSignalSemaphore(Semaphore* const semaphore);
   SynchronisationPack& SetSignalFence(Fence* const fence);
 
-private:
+ private:
   Semaphore* waitSemaphore;
   Semaphore* signalSemaphore;
   Fence* signalFence;
 };
 
-#endif // VULKAN_SRC_VULKAN_SYNCHRONISATIONPACK_H
+#endif  // VULKAN_SRC_VULKAN_SYNCHRONISATIONPACK_H

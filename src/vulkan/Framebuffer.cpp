@@ -1,8 +1,12 @@
 #include "Framebuffer.h"
+
 #include "error.h"
 
-Framebuffer::Framebuffer(VkDevice device, FramebufferCreateInfoBuilder& infoBuilder) : device(device) {
-  PROCEED_ON_VALID_RESULT(vkCreateFramebuffer(device, infoBuilder.Build(), nullptr, &framebuffer))
+Framebuffer::Framebuffer(VkDevice device,
+                         FramebufferCreateInfoBuilder& infoBuilder)
+    : device(device) {
+  PROCEED_ON_VALID_RESULT(
+      vkCreateFramebuffer(device, infoBuilder.Build(), nullptr, &framebuffer));
 }
 
 Framebuffer::~Framebuffer() {

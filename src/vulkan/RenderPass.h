@@ -11,7 +11,8 @@ class RenderPass {
   friend class Pipeline;
   friend class CommandBuffer;
   friend class ImGuiInstance;
-public:
+
+ public:
   VULKAN_OBJECT_MOVABLE_ROOT(RenderPass, device, renderPass)
 
   RenderPass() = default;
@@ -23,9 +24,10 @@ public:
 
   RenderPass& operator=(const RenderPass&) = delete;
 
-private:
+ private:
   VkDevice device;
   VkRenderPass renderPass = nullptr;
-};;
+};
+;
 
-#endif // VULKAN_SRC_VULKAN_RENDERPASS_H
+#endif  // VULKAN_SRC_VULKAN_RENDERPASS_H
