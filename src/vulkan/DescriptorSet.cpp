@@ -5,37 +5,37 @@ DescriptorSet::DescriptorSet(VkDescriptorSet descriptorSet) : descriptorSet(desc
 
 }
 
-std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> DescriptorSet::CreateBufferWrite(const Buffer& buffer) const {
-  std::unique_ptr<WriteDescriptorSetBuild> writeDescriptorSet = std::make_unique<WriteDescriptorSetBuild>();
-  writeDescriptorSet->info.bufferInfo =
+void DescriptorSet::CreateBufferWrite(
+    const Buffer& buffer, DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const {
+  writeDescriptorSet.info.bufferInfo =
       DescriptorBufferInfoBuilder()
           .SetBuffer(buffer.buffer)
           .SetOffset(0)
           .SetRange(buffer.Size())
           .BuildObject();
-  writeDescriptorSet->writeBuilder =
+  writeDescriptorSet.writeBuilder =
       WriteDescriptorSetBuilder()
           .SetDstSet(descriptorSet)
           .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
           .SetDescriptorCount(1)
-          .SetPBufferInfo(&writeDescriptorSet->info.bufferInfo);
-  return writeDescriptorSet;
+          .SetPBufferInfo(&writeDescriptorSet.info.bufferInfo);
 }
 
-std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> DescriptorSet::CreateImageSamplerWrite(
-    const ImageView& samplerImageView, const Sampler& sampler, const VkImageLayout imageLayout) const {
-  std::unique_ptr<WriteDescriptorSetBuild> writeDescriptorSet = std::make_unique<WriteDescriptorSetBuild>();
-  writeDescriptorSet->info.imageInfo =
+void DescriptorSet::CreateImageSamplerWrite(
+    const ImageView& samplerImageView,
+    const Sampler& sampler,
+    const VkImageLayout imageLayout,
+    DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const {
+  writeDescriptorSet.info.imageInfo =
       DescriptorImageInfoBuilder()
           .SetImageView(samplerImageView.imageView)
           .SetSampler(sampler.sampler)
           .SetImageLayout(imageLayout)
           .BuildObject();
-  writeDescriptorSet->writeBuilder =
+  writeDescriptorSet.writeBuilder =
       WriteDescriptorSetBuilder()
           .SetDstSet(descriptorSet)
           .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
           .SetDescriptorCount(1)
-          .SetPImageInfo(&writeDescriptorSet->info.imageInfo);
-  return writeDescriptorSet;
+          .SetPImageInfo(&writeDescriptorSet.info.imageInfo);
 }

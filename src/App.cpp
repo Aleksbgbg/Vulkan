@@ -886,18 +886,21 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     DescriptorSet& descriptorSet = descriptorSets[renderIndex];
-    const std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> bufferWrite =
-        descriptorSet.CreateBufferWrite(uniformBufferMemory.buffer);
-    const std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> textureSamplerWrite =
-        descriptorSet.CreateImageSamplerWrite(textureView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    DescriptorSet::WriteDescriptorSet bufferWrite;
+    descriptorSet.CreateBufferWrite(uniformBufferMemory.buffer, bufferWrite);
+
+    DescriptorSet::WriteDescriptorSet textureSamplerWrite;
+    descriptorSet.CreateImageSamplerWrite(
+        textureView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, textureSamplerWrite);
+    textureSamplerWrite.Builder().SetDstBinding(1);
+
     DescriptorSet& gradientDescriptorSet = gradientDescriptorSets[renderIndex];
-    const std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> gradientBufferWrite =
-        gradientDescriptorSet.CreateBufferWrite(uniformBufferMemory.buffer);
-    std::array<VkWriteDescriptorSet, 3> descriptorSetWrites{
-        bufferWrite->writeBuilder.BuildObject(),
-        textureSamplerWrite->writeBuilder.SetDstBinding(1).BuildObject(),
-        gradientBufferWrite->writeBuilder.BuildObject(),
-    };
+
+    DescriptorSet::WriteDescriptorSet gradientBufferWrite;
+    gradientDescriptorSet.CreateBufferWrite(uniformBufferMemory.buffer, gradientBufferWrite);
+
+    std::array<VkWriteDescriptorSet, 3> descriptorSetWrites{ bufferWrite, textureSamplerWrite, gradientBufferWrite };
     virtualDevice.UpdateDescriptorSets(descriptorSetWrites.size(), descriptorSetWrites.data());
 
     CommandBuffer renderPassCommandBuffer = renderCommandPool.AllocatePrimaryCommandBuffer();
@@ -1241,12 +1244,12 @@ VkExtent2D App::SelectSwapExtent(const VkSurfaceCapabilitiesKHR surfaceCapabilit
 }
 
 VkPresentModeKHR App::SelectSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-  for (const auto& presentMode : availablePresentModes) {
-    if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-      Log("Selecting immediate render vertical sync swapchain present mode.");
-      return presentMode;
-    }
-  }
+//  for (const auto& presentMode : availablePresentModes) {
+//    if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+//      Log("Selecting immediate render vertical sync swapchain present mode.");
+//      return presentMode;
+//    }
+//  }
 
   Log("Selecting vertically synced swapchain present mode.");
   return VK_PRESENT_MODE_FIFO_KHR;

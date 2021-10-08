@@ -16,7 +16,7 @@
       return *this;                                       \
     }                                                     \
                                                           \
-    structure BuildObject() {                             \
+    structure BuildObject() const {                       \
       return value;                                       \
     }                                                     \
                                                           \
@@ -37,7 +37,7 @@
       return *this;                                       \
     }                                                     \
                                                           \
-    structure BuildObject() {                             \
+    structure BuildObject() const {                       \
       return value;                                       \
     }                                                     \
                                                           \

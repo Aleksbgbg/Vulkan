@@ -12,11 +12,20 @@ class DescriptorSet {
   friend class VirtualDevice;
   friend class CommandBuffer;
 public:
-  struct WriteDescriptorSetBuild {
-  public:
-    WriteDescriptorSetBuilder writeBuilder;
-  private:
+  class WriteDescriptorSet {
     friend class DescriptorSet;
+  public:
+    WriteDescriptorSetBuilder& Builder() {
+      return writeBuilder;
+    }
+
+    operator VkWriteDescriptorSet() const {
+      return writeBuilder.BuildObject();
+    }
+
+  private:
+    WriteDescriptorSetBuilder writeBuilder;
+
     union {
       VkDescriptorImageInfo imageInfo;
       VkDescriptorBufferInfo bufferInfo;
@@ -31,9 +40,12 @@ public:
   DescriptorSet& operator=(const DescriptorSet&) = delete;
   DescriptorSet& operator=(DescriptorSet&&) = default;
 
-  std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> CreateBufferWrite(const Buffer& buffer) const;
-  std::unique_ptr<DescriptorSet::WriteDescriptorSetBuild> CreateImageSamplerWrite(
-      const ImageView& samplerImageView, const Sampler& sampler, const VkImageLayout imageLayout) const;
+  void CreateBufferWrite(const Buffer& buffer, DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
+  void CreateImageSamplerWrite(
+      const ImageView& samplerImageView,
+      const Sampler& sampler,
+      const VkImageLayout imageLayout,
+      DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
 
 private:
   VkDescriptorSet descriptorSet = nullptr;
