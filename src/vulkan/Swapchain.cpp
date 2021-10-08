@@ -7,6 +7,10 @@
 #include "error.h"
 #include "util.h"
 
+Swapchain::Swapchain(VkDevice device, const Swapchain& oldSwapchain,
+                     SwapchainCreateInfoBuilder& infoBuilder)
+    : Swapchain(device, infoBuilder.SetOldSwapchain(oldSwapchain.swapchain)) {}
+
 Swapchain::Swapchain(VkDevice device, SwapchainCreateInfoBuilder& infoBuilder)
     : device(device) {
   VkSwapchainCreateInfoKHR swapchainCreateInfo = infoBuilder.BuildObject();

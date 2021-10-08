@@ -123,7 +123,11 @@ class App {
   CommandPool renderCommandPool;
   std::vector<ShaderModule> shaders;
   std::vector<ShaderModule> gradientShaders;
+
+  bool hasSwapchain;
   Swapchain swapchain;
+  bool hasOldSwapchain;
+  Swapchain oldSwapchain;
 
   ImageWithMemory depthStencil;
   ImageView depthStencilView;
@@ -138,7 +142,8 @@ class App {
   DescriptorPool descriptorPool;
 
   VkPhysicalDeviceProperties physicalDeviceProperties;
-  UiRenderer uiRenderer;
+
+  std::unique_ptr<UiRenderer> uiRenderer;
 
   ModelViewTransformation gradientRenderTransform;
 
@@ -161,12 +166,6 @@ class App {
 
   enum class EventNotification { Exited, Paused, Unpaused, Resized };
   MultithreadedMessageQueue<EventNotification> threadMessenger;
-
-  struct AcquiredImage {
-    bool exists;
-    u32 index;
-  };
-  AcquiredImage acquiredImage;
 
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
 

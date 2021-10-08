@@ -39,6 +39,13 @@ Swapchain VirtualDevice::CreateSwapchain(
   return Swapchain(device, infoBuilder.SetSurface(surface.surface));
 }
 
+Swapchain VirtualDevice::CreateSwapchain(
+    Surface& surface, const Swapchain& oldSwapchain,
+    SwapchainCreateInfoBuilder& infoBuilder) const {
+  return Swapchain(device, oldSwapchain,
+                   infoBuilder.SetSurface(surface.surface));
+}
+
 ShaderModule VirtualDevice::LoadShader(const VkShaderStageFlagBits stage,
                                        const char* const shaderFilename) const {
   const std::vector<u8> code = ReadFile(shaderFilename);

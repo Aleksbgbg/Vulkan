@@ -19,6 +19,8 @@ class Swapchain {
 
  public:
   Swapchain() = default;
+  Swapchain(VkDevice device, const Swapchain& oldSwapchain,
+            SwapchainCreateInfoBuilder& infoBuilder);
   Swapchain(VkDevice device, SwapchainCreateInfoBuilder& infoBuilder);
 
   Swapchain(const Swapchain&) = delete;

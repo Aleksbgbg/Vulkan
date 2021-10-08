@@ -49,9 +49,7 @@ void UiRenderer::ProcessEvent(const SDL_Event& event) const {
   imGuiInstance.ProcessEvent(event);
 }
 
-void UiRenderer::BeginFrame() const {
-  imGuiInstance.BeginFrame();
-}
+void UiRenderer::BeginFrame() const { imGuiInstance.BeginFrame(); }
 
 void UiRenderer::EndFrame() const {
 #ifdef TOOLS

@@ -74,6 +74,8 @@ ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
 ImGuiInstance::~ImGuiInstance() {
   if (sdlWindow != nullptr) {
     ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
   }
 }
 
@@ -84,9 +86,8 @@ ImGuiInstance::ImGuiInstance(ImGuiInstance&& other) noexcept
 }
 
 ImGuiInstance& ImGuiInstance::operator=(ImGuiInstance&& other) noexcept {
-  sdlWindow = other.sdlWindow;
+  std::swap(sdlWindow, other.sdlWindow);
   descriptorPool = std::move(other.descriptorPool);
-  other.sdlWindow = nullptr;
   return *this;
 }
 

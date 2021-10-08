@@ -120,14 +120,15 @@ std::vector<u16> GenerateIndices(const std::vector<GradientVertex>& vertices) {
 
 App::App()
     : windowInfo(InitSdl()),
+      hasSwapchain(false),
+      hasOldSwapchain(false),
       renderTransform(),
       gradientRenderTransform(),
       previousTime(std::chrono::high_resolution_clock::now()),
       cubePosition(),
       gradientCubePosition(),
       cameraRotation(glm::vec2(0.0f)),
-      threadMessenger(),
-      acquiredImage({.exists = false, .index = 0}) {
+      threadMessenger() {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
 
@@ -415,21 +416,45 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
       windowSurface.GetCapabilities(targetPhysicalDevice);
   VkSurfaceFormatKHR surfaceFormat =
       SelectSwapSurfaceFormat(windowSurface.GetFormats(targetPhysicalDevice));
-  swapchain = virtualDevice.CreateSwapchain(
-      windowSurface,
-      SwapchainCreateInfoBuilder()
-          .SetMinImageCount(minSwapchainImages + 1)
-          .SetImageFormat(surfaceFormat.format)
-          .SetImageColorSpace(surfaceFormat.colorSpace)
-          .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
-          .SetImageArrayLayers(1)
-          .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-          .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
-          .SetPreTransform(surfaceCapabilities.currentTransform)
-          .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
-          .SetPresentMode(SelectSwapPresentMode(
-              windowSurface.GetPresentModes(targetPhysicalDevice)))
-          .SetClipped(VK_TRUE));
+
+  if (hasSwapchain) {
+    oldSwapchain = std::move(swapchain);
+    hasOldSwapchain = true;
+
+    swapchain = virtualDevice.CreateSwapchain(
+        windowSurface, oldSwapchain,
+        SwapchainCreateInfoBuilder()
+            .SetMinImageCount(minSwapchainImages + 1)
+            .SetImageFormat(surfaceFormat.format)
+            .SetImageColorSpace(surfaceFormat.colorSpace)
+            .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
+            .SetImageArrayLayers(1)
+            .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+            .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
+            .SetPreTransform(surfaceCapabilities.currentTransform)
+            .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+            .SetPresentMode(SelectSwapPresentMode(
+                windowSurface.GetPresentModes(targetPhysicalDevice)))
+            .SetClipped(VK_TRUE));
+    hasSwapchain = true;
+  } else {
+    swapchain = virtualDevice.CreateSwapchain(
+        windowSurface,
+        SwapchainCreateInfoBuilder()
+            .SetMinImageCount(minSwapchainImages + 1)
+            .SetImageFormat(surfaceFormat.format)
+            .SetImageColorSpace(surfaceFormat.colorSpace)
+            .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
+            .SetImageArrayLayers(1)
+            .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+            .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
+            .SetPreTransform(surfaceCapabilities.currentTransform)
+            .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+            .SetPresentMode(SelectSwapPresentMode(
+                windowSurface.GetPresentModes(targetPhysicalDevice)))
+            .SetClipped(VK_TRUE));
+    hasSwapchain = true;
+  }
 
   VkFormat depthStencilFormat = SelectDepthStencilFormat(
       {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
@@ -569,8 +594,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           .SetBindingCount(descriptorSetLayoutBindings.size())
           .SetPBindings(descriptorSetLayoutBindings.data()));
   pipeline = virtualDevice.CreateGraphicsPipeline(
-      pipelineCache,
-      shaders,
+      pipelineCache, shaders,
       virtualDevice.CreatePipelineLayout(
           descriptorSetLayout,
           PipelineLayoutCreateInfoBuilder()
@@ -674,8 +698,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           .SetBindingCount(gradientDescriptorSetLayoutBindings.size())
           .SetPBindings(gradientDescriptorSetLayoutBindings.data()));
   gradientPipeline = virtualDevice.CreateGraphicsPipeline(
-      pipelineCache,
-      gradientShaders,
+      pipelineCache, gradientShaders,
       virtualDevice.CreatePipelineLayout(
           gradientDescriptorSetLayout,
           PipelineLayoutCreateInfoBuilder()
@@ -744,7 +767,8 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
                           .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
                           .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
 
-  uiRenderer = UiRenderer(ImGuiInstance(
+  uiRenderer = nullptr;
+  uiRenderer = std::make_unique<UiRenderer>(ImGuiInstance(
       windowInfo.window, instance, targetPhysicalDevice, virtualDevice, queue,
       renderPass, transientCommandBuffer, fence));
 
@@ -867,7 +891,7 @@ void App::MainThread() {
   while (true) {
     SDL_Event event;
     while (SDL_WaitEvent(&event)) {
-      uiRenderer.ProcessEvent(event);
+      uiRenderer->ProcessEvent(event);
 
       switch (event.type) {
         case SDL_QUIT:
@@ -922,16 +946,17 @@ void App::RenderThread() {
             break;
 
           case EventNotification::Resized:
-            //            acquiredImage.exists = false;
-            //            virtualDevice.WaitIdle();
-            //            swapchainRenderData.clear();
-            //            Log("Recreating swapchain.");
-            //            CommandPool temporaryCommandPool =
-            //                queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
-            //            CommandBuffer temporaryCommandBuffer =
-            //            temporaryCommandPool.AllocatePrimaryCommandBuffer();
-            //            InitializeSwapchain(temporaryCommandBuffer);
-            //            Log("Swapchain recreated.");
+            // TODO: Allow continuous render during recreation
+            virtualDevice.WaitIdle();
+            swapchainRenderData.clear();
+            Log("Recreating swapchain.");
+            CommandPool temporaryCommandPool = queue.CreateCommandPool(
+                VK_COMMAND_POOL_CREATE_TRANSIENT_BIT |
+                VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+            CommandBuffer temporaryCommandBuffer =
+                temporaryCommandPool.AllocatePrimaryCommandBuffer();
+            InitializeSwapchain(temporaryCommandBuffer);
+            Log("Swapchain recreated.");
             break;
         }
       }
@@ -956,10 +981,10 @@ void App::MainLoop() {
 }
 
 void App::UpdateModel(const float deltaTime) {
-  uiRenderer.BeginFrame();
-  uiRenderer.ShowVulkanDebugInfo(VulkanDebugInfo{
+  uiRenderer->BeginFrame();
+  uiRenderer->ShowVulkanDebugInfo(VulkanDebugInfo{
       .gpuName = physicalDeviceProperties.deviceName, .frametime = deltaTime});
-  uiRenderer.ShowKeyboardLayout(keyboard);
+  uiRenderer->ShowKeyboardLayout(keyboard);
 
   constexpr glm::vec3 cameraStarePoint = glm::vec3(0.0f, -2.0f, -4.0f);
   glm::mat4 cubeTransform(1.0f);
@@ -995,7 +1020,7 @@ void App::UpdateModel(const float deltaTime) {
 
   std::vector<glm::vec3*> cubePositions{&cubePosition, &gradientCubePosition};
   u32 selectedObjectIndex = 0;
-  uiRenderer.ShowObjectsInScene(ObjectsInSceneInfo{
+  uiRenderer->ShowObjectsInScene(ObjectsInSceneInfo{
       .cameraRotation = glm::vec2(cameraRotation.x, cameraRotation.y - 26.565f),
       .cameraCenter =
           glm::vec3(cameraCenter.x, cameraCenter.y - cameraStarePoint.y,
@@ -1041,34 +1066,17 @@ void App::UpdateModel(const float deltaTime) {
 
   cubeRotation += deltaTime * 90.0f;
 
-  uiRenderer.EndFrame();
+  uiRenderer->EndFrame();
 }
 
 void App::Render() {
   InFlightImage& synchronisation =
       imagesInFlightSynchronisation[currentInFlightImage];
 
-  u32 imageIndex;
-
-  if (acquiredImage.exists) {
-    acquiredImage.exists = false;
-    imageIndex = acquiredImage.index;
-  } else {
-    const Swapchain::AcquireNextImageResult nextImageResult =
-        swapchain.AcquireNextImage(SynchronisationPack().SetSignalSemaphore(
-            &synchronisation.acquireImageSemaphore));
-    imageIndex = nextImageResult.imageIndex;
-
-    if ((nextImageResult.status == VK_SUBOPTIMAL_KHR) ||
-        (nextImageResult.status == VK_ERROR_OUT_OF_DATE_KHR)) {
-      //      acquiredImage.exists = true;
-      //      acquiredImage.index = imageIndex;
-      // Log("A");
-      // This semaphore no longer has a way to be signalled
-      // synchronisation.acquireImageSemaphore = virtualDevice.MakeSemaphore();
-      // return;
-    }
-  }
+  const Swapchain::AcquireNextImageResult nextImageResult =
+      swapchain.AcquireNextImage(SynchronisationPack().SetSignalSemaphore(
+          &synchronisation.acquireImageSemaphore));
+  const u32 imageIndex = nextImageResult.imageIndex;
 
   SwapchainRenderPass& swapchainRender = swapchainRenderData[imageIndex];
 
@@ -1123,7 +1131,7 @@ void App::Render() {
         sizeof(gradientRenderTransform), &gradientRenderTransform);
     swapchainRender.commandBuffer.CmdDrawIndexed(
         gradientIndexCount, /* instanceCount= */ 1);  // TODO: More instances
-    uiRenderer.Render(swapchainRender.commandBuffer);
+    uiRenderer->Render(swapchainRender.commandBuffer);
     swapchainRender.commandBuffer.CmdEndRenderPass();
     swapchainRender.commandBuffer.End();
   }
@@ -1133,17 +1141,9 @@ void App::Render() {
           .SetWaitSemaphore(&synchronisation.acquireImageSemaphore)
           .SetSignalSemaphore(&swapchainRender.renderCompleteSemaphore)
           .SetSignalFence(&swapchainRender.submitCompleteFence));
-  const VkResult result =
-      queue.Present(swapchain, imageIndex,
-                    SynchronisationPack().SetWaitSemaphore(
-                        &swapchainRender.renderCompleteSemaphore));
-
-  if ((result == VK_SUBOPTIMAL_KHR) || (result == VK_ERROR_OUT_OF_DATE_KHR)) {
-    // swapchainRender.submitCompleteFence.Wait();
-    // synchronisation.acquireImageSemaphore = virtualDevice.MakeSemaphore();
-    // Log("B");
-    // return;
-  }
+  queue.Present(swapchain, imageIndex,
+                SynchronisationPack().SetWaitSemaphore(
+                    &swapchainRender.renderCompleteSemaphore));
 
   currentInFlightImage = (currentInFlightImage + 1) % framesInFlight;
 }
