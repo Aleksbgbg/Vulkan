@@ -7,6 +7,8 @@
 
 #include "build_definition.h"
 
+static constexpr float Margin = 1.0f;
+
 float Average(const float* const values, const u32 size) {
   float sum = 0.0f;
 
@@ -19,12 +21,16 @@ float Average(const float* const values, const u32 size) {
 
 static constexpr float ButtonSize = 50.0f;
 
-UiRenderer::UiRenderer(ImGuiInstance imGuiInstance)
-    : imGuiInstance(std::move(imGuiInstance)),
+UiRenderer::UiRenderer(Rectf windowSize, ImGuiInstance imGuiInstance)
+    : windowSize(windowSize),
+      imGuiInstance(std::move(imGuiInstance)),
       valuesFilled(0),
       frametimeHistoryIndex(0),
       frametimeHistory(),
       timeSum(0.0f),
+      autoSelectLastCube(true),
+      selectedCube(0),
+      lastCubeCount(0),
       spawnCubeKey(KeyDescription("F", SDLK_f, "spawn cube")),
       cameraKeys(
           {KeyDescription("\xEF\x84\x86", SDLK_UP, "pivot camera up"),
@@ -68,8 +74,10 @@ void UiRenderer::Render(const CommandBuffer& commandBuffer) const {
 void UiRenderer::ShowVulkanDebugInfo(const VulkanDebugInfo& info) {
   timeSum += info.frametime;
 
-  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-  ImGui::Begin("Vulkan Debug");
+  ImGui::SetNextWindowPos(ImVec2(Margin, Margin), ImGuiCond_Once);
+  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
+  ImGui::Begin("Vulkan Debug", nullptr,
+               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
   ImGui::Text(info.gpuName);
 
   const float frametimeMs = info.frametime * 1000.0f;
@@ -104,30 +112,58 @@ float UiRenderer::GetFrametimeHistoryValue(void* data, int index) const {
                           frametimeHistory.size()];
 }
 
-void UiRenderer::ShowObjectsInScene(const ObjectsInSceneInfo& info) const {
-  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-  ImGui::Begin("Objects in Scene");
+void UiRenderer::ShowObjectsInScene(const ObjectsInSceneInfo& info) {
+  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f), ImGuiCond_Once);
+  ImGui::Begin("Objects in Scene", nullptr,
+               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+  ImGui::SetWindowPos(
+      ImVec2(windowSize.width - ImGui::GetWindowWidth() - Margin, Margin),
+      ImGuiCond_Always);
+
   ImGui::Text("Camera positioned at (%.3f, %.3f, %.3f)", info.cameraPosition.x,
               info.cameraPosition.y, info.cameraPosition.z);
   ImGui::Text("Camera looking at (%.3f, %.3f, %.3f)", info.cameraCenter.x,
               info.cameraCenter.y, info.cameraCenter.z);
   ImGui::Text("Camera rotated by (%.1f°, %.1f°)", info.cameraRotation.x,
               info.cameraRotation.y);
-  ImGui::BeginTabBar("Cubes", ImGuiTabBarFlags_AutoSelectNewTabs);
-  for (u32 cubeIndex = 0; cubeIndex < info.cubePositions.size(); ++cubeIndex) {
-    if (ImGui::BeginTabItem(std::format("Cube {}", cubeIndex + 1).c_str())) {
-      glm::vec3* value = info.cubePositions[cubeIndex];
 
-      ImGui::InputFloat("X", &value->x, 0.0f, 0.0f, "%.3f");
-      ImGui::InputFloat("Y", &value->y, 0.0f, 0.0f, "%.3f");
-      ImGui::InputFloat("Z", &value->z, 0.0f, 0.0f, "%.3f");
-      ImGui::EndTabItem();
+  ImGui::Separator();
+  ImGui::Checkbox("Auto-select new cube", &autoSelectLastCube);
 
-      (*info.selectedObjectIndex) = cubeIndex;
+  if (ImGui::BeginListBox("Cubes",
+                          ImVec2(ImGui::GetContentRegionAvailWidth(),
+                                 5 * ImGui::GetTextLineHeightWithSpacing()))) {
+    const bool focusNewCube =
+        autoSelectLastCube && (lastCubeCount != info.cubePositions.size());
+
+    if (focusNewCube) {
+      selectedCube = info.cubePositions.size() - 1;
     }
+
+    for (u32 cubeIndex = 0; cubeIndex < info.cubePositions.size();
+         ++cubeIndex) {
+      if (ImGui::Selectable(std::format("Cube {}", cubeIndex + 1).c_str(),
+                            selectedCube == cubeIndex)) {
+        selectedCube = cubeIndex;
+      }
+    }
+
+    if (focusNewCube) {
+      ImGui::SetScrollHereY(1.0f);
+    }
+    ImGui::EndListBox();
   }
-  ImGui::EndTabBar();
+
+  glm::vec3* value = info.cubePositions[selectedCube];
+
+  ImGui::InputFloat("X", &value->x, 0.0f, 0.0f, "%.3f");
+  ImGui::InputFloat("Y", &value->y, 0.0f, 0.0f, "%.3f");
+  ImGui::InputFloat("Z", &value->z, 0.0f, 0.0f, "%.3f");
   ImGui::End();
+
+  (*info.selectedObjectIndex) = selectedCube;
+  lastCubeCount = info.cubePositions.size();
 }
 
 void UiRenderer::RenderKey(Keyboard& keyboard, KeyDescription& key) {
@@ -155,8 +191,14 @@ void UiRenderer::RenderKey(Keyboard& keyboard, KeyDescription& key) {
 }
 
 void UiRenderer::ShowKeyboardLayout(Keyboard& keyboard) {
-  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-  ImGui::Begin("Keyboard Layout");
+  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
+  ImGui::Begin("Keyboard Layout", nullptr,
+               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+  ImGui::SetWindowPos(
+      ImVec2(windowSize.width - ImGui::GetWindowWidth() - Margin,
+             windowSize.height - ImGui::GetWindowHeight() - Margin),
+      ImGuiCond_Always);
 
   ImGui::Text("Move selected scene object");
   for (std::vector<KeyDescription>& row : sceneObjectControls) {

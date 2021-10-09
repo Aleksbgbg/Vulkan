@@ -8,6 +8,7 @@
 
 #include "Keyboard.h"
 #include "MultithreadedMessageQueue.h"
+#include "Rect.h"
 #include "UiRenderer.h"
 #include "include_glm.h"
 #include "memory/DeviceMemoryAllocator.h"
@@ -31,19 +32,14 @@ class App {
   void UpdateModel(const float deltaTime);
   void Render();
 
-  void InitializeSwapchain(CommandBuffer& transientCommandBuffer);
+  void InitializeSwapchain();
 
  private:
-  struct Rect {
-    glm::ivec2 position;
-    glm::ivec2 size;
-  };
-
   struct WindowInfo {
     SDL_Window* window;
     HINSTANCE hinstance;
     HWND hwnd;
-    Rect rect;
+    Recti rect;
   };
 
   struct BufferWithMemory {
@@ -64,6 +60,8 @@ class App {
   struct ProjectionTransformation {
     alignas(16) glm::mat4 value;
   };
+
+  void SpawnGradientCube();
 
   BufferWithMemory TransferDataToGpuLocalMemory(CommandBuffer& commandBuffer,
                                                 const void* data,
@@ -106,6 +104,9 @@ class App {
 
   Fence fence;
 
+  CommandPool shortExecutionCommandPool;
+  CommandBuffer shortExecutionCommandBuffer;
+
   BufferWithMemory vertexMemoryBuffer;
   BufferWithMemory indexMemoryBuffer;
   u32 indexCount;
@@ -113,6 +114,12 @@ class App {
   BufferWithMemory gradientVertexMemoryBuffer;
   BufferWithMemory gradientIndexMemoryBuffer;
   u32 gradientIndexCount;
+
+  struct GradientCubeInstance {
+    glm::vec3 position;
+    ModelViewTransformation renderTransform;
+  };
+  std::vector<GradientCubeInstance> gradientCubes;
 
   ImageWithMemory texture;
   ImageView textureView;
@@ -145,8 +152,6 @@ class App {
 
   std::unique_ptr<UiRenderer> uiRenderer;
 
-  ModelViewTransformation gradientRenderTransform;
-
   ModelViewTransformation renderTransform;
   ProjectionTransformation projectionTransform;
 
@@ -171,8 +176,6 @@ class App {
 
   float cubeRotation = 0.0f;
   glm::vec3 cubePosition;
-
-  glm::vec3 gradientCubePosition;
 
   glm::vec2 cameraRotation;
 

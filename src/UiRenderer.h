@@ -5,6 +5,7 @@
 
 #include "Iterable.h"
 #include "Keyboard.h"
+#include "Rect.h"
 #include "include_glm.h"
 #include "vulkan/ImGuiInstance.h"
 
@@ -24,7 +25,7 @@ struct ObjectsInSceneInfo {
 class UiRenderer {
  public:
   UiRenderer() = default;
-  explicit UiRenderer(ImGuiInstance imGuiInstance);
+  explicit UiRenderer(Rectf windowSize, ImGuiInstance imGuiInstance);
 
   void ProcessEvent(const SDL_Event& event) const;
 
@@ -33,7 +34,7 @@ class UiRenderer {
   void Render(const CommandBuffer& commandBuffer) const;
 
   void ShowVulkanDebugInfo(const VulkanDebugInfo& info);
-  void ShowObjectsInScene(const ObjectsInSceneInfo& info) const;
+  void ShowObjectsInScene(const ObjectsInSceneInfo& info);
   void ShowKeyboardLayout(Keyboard& keyboard);
 
  private:
@@ -63,6 +64,7 @@ class UiRenderer {
   static float GetFrametimeHistoryValueFromRenderer(void* data, int index);
   float GetFrametimeHistoryValue(void* data, int index) const;
 
+  Rectf windowSize;
   ImGuiInstance imGuiInstance;
 
   u32 valuesFilled;
@@ -70,10 +72,12 @@ class UiRenderer {
   std::array<float, 10> frametimeHistory;
   float timeSum;
 
+  bool autoSelectLastCube;
+  u32 selectedCube;
+  u32 lastCubeCount;
+
   std::array<std::vector<KeyDescription>, 2> sceneObjectControls;
-
   std::array<KeyDescription, 4> cameraKeys;
-
   KeyDescription spawnCubeKey;
 };
 

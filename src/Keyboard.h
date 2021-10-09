@@ -10,9 +10,14 @@ class Keyboard {
   void Keydown(const SDL_Keycode keycode);
   void Keyup(const SDL_Keycode keycode);
 
+  void ClearPressedKeys();
+
   bool IsKeyDown(const SDL_Keycode keycode) const;
+  bool PressedKey(const SDL_Keycode keycode) const;
+
 
  private:
+  std::unordered_set<SDL_Keycode> keysDown;
   std::unordered_set<SDL_Keycode> pressedKeys;
 };
 
