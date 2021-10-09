@@ -12,9 +12,7 @@
 #include "Viewport.h"
 
 inline const VkBufferCreateInfo BUFFER_EXCLUSIVE =
-    BufferCreateInfoBuilder()
-        .SetSharingMode(VK_SHARING_MODE_EXCLUSIVE)
-        .BuildObject();
+    BufferCreateInfoBuilder().SetSharingMode(VK_SHARING_MODE_EXCLUSIVE);
 
 inline const VkImageCreateInfo IMAGE_2D =
     ImageCreateInfoBuilder()
@@ -24,8 +22,7 @@ inline const VkImageCreateInfo IMAGE_2D =
         .SetSamples(VK_SAMPLE_COUNT_1_BIT)
         .SetTiling(VK_IMAGE_TILING_OPTIMAL)
         .SetSharingMode(VK_SHARING_MODE_EXCLUSIVE)
-        .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-        .BuildObject();
+        .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
 
 // inline const VkImageViewCreateInfo IMAGE_VIEW_2D =
 //     ImageViewCreateInfoBuilder()
@@ -37,13 +34,11 @@ inline const VkImageCreateInfo IMAGE_2D =
 //         .SetTiling(VK_IMAGE_TILING_OPTIMAL)
 //         .SetSharingMode(VK_SHARING_MODE_EXCLUSIVE)
 //         .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-//         .BuildObject();
+//         ;
 
-inline const VkSamplerCreateInfo SAMPLER_EMPTY =
-    SamplerCreateInfoBuilder().BuildObject();
+inline const VkSamplerCreateInfo SAMPLER_EMPTY = SamplerCreateInfoBuilder();
 
-inline const VkViewport VIEWPORT_BASE =
-    ViewportBuilder().SetMaxDepth(1.0f).BuildObject();
+inline const VkViewport VIEWPORT_BASE = ViewportBuilder().SetMaxDepth(1.0f);
 
 inline const VkOffset2D OFFSET2D_ZERO = {};
 
@@ -52,20 +47,17 @@ inline const VkExtent3D EXTENT3D_SINGLE_DEPTH = {.depth = 1};
 inline const VkImageSubresourceLayers SUBRESOURCE_LAYERS_COLOR_SINGLE_LAYER =
     ImageSubresourceLayersBuilder()
         .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
-        .SetLayerCount(1)
-        .BuildObject();
+        .SetLayerCount(1);
 
 inline const VkImageSubresourceRange SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER =
     ImageSubresourceRangeBuilder()
         .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
         .SetLayerCount(1)
-        .SetLevelCount(1)
-        .BuildObject();
+        .SetLevelCount(1);
 
 inline const VkImageMemoryBarrier IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER =
     ImageMemoryBarrierBuilder()
         .SetSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-        .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-        .BuildObject();
+        .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H

@@ -8,10 +8,8 @@
 
 STRUCTURE_BUILDER(MemoryAllocateInfoBuilder, VkMemoryAllocateInfo,
                   VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO)
-STRUCTURE_SETTER(MemoryAllocateInfoBuilder, AllocationSize, const VkDeviceSize,
-                 allocationSize)
-STRUCTURE_SETTER(MemoryAllocateInfoBuilder, MemoryTypeIndex, const u32,
-                 memoryTypeIndex)
+STRUCTURE_SETTER(AllocationSize, const VkDeviceSize, allocationSize)
+STRUCTURE_SETTER(MemoryTypeIndex, const u32, memoryTypeIndex)
 END_STRUCTURE_BUILDER
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_MEMORYALLOCATEINFO_H

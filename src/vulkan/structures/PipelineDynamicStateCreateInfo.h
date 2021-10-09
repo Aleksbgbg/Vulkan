@@ -9,12 +9,9 @@
 STRUCTURE_BUILDER(PipelineDynamicStateCreateInfoBuilder,
                   VkPipelineDynamicStateCreateInfo,
                   VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO)
-STRUCTURE_SETTER(PipelineDynamicStateCreateInfoBuilder, Flags,
-                 VkPipelineDynamicStateCreateFlags, flags)
-STRUCTURE_SETTER(PipelineDynamicStateCreateInfoBuilder, DynamicStateCount, u32,
-                 dynamicStateCount)
-STRUCTURE_SETTER(PipelineDynamicStateCreateInfoBuilder, PDynamicStates,
-                 const VkDynamicState*, pDynamicStates)
+STRUCTURE_SETTER(Flags, VkPipelineDynamicStateCreateFlags, flags)
+STRUCTURE_SETTER(DynamicStateCount, u32, dynamicStateCount)
+STRUCTURE_SETTER(PDynamicStates, const VkDynamicState*, pDynamicStates)
 END_STRUCTURE_BUILDER
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_PIPELINEDYNAMICSTATECREATEINFO_H

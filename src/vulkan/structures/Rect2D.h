@@ -8,11 +8,9 @@
 #include "define_structure.h"
 #include "types.h"
 
-STRUCTURE_BUILDER_NO_TYPE(Rect2DBuilder, VkRect2D)
-STRUCTURE_SETTER(Rect2DBuilder, Offset, const VkOffset2D, offset)
-STRUCTURE_SETTER_BUILDER_OBJECT(Rect2DBuilder, Offset, Offset2DBuilder, offset)
-STRUCTURE_SETTER(Rect2DBuilder, Extent, const VkExtent2D, extent)
-STRUCTURE_SETTER_BUILDER_OBJECT(Rect2DBuilder, Extent, Extent2DBuilder, extent)
+STRUCTURE_BUILDER_NO_STYPE(Rect2DBuilder, VkRect2D)
+STRUCTURE_SETTER(Offset, const VkOffset2D, offset)
+STRUCTURE_SETTER(Extent, const VkExtent2D, extent)
 END_STRUCTURE_BUILDER
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_RECT2D_H

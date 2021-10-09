@@ -8,10 +8,8 @@
 
 STRUCTURE_BUILDER(CommandPoolCreateInfoBuilder, VkCommandPoolCreateInfo,
                   VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO)
-STRUCTURE_SETTER(CommandPoolCreateInfoBuilder, Flags,
-                 const VkCommandPoolCreateFlags, flags)
-STRUCTURE_SETTER(CommandPoolCreateInfoBuilder, QueueFamilyIndex, const u32,
-                 queueFamilyIndex)
+STRUCTURE_SETTER(Flags, const VkCommandPoolCreateFlags, flags)
+STRUCTURE_SETTER(QueueFamilyIndex, const u32, queueFamilyIndex)
 END_STRUCTURE_BUILDER
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_COMMANDPOOLCREATEINFO_H

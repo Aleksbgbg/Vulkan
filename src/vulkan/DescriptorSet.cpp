@@ -9,8 +9,7 @@ void DescriptorSet::CreateBufferWrite(
   writeDescriptorSet.info.bufferInfo = DescriptorBufferInfoBuilder()
                                            .SetBuffer(buffer.buffer)
                                            .SetOffset(0)
-                                           .SetRange(buffer.Size())
-                                           .BuildObject();
+                                           .SetRange(buffer.Size());
   writeDescriptorSet.writeBuilder =
       WriteDescriptorSetBuilder()
           .SetDstSet(descriptorSet)
@@ -27,8 +26,7 @@ void DescriptorSet::CreateImageSamplerWrite(
       DescriptorImageInfoBuilder()
           .SetImageView(samplerImageView.imageView)
           .SetSampler(sampler.sampler)
-          .SetImageLayout(imageLayout)
-          .BuildObject();
+          .SetImageLayout(imageLayout);
   writeDescriptorSet.writeBuilder =
       WriteDescriptorSetBuilder()
           .SetDstSet(descriptorSet)

@@ -9,26 +9,16 @@
 STRUCTURE_BUILDER(PipelineDepthStencilStateCreateInfoBuilder,
                   VkPipelineDepthStencilStateCreateInfo,
                   VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder, Flags,
-                 VkPipelineDepthStencilStateCreateFlags, flags)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder, DepthTestEnable,
-                 VkBool32, depthTestEnable)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder, DepthWriteEnable,
-                 VkBool32, depthWriteEnable)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder, DepthCompareOp,
-                 VkCompareOp, depthCompareOp)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder,
-                 DepthBoundsTestEnable, VkBool32, depthBoundsTestEnable)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder, StencilTestEnable,
-                 VkBool32, stencilTestEnable)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder, Front,
-                 VkStencilOpState, front)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder, Back,
-                 VkStencilOpState, back)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder, MinDepthBounds,
-                 float, minDepthBounds)
-STRUCTURE_SETTER(PipelineDepthStencilStateCreateInfoBuilder, MaxDepthBounds,
-                 float, maxDepthBounds)
+STRUCTURE_SETTER(Flags, VkPipelineDepthStencilStateCreateFlags, flags)
+STRUCTURE_SETTER(DepthTestEnable, VkBool32, depthTestEnable)
+STRUCTURE_SETTER(DepthWriteEnable, VkBool32, depthWriteEnable)
+STRUCTURE_SETTER(DepthCompareOp, VkCompareOp, depthCompareOp)
+STRUCTURE_SETTER(DepthBoundsTestEnable, VkBool32, depthBoundsTestEnable)
+STRUCTURE_SETTER(StencilTestEnable, VkBool32, stencilTestEnable)
+STRUCTURE_SETTER(Front, VkStencilOpState, front)
+STRUCTURE_SETTER(Back, VkStencilOpState, back)
+STRUCTURE_SETTER(MinDepthBounds, float, minDepthBounds)
+STRUCTURE_SETTER(MaxDepthBounds, float, maxDepthBounds)
 END_STRUCTURE_BUILDER
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_PIPELINEDEPTHSTENCILSTATECREATEINFO_H

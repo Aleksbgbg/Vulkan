@@ -26,8 +26,7 @@ std::vector<DescriptorSet> DescriptorPool::AllocateDescriptorSets(
       DescriptorSetAllocateInfoBuilder()
           .SetDescriptorPool(descriptorPool)
           .SetDescriptorSetCount(count)
-          .SetPSetLayouts(rawLayouts.data())
-          .BuildObject();
+          .SetPSetLayouts(rawLayouts.data());
   std::vector<VkDescriptorSet> rawDescriptorSets(count);
   PROCEED_ON_VALID_RESULT(
       vkAllocateDescriptorSets(device, &allocateInfo, rawDescriptorSets.data()))

@@ -19,12 +19,12 @@ class DescriptorSet {
     friend class DescriptorSet;
 
    public:
-    WriteDescriptorSetBuilder& Builder() {
+    operator VkWriteDescriptorSet() const {
       return writeBuilder;
     }
 
-    operator VkWriteDescriptorSet() const {
-      return writeBuilder.BuildObject();
+    WriteDescriptorSetBuilder& Builder() {
+      return writeBuilder;
     }
 
    private:

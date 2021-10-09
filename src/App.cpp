@@ -496,8 +496,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           .SetStencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE)
           .SetStencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
           .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-          .SetFinalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-          .BuildObject(),
+          .SetFinalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR),
       AttachmentDescriptionBuilder()
           .SetFormat(depthStencilFormat)
           .SetSamples(VK_SAMPLE_COUNT_1_BIT)
@@ -506,27 +505,21 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           .SetStencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE)
           .SetStencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
           .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-          .SetFinalLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-          .BuildObject(),
+          .SetFinalLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL),
   };
   const std::array<VkAttachmentReference, 1> colorAttachments = {
-      AttachmentReferenceBuilder()
-          .SetAttachment(0)
-          .SetLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-          .BuildObject(),
+      AttachmentReferenceBuilder().SetAttachment(0).SetLayout(
+          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL),
   };
   const VkAttachmentReference depthStencilAttachment =
-      AttachmentReferenceBuilder()
-          .SetAttachment(1)
-          .SetLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-          .BuildObject();
+      AttachmentReferenceBuilder().SetAttachment(1).SetLayout(
+          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
   const std::array<VkSubpassDescription, 1> subpasses{
       SubpassDescriptionBuilder()
           .SetPipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS)
           .SetColorAttachmentCount(colorAttachments.size())
           .SetPColorAttachments(colorAttachments.data())
-          .SetPDepthStencilAttachment(&depthStencilAttachment)
-          .BuildObject(),
+          .SetPDepthStencilAttachment(&depthStencilAttachment),
   };
   const std::array<VkSubpassDependency, 1> subpassDependencies{
       SubpassDependencyBuilder()
@@ -538,8 +531,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
                            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
           .SetSrcAccessMask(0)
           .SetDstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
-          .BuildObject(),
+                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT),
   };
   renderPass = virtualDevice.CreateRenderPass(
       RenderPassCreateInfoBuilder()
@@ -557,8 +549,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           VertexInputBindingDescriptionBuilder()
               .SetBinding(0)
               .SetStride(sizeof(TexturedVertex))
-              .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX)
-              .BuildObject(),
+              .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
       };
   const std::array<VkVertexInputAttributeDescription, 2>
       vertexAttributeDescriptions{
@@ -566,28 +557,24 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
               .SetBinding(0)
               .SetLocation(0)
               .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-              .SetOffset(offsetof(TexturedVertex, position))
-              .BuildObject(),
+              .SetOffset(offsetof(TexturedVertex, position)),
           VertexInputAttributeDescriptionBuilder()
               .SetBinding(0)
               .SetLocation(1)
               .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-              .SetOffset(offsetof(TexturedVertex, textureCoordinate))
-              .BuildObject(),
+              .SetOffset(offsetof(TexturedVertex, textureCoordinate)),
       };
   const std::array<VkDescriptorSetLayoutBinding, 2> descriptorSetLayoutBindings{
       DescriptorSetLayoutBindingBuilder()
           .SetBinding(0)
           .SetDescriptorCount(1)
           .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
-          .BuildObject(),
+          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT),
       DescriptorSetLayoutBindingBuilder()
           .SetBinding(1)
           .SetDescriptorCount(1)
           .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-          .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT)
-          .BuildObject(),
+          .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT),
   };
   descriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
       DescriptorSetLayoutCreateInfoBuilder()
@@ -666,8 +653,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
           VertexInputBindingDescriptionBuilder()
               .SetBinding(0)
               .SetStride(sizeof(GradientVertex))
-              .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX)
-              .BuildObject(),
+              .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
       };
   const std::array<VkVertexInputAttributeDescription, 2>
       gradientVertexAttributeDescriptions{
@@ -675,14 +661,12 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
               .SetBinding(0)
               .SetLocation(0)
               .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-              .SetOffset(offsetof(GradientVertex, position))
-              .BuildObject(),
+              .SetOffset(offsetof(GradientVertex, position)),
           VertexInputAttributeDescriptionBuilder()
               .SetBinding(0)
               .SetLocation(1)
               .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-              .SetOffset(offsetof(GradientVertex, color))
-              .BuildObject(),
+              .SetOffset(offsetof(GradientVertex, color)),
       };
   const std::array<VkDescriptorSetLayoutBinding, 1>
       gradientDescriptorSetLayoutBindings{
@@ -690,8 +674,7 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
               .SetBinding(0)
               .SetDescriptorCount(1)
               .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-              .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
-              .BuildObject(),
+              .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT),
       };
   gradientDescriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
       DescriptorSetLayoutCreateInfoBuilder()
@@ -776,12 +759,10 @@ void App::InitializeSwapchain(CommandBuffer& transientCommandBuffer) {
   const std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes{
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-          .SetDescriptorCount(swapchainImages * 2)
-          .BuildObject(),
+          .SetDescriptorCount(swapchainImages * 2),
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-          .SetDescriptorCount(swapchainImages)
-          .BuildObject(),
+          .SetDescriptorCount(swapchainImages),
   };
   descriptorPool = virtualDevice.CreateDescriptorPool(
       DescriptorPoolCreateInfoBuilder()
@@ -1083,16 +1064,13 @@ void App::Render() {
   swapchainRender.submitCompleteFence.Wait().Reset();
   {
     const std::array<VkClearValue, 2> clearValues{
-        ClearValueBuilder()
-            .SetColor(ClearColorValueBuilder()
-                          .SetFloat0(0.2f)
-                          .SetFloat1(0.2f)
-                          .SetFloat2(0.2f)
-                          .SetFloat3(1.0f))
-            .BuildObject(),
-        ClearValueBuilder()
-            .SetDepthStencil(ClearDepthStencilValueBuilder().SetDepth(1.0f))
-            .BuildObject()};
+        ClearValueBuilder().SetColor(ClearColorValueBuilder()
+                                         .SetFloat0(0.2f)
+                                         .SetFloat1(0.2f)
+                                         .SetFloat2(0.2f)
+                                         .SetFloat3(1.0f)),
+        ClearValueBuilder().SetDepthStencil(
+            ClearDepthStencilValueBuilder().SetDepth(1.0f))};
 
     swapchainRender.commandBuffer.Begin();
     swapchainRender.commandBuffer.CmdBeginRenderPass(

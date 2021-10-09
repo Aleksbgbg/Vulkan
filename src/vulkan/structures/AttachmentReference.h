@@ -6,9 +6,9 @@
 #include "define_structure.h"
 #include "types.h"
 
-STRUCTURE_BUILDER_NO_TYPE(AttachmentReferenceBuilder, VkAttachmentReference)
-STRUCTURE_SETTER(AttachmentReferenceBuilder, Attachment, u32, attachment)
-STRUCTURE_SETTER(AttachmentReferenceBuilder, Layout, VkImageLayout, layout)
+STRUCTURE_BUILDER_NO_STYPE(AttachmentReferenceBuilder, VkAttachmentReference)
+STRUCTURE_SETTER(Attachment, u32, attachment)
+STRUCTURE_SETTER(Layout, VkImageLayout, layout)
 END_STRUCTURE_BUILDER
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_ATTACHMENTREFERENCE_H

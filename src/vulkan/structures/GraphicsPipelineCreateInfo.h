@@ -21,67 +21,63 @@
 STRUCTURE_BUILDER(GraphicsPipelineCreateInfoBuilder,
                   VkGraphicsPipelineCreateInfo,
                   VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, Flags,
-                 VkPipelineCreateFlags, flags)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, StageCount, u32, stageCount)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PStages,
-                 const VkPipelineShaderStageCreateInfo*, pStages)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PVertexInputState,
-                 const VkPipelineVertexInputStateCreateInfo*, pVertexInputState)
-STRUCTURE_SETTER_BUILDER(GraphicsPipelineCreateInfoBuilder, PVertexInputState,
-                         PipelineVertexInputStateCreateInfoBuilder,
-                         pVertexInputState)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PInputAssemblyState,
+STRUCTURE_SETTER(Flags, VkPipelineCreateFlags, flags)
+STRUCTURE_SETTER(StageCount, u32, stageCount)
+STRUCTURE_SETTER(PStages, const VkPipelineShaderStageCreateInfo*, pStages)
+STRUCTURE_SETTER(PVertexInputState, const VkPipelineVertexInputStateCreateInfo*,
+                 pVertexInputState)
+STRUCTURE_SETTER_POINTER_FROM_BUILDER(PVertexInputState,
+                                      PipelineVertexInputStateCreateInfoBuilder,
+                                      pVertexInputState)
+STRUCTURE_SETTER(PInputAssemblyState,
                  const VkPipelineInputAssemblyStateCreateInfo*,
                  pInputAssemblyState)
-STRUCTURE_SETTER_BUILDER(GraphicsPipelineCreateInfoBuilder, PInputAssemblyState,
-                         PipelineInputAssemblyStateCreateInfoBuilder,
-                         pInputAssemblyState)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PTessellationState,
+STRUCTURE_SETTER_POINTER_FROM_BUILDER(
+    PInputAssemblyState, PipelineInputAssemblyStateCreateInfoBuilder,
+    pInputAssemblyState)
+STRUCTURE_SETTER(PTessellationState,
                  const VkPipelineTessellationStateCreateInfo*,
                  pTessellationState)
-STRUCTURE_SETTER_BUILDER(GraphicsPipelineCreateInfoBuilder, PTessellationState,
-                         PipelineTessellationStateCreateInfoBuilder,
-                         pTessellationState)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PViewportState,
-                 const VkPipelineViewportStateCreateInfo*, pViewportState)
-STRUCTURE_SETTER_BUILDER(GraphicsPipelineCreateInfoBuilder, PViewportState,
-                         PipelineViewportStateCreateInfoBuilder, pViewportState)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PRasterizationState,
+STRUCTURE_SETTER_POINTER_FROM_BUILDER(
+    PTessellationState, PipelineTessellationStateCreateInfoBuilder,
+    pTessellationState)
+STRUCTURE_SETTER(PViewportState, const VkPipelineViewportStateCreateInfo*,
+                 pViewportState)
+STRUCTURE_SETTER_POINTER_FROM_BUILDER(PViewportState,
+                                      PipelineViewportStateCreateInfoBuilder,
+                                      pViewportState)
+STRUCTURE_SETTER(PRasterizationState,
                  const VkPipelineRasterizationStateCreateInfo*,
                  pRasterizationState)
-STRUCTURE_SETTER_BUILDER(GraphicsPipelineCreateInfoBuilder, PRasterizationState,
-                         PipelineRasterizationStateCreateInfoBuilder,
-                         pRasterizationState)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PMultisampleState,
-                 const VkPipelineMultisampleStateCreateInfo*, pMultisampleState)
-STRUCTURE_SETTER_BUILDER(GraphicsPipelineCreateInfoBuilder, PMultisampleState,
-                         PipelineMultisampleStateCreateInfoBuilder,
-                         pMultisampleState)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PDepthStencilState,
+STRUCTURE_SETTER_POINTER_FROM_BUILDER(
+    PRasterizationState, PipelineRasterizationStateCreateInfoBuilder,
+    pRasterizationState)
+STRUCTURE_SETTER(PMultisampleState, const VkPipelineMultisampleStateCreateInfo*,
+                 pMultisampleState)
+STRUCTURE_SETTER_POINTER_FROM_BUILDER(PMultisampleState,
+                                      PipelineMultisampleStateCreateInfoBuilder,
+                                      pMultisampleState)
+STRUCTURE_SETTER(PDepthStencilState,
                  const VkPipelineDepthStencilStateCreateInfo*,
                  pDepthStencilState)
-STRUCTURE_SETTER_BUILDER(GraphicsPipelineCreateInfoBuilder, PDepthStencilState,
-                         PipelineDepthStencilStateCreateInfoBuilder,
-                         pDepthStencilState)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PColorBlendState,
-                 const VkPipelineColorBlendStateCreateInfo*, pColorBlendState)
-STRUCTURE_SETTER_BUILDER(GraphicsPipelineCreateInfoBuilder, PColorBlendState,
-                         PipelineColorBlendStateCreateInfoBuilder,
-                         pColorBlendState)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, PDynamicState,
-                 const VkPipelineDynamicStateCreateInfo*, pDynamicState)
-STRUCTURE_SETTER_BUILDER(GraphicsPipelineCreateInfoBuilder, PDynamicState,
-                         PipelineDynamicStateCreateInfoBuilder, pDynamicState)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, Layout, VkPipelineLayout,
-                 layout)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, RenderPass, VkRenderPass,
-                 renderPass)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, Subpass, u32, subpass)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, BasePipelineHandle,
-                 VkPipeline, basePipelineHandle)
-STRUCTURE_SETTER(GraphicsPipelineCreateInfoBuilder, BasePipelineIndex, i32,
-                 basePipelineIndex)
+STRUCTURE_SETTER_POINTER_FROM_BUILDER(
+    PDepthStencilState, PipelineDepthStencilStateCreateInfoBuilder,
+    pDepthStencilState)
+STRUCTURE_SETTER(PColorBlendState, const VkPipelineColorBlendStateCreateInfo*,
+                 pColorBlendState)
+STRUCTURE_SETTER_POINTER_FROM_BUILDER(PColorBlendState,
+                                      PipelineColorBlendStateCreateInfoBuilder,
+                                      pColorBlendState)
+STRUCTURE_SETTER(PDynamicState, const VkPipelineDynamicStateCreateInfo*,
+                 pDynamicState)
+STRUCTURE_SETTER_POINTER_FROM_BUILDER(PDynamicState,
+                                      PipelineDynamicStateCreateInfoBuilder,
+                                      pDynamicState)
+STRUCTURE_SETTER(Layout, VkPipelineLayout, layout)
+STRUCTURE_SETTER(RenderPass, VkRenderPass, renderPass)
+STRUCTURE_SETTER(Subpass, u32, subpass)
+STRUCTURE_SETTER(BasePipelineHandle, VkPipeline, basePipelineHandle)
+STRUCTURE_SETTER(BasePipelineIndex, i32, basePipelineIndex)
 END_STRUCTURE_BUILDER
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_GRAPHICSPIPELINECREATEINFO_H

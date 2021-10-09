@@ -10,7 +10,7 @@ Image::Image(VkDevice device,
              ImageCreateInfoBuilder& infoBuilder)
     : device(device),
       memoryProperties(memoryProperties),
-      createInfo(infoBuilder.BuildObject()) {
+      createInfo(infoBuilder) {
   PROCEED_ON_VALID_RESULT(vkCreateImage(device, &createInfo, nullptr, &image));
 }
 

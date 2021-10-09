@@ -18,8 +18,7 @@ Pipeline::Pipeline(VkDevice device, const PipelineCache& pipelineCache,
                    return PipelineShaderStageCreateInfoBuilder()
                        .SetStage(shaderModule.stage)
                        .SetModule(shaderModule.shaderModule)
-                       .SetPName("main")
-                       .BuildObject();
+                       .SetPName("main");
                  });
   PROCEED_ON_VALID_RESULT(vkCreateGraphicsPipelines(
       device, pipelineCache.pipelineCache, 1,

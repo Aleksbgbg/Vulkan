@@ -8,20 +8,13 @@
 #include "define_structure.h"
 #include "types.h"
 
-STRUCTURE_BUILDER_NO_TYPE(BufferImageCopyBuilder, VkBufferImageCopy)
-STRUCTURE_SETTER(BufferImageCopyBuilder, BufferOffset, VkDeviceSize,
-                 bufferOffset)
-STRUCTURE_SETTER(BufferImageCopyBuilder, BufferRowLength, u32, bufferRowLength)
-STRUCTURE_SETTER(BufferImageCopyBuilder, BufferImageHeight, u32,
-                 bufferImageHeight)
-STRUCTURE_SETTER(BufferImageCopyBuilder, ImageSubresource,
-                 VkImageSubresourceLayers, imageSubresource)
-STRUCTURE_SETTER_BUILDER_OBJECT(BufferImageCopyBuilder, ImageSubresource,
-                                ImageSubresourceLayersBuilder, imageSubresource)
-STRUCTURE_SETTER(BufferImageCopyBuilder, ImageOffset, VkOffset3D, imageOffset)
-STRUCTURE_SETTER(BufferImageCopyBuilder, ImageExtent, VkExtent3D, imageExtent)
-STRUCTURE_SETTER_BUILDER_OBJECT(BufferImageCopyBuilder, ImageExtent,
-                                Extent3DBuilder, imageExtent)
+STRUCTURE_BUILDER_NO_STYPE(BufferImageCopyBuilder, VkBufferImageCopy)
+STRUCTURE_SETTER(BufferOffset, VkDeviceSize, bufferOffset)
+STRUCTURE_SETTER(BufferRowLength, u32, bufferRowLength)
+STRUCTURE_SETTER(BufferImageHeight, u32, bufferImageHeight)
+STRUCTURE_SETTER(ImageSubresource, VkImageSubresourceLayers, imageSubresource)
+STRUCTURE_SETTER(ImageOffset, VkOffset3D, imageOffset)
+STRUCTURE_SETTER(ImageExtent, VkExtent3D, imageExtent)
 END_STRUCTURE_BUILDER
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_BUFFERIMAGECOPY_H

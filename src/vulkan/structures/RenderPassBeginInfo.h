@@ -9,17 +9,11 @@
 
 STRUCTURE_BUILDER(RenderPassBeginInfoBuilder, VkRenderPassBeginInfo,
                   VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO)
-STRUCTURE_SETTER(RenderPassBeginInfoBuilder, RenderPass, VkRenderPass,
-                 renderPass)
-STRUCTURE_SETTER(RenderPassBeginInfoBuilder, Framebuffer, VkFramebuffer,
-                 framebuffer)
-STRUCTURE_SETTER(RenderPassBeginInfoBuilder, RenderArea, VkRect2D, renderArea)
-STRUCTURE_SETTER_BUILDER_OBJECT(RenderPassBeginInfoBuilder, RenderArea,
-                                Rect2DBuilder, renderArea)
-STRUCTURE_SETTER(RenderPassBeginInfoBuilder, ClearValueCount, u32,
-                 clearValueCount)
-STRUCTURE_SETTER(RenderPassBeginInfoBuilder, PClearValues, const VkClearValue*,
-                 pClearValues)
+STRUCTURE_SETTER(RenderPass, VkRenderPass, renderPass)
+STRUCTURE_SETTER(Framebuffer, VkFramebuffer, framebuffer)
+STRUCTURE_SETTER(RenderArea, VkRect2D, renderArea)
+STRUCTURE_SETTER(ClearValueCount, u32, clearValueCount)
+STRUCTURE_SETTER(PClearValues, const VkClearValue*, pClearValues)
 END_STRUCTURE_BUILDER
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_RENDERPASSBEGININFO_H
