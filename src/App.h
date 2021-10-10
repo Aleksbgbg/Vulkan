@@ -8,6 +8,7 @@
 
 #include "Keyboard.h"
 #include "MultithreadedMessageQueue.h"
+#include "NormalizedOneTimeFunctionAnimation.h"
 #include "Rect.h"
 #include "UiRenderer.h"
 #include "UpAndDownGlidingAnimation.h"
@@ -135,6 +136,8 @@ class App {
     glm::vec3 position;
     ModelTransformation modelTransform;
     Highlight highlight;
+
+    NormalizedOneTimeFunctionAnimation spawnAnimation;
   };
   std::vector<GradientCubeInstance> gradientCubes;
 

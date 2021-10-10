@@ -407,10 +407,6 @@ App::App()
         {.acquireImageSemaphore = virtualDevice.CreateSemaphore()}));
   }
 }
-void App::SpawnGradientCube() {
-  gradientCubes.emplace_back(
-      GradientCubeInstance{.highlight = {.multiplier = 1.0f}});
-}
 
 void App::InitializeSwapchain() {
   VkSurfaceCapabilitiesKHR surfaceCapabilities =
@@ -985,6 +981,13 @@ void App::MainLoop() {
   previousTime = timeNow;
 }
 
+void App::SpawnGradientCube() {
+  gradientCubes.emplace_back(GradientCubeInstance{
+      .highlight = {.multiplier = 1.0f},
+      .spawnAnimation = NormalizedOneTimeFunctionAnimation(
+          [](const float time) { return std::pow(time, 1.0f / 8.0f); }, 1.5f)});
+}
+
 void App::UpdateModel(const float deltaTime) {
   uiRenderer->BeginFrame();
   uiRenderer->ShowVulkanDebugInfo(VulkanDebugInfo{
@@ -1015,6 +1018,16 @@ void App::UpdateModel(const float deltaTime) {
       glm::lookAt(glm::vec3(0.0f), cameraCenter, glm::vec3(0.0f, 1.0f, 0.0f));
 
   for (GradientCubeInstance& gradientCube : gradientCubes) {
+    if (!gradientCube.spawnAnimation.Finished()) {
+      constexpr glm::vec3 cubeSpawnPosition(0.0f, 0.0f, -2000.0f);
+      constexpr glm::vec3 cubeEndPosition(0.0f, 0.0f, -2.0f);
+
+      gradientCube.position =
+          cubeSpawnPosition +
+          ((cubeEndPosition - cubeSpawnPosition) *
+           gradientCube.spawnAnimation.UpdateValue(deltaTime));
+    }
+
     glm::mat4 transform(1.0f);
     transform[3][0] = gradientCube.position.x;
     transform[3][1] = gradientCube.position.y;
