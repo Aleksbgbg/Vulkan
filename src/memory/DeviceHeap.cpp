@@ -112,20 +112,28 @@ ReservedBlock DeviceHeap::ReserveMemory(
 void DeviceHeap::Return(const AllocatedBlock returningBlock) {
   AllocationList& allocation = allocations[returningBlock.allocationIndex].list;
 
+  AllocationChain* previous = nullptr;
   for (AllocationChain* current = allocation.First(); current != nullptr;
-       current = current->next.get()) {
+       previous = current, current = current->next.get()) {
     const bool comesBeforeCurrentBlock =
+        returningBlock.End() < current->block.offset;
+    const bool comesRightBeforeCurrentBlock =
         returningBlock.End() == current->block.offset;
-    const bool comesAfterCurrentBlock =
+    const bool comesRightAfterCurrentBlock =
         current->block.End() == returningBlock.offset;
 
     if (comesBeforeCurrentBlock) {
+      allocation.InsertAfter(previous, returningBlock);
+      return;
+    }
+
+    if (comesRightBeforeCurrentBlock) {
       current->block.offset -= returningBlock.size;
       current->block.size += returningBlock.size;
       return;
     }
 
-    if (comesAfterCurrentBlock) {
+    if (comesRightAfterCurrentBlock) {
       current->block.size += returningBlock.size;
 
       if ((current->next != nullptr) &&
@@ -180,9 +188,9 @@ void DeviceHeap::AllocationList::Remove(DeviceHeap::AllocationChain* block,
       last = nullptr;
     }
   } else {
-    previous->next = std::move(block->next);
     if (block->next == nullptr) {
       last = previous;
     }
+    previous->next = std::move(block->next);
   }
 }

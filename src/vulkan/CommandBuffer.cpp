@@ -88,10 +88,27 @@ void CommandBuffer::CmdCopyBufferToImage(Buffer& source, Image& dest,
                          1, infoBuilder.Build());
 }
 
-void CommandBuffer::CmdImageMemoryBarrier(
-    Image& image, const VkPipelineStageFlags srcStageMask,
+void CommandBuffer::CmdGlobalMemoryBarrier(
+    const VkPipelineStageFlags srcStageMask,
     const VkPipelineStageFlags dstStageMask,
-    ImageMemoryBarrierBuilder& infoBuilder) {
+    MemoryBarrierBuilder& infoBuilder) const {
+  vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, 0, 1,
+                       infoBuilder.Build(), 0, nullptr, 0, nullptr);
+}
+
+void CommandBuffer::CmdBufferMemoryBarrier(
+    const Buffer& buffer, const VkPipelineStageFlags srcStageMask,
+    const VkPipelineStageFlags dstStageMask,
+    BufferMemoryBarrierBuilder& infoBuilder) const {
+  vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, 0, 0, nullptr,
+                       1, infoBuilder.SetBuffer(buffer.buffer).Build(), 0,
+                       nullptr);
+}
+
+void CommandBuffer::CmdImageMemoryBarrier(
+    const Image& image, const VkPipelineStageFlags srcStageMask,
+    const VkPipelineStageFlags dstStageMask,
+    ImageMemoryBarrierBuilder& infoBuilder) const {
   vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, 0, 0, nullptr,
                        0, nullptr, 1,
                        infoBuilder.SetImage(image.image).Build());
@@ -131,15 +148,17 @@ void CommandBuffer::CmdBindIndexBuffer(Buffer& buffer,
   vkCmdBindIndexBuffer(commandBuffer, buffer.buffer, 0, indexType);
 }
 
-void CommandBuffer::CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint,
-                                          PipelineLayout& pipelineLayout,
-                                          DescriptorSet& descriptorSet) {
-  vkCmdBindDescriptorSets(
-      commandBuffer, bindPoint, pipelineLayout.pipelineLayout,
-      /* firstSet= */ 0,
-      /* descriptorSetCount= */ 1, &descriptorSet.descriptorSet,
-      /* dynamicOffsetCount= */ 0,
-      /* pDynamicOffsets= */ nullptr);
+void CommandBuffer::CmdBindDescriptorSets(
+    const VkPipelineBindPoint bindPoint, const PipelineLayout& pipelineLayout,
+    const u32 firstSet, const u32 descriptorSetCount,
+    const DescriptorSet& descriptorSet) const {
+  vkCmdBindDescriptorSets(commandBuffer, bindPoint,
+                          pipelineLayout.pipelineLayout,
+                          /* firstSet= */ firstSet,
+                          /* descriptorSetCount= */ descriptorSetCount,
+                          &descriptorSet.descriptorSet,
+                          /* dynamicOffsetCount= */ 0,
+                          /* pDynamicOffsets= */ nullptr);
 }
 
 void CommandBuffer::CmdDrawIndexed(const u32 indexCount,

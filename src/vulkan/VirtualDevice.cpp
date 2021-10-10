@@ -80,6 +80,12 @@ PipelineLayout VirtualDevice::CreatePipelineLayout(
 }
 
 PipelineLayout VirtualDevice::CreatePipelineLayout(
+    const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
+    PipelineLayoutCreateInfoBuilder& infoBuilder) const {
+  return PipelineLayout(device, infoBuilder, descriptorSetLayouts);
+}
+
+PipelineLayout VirtualDevice::CreatePipelineLayout(
     const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts) const {
   return PipelineLayout(device, descriptorSetLayouts);
 }

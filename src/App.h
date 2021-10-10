@@ -10,6 +10,7 @@
 #include "MultithreadedMessageQueue.h"
 #include "Rect.h"
 #include "UiRenderer.h"
+#include "UpAndDownGlidingAnimation.h"
 #include "include_glm.h"
 #include "memory/DeviceMemoryAllocator.h"
 #include "vulkan/ImGuiInstance.h"
@@ -52,13 +53,25 @@ class App {
     ReservedMemory memory;
   };
 
-  struct ModelViewTransformation {
+  struct ModelTransformation {
     alignas(16) glm::mat4 model;
+  };
+
+  struct ViewTransformation {
     alignas(16) glm::mat4 view;
   };
 
   struct ProjectionTransformation {
     alignas(16) glm::mat4 value;
+  };
+
+  struct Highlight {
+    alignas(4) float multiplier;
+  };
+
+  struct PushConstantLayout {
+    ModelTransformation modelTransform;
+    Highlight highlight;
   };
 
   void SpawnGradientCube();
@@ -111,13 +124,17 @@ class App {
   BufferWithMemory indexMemoryBuffer;
   u32 indexCount;
 
+  ModelTransformation modelTransform;
+  Highlight highlight;
+
   BufferWithMemory gradientVertexMemoryBuffer;
   BufferWithMemory gradientIndexMemoryBuffer;
   u32 gradientIndexCount;
 
   struct GradientCubeInstance {
     glm::vec3 position;
-    ModelViewTransformation renderTransform;
+    ModelTransformation modelTransform;
+    Highlight highlight;
   };
   std::vector<GradientCubeInstance> gradientCubes;
 
@@ -140,24 +157,30 @@ class App {
   ImageView depthStencilView;
   std::vector<Framebuffer> swapchainFramebuffers;
 
-  DescriptorSetLayout descriptorSetLayout;
-  Pipeline pipeline;
+  DescriptorSetLayout projectionViewDescriptorSetLayout;
+  DescriptorSetLayout textureSamplerDescriptorSetLayout;
 
-  DescriptorSetLayout gradientDescriptorSetLayout;
+  Pipeline pipeline;
   Pipeline gradientPipeline;
 
   DescriptorPool descriptorPool;
+  std::vector<DescriptorSet> projectionViewDescriptorSets;
+  std::vector<DescriptorSet> textureSamplerDescriptorSets;
 
   VkPhysicalDeviceProperties physicalDeviceProperties;
 
   std::unique_ptr<UiRenderer> uiRenderer;
 
-  ModelViewTransformation renderTransform;
+  ViewTransformation viewTransform;
   ProjectionTransformation projectionTransform;
 
+  BufferWithMemory projectionTransformBuffer;
+
   struct SwapchainRenderPass {
-    BufferWithMemory renderData;
     CommandBuffer commandBuffer;
+
+    BufferWithMemory viewTransformCpuBuffer;
+    BufferWithMemory viewTransformGpuBuffer;
 
     Semaphore renderCompleteSemaphore;
     Fence submitCompleteFence;
@@ -181,8 +204,8 @@ class App {
 
   Keyboard keyboard;
 
-  std::vector<DescriptorSet> descriptorSets;
-  std::vector<DescriptorSet> gradientDescriptorSets;
+  UpAndDownGlidingAnimation highlightAnimation;
+  u32 lastSelectedObjectIndex;
 };
 
 #endif  // VULKAN_SRC_APP_H

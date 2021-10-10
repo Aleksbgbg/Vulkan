@@ -195,12 +195,38 @@ TEST(DeviceMemoryAllocatorTest, HeapDoesNotGetFragmented) {
   delete reservedBlock3;
   delete reservedBlock4;
 
-  const ReservedBlock reservedBlock =
+  const ReservedBlock wholeAllocation =
       heap.ReserveMemory({.size = 6, .alignment = 1});
 
   // Assert
-  ASSERT_EQ(0, reservedBlock.GetMemoryBlock().offset);
-  ASSERT_EQ(6, reservedBlock.GetMemoryBlock().size);
+  ASSERT_EQ(0, wholeAllocation.GetMemoryBlock().offset);
+  ASSERT_EQ(6, wholeAllocation.GetMemoryBlock().size);
+  ASSERT_EQ(1, allocator.allocations.size());
+}
+
+TEST(DeviceMemoryAllocatorTest, HeapDoesNotGetFragmentedForBigAllocations) {
+  // Arrange
+  TestAllocator allocator;
+  DeviceHeap heap(ONE_MEGABYTE, &allocator);
+
+  // Act
+  const ReservedBlock* const reservedBlock1 =
+      new ReservedBlock(heap.ReserveMemory({.size = 10, .alignment = 1}));
+  const ReservedBlock* const reservedBlock2 =
+      new ReservedBlock(heap.ReserveMemory({.size = 128000, .alignment = 65536}));
+  const ReservedBlock* const reservedBlock3 =
+      new ReservedBlock(heap.ReserveMemory({.size = 65000, .alignment = 1}));
+
+  delete reservedBlock2;
+  delete reservedBlock1;
+  delete reservedBlock3;
+
+  const ReservedBlock wholeAllocation =
+      heap.ReserveMemory({.size = ONE_MEGABYTE, .alignment = 1});
+
+  // Assert
+  ASSERT_EQ(0, wholeAllocation.GetMemoryBlock().offset);
+  ASSERT_EQ(ONE_MEGABYTE, wholeAllocation.GetMemoryBlock().size);
   ASSERT_EQ(1, allocator.allocations.size());
 }
 

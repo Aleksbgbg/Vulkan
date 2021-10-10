@@ -4,6 +4,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "BufferCreateInfo.h"
+#include "BufferMemoryBarrier.h"
 #include "Extent3D.h"
 #include "ImageCreateInfo.h"
 #include "ImageMemoryBarrier.h"
@@ -54,6 +55,11 @@ inline const VkImageSubresourceRange SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER =
         .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
         .SetLayerCount(1)
         .SetLevelCount(1);
+
+inline const VkBufferMemoryBarrier BUFFER_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER =
+    BufferMemoryBarrierBuilder()
+        .SetSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+        .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
 
 inline const VkImageMemoryBarrier IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER =
     ImageMemoryBarrierBuilder()

@@ -1,6 +1,8 @@
 #ifndef VULKAN_SRC_VULKAN_COMMANDBUFFER_H
 #define VULKAN_SRC_VULKAN_COMMANDBUFFER_H
 
+#include <vulkan/structures/BufferMemoryBarrier.h>
+#include <vulkan/structures/MemoryBarrier.h>
 #include <vulkan/vulkan.h>
 
 #include "Buffer.h"
@@ -61,10 +63,17 @@ class CommandBuffer {
                             const VkImageLayout destLayout,
                             BufferImageCopyBuilder& infoBuilder);
 
-  void CmdImageMemoryBarrier(Image& image,
+  void CmdGlobalMemoryBarrier(const VkPipelineStageFlags srcStageMask,
+                              const VkPipelineStageFlags dstStageMask,
+                              MemoryBarrierBuilder& infoBuilder) const;
+  void CmdBufferMemoryBarrier(const Buffer& buffer,
+                              const VkPipelineStageFlags srcStageMask,
+                              const VkPipelineStageFlags dstStageMask,
+                              BufferMemoryBarrierBuilder& infoBuilder) const;
+  void CmdImageMemoryBarrier(const Image& image,
                              const VkPipelineStageFlags srcStageMask,
                              const VkPipelineStageFlags dstStageMask,
-                             ImageMemoryBarrierBuilder& infoBuilder);
+                             ImageMemoryBarrierBuilder& infoBuilder) const;
 
   void CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder,
                           const VkSubpassContents subpassContents,
@@ -76,8 +85,9 @@ class CommandBuffer {
   void CmdBindVertexBuffers(Buffer& buffer, const u32 binding);
   void CmdBindIndexBuffer(Buffer& buffer, const VkIndexType indexType);
   void CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint,
-                             PipelineLayout& pipelineLayout,
-                             DescriptorSet& descriptorSet);
+                             const PipelineLayout& pipelineLayout,
+                             const u32 firstSet, const u32 descriptorSetCount,
+                             const DescriptorSet& descriptorSet) const;
   void CmdDrawIndexed(const u32 indexCount, const u32 instanceCount);
   void CmdNextSubpass(const VkSubpassContents contents);
   void CmdEndRenderPass();

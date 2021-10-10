@@ -47,4 +47,4 @@ while True:
     if "int32_t" in t:
       t = t.replace("int32_t", "i32")
     nc = n[0].upper() + n[1:]
-    out += f"  STRUCTURE_SETTER({name}, {nc}, {t}, {n})\n"
+    out += f"  STRUCTURE_SETTER({nc}, {t}, {n})\n"
