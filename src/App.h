@@ -91,6 +91,7 @@ class App {
       const VkSurfaceCapabilitiesKHR surfaceCapabilities);
   static VkPresentModeKHR SelectSwapPresentMode(
       const std::vector<VkPresentModeKHR>& availablePresentModes);
+  VkSampleCountFlagBits SelectMsaaSamples(const VkSampleCountFlagBits preferred);
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL
   DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -158,6 +159,10 @@ class App {
 
   ImageWithMemory depthStencil;
   ImageView depthStencilView;
+
+  ImageWithMemory multisamplingImage;
+  ImageView multisamplingImageView;
+
   std::vector<Framebuffer> swapchainFramebuffers;
 
   DescriptorSetLayout projectionViewDescriptorSetLayout;

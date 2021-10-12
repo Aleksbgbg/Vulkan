@@ -12,7 +12,8 @@ class ImGuiInstance {
                 const PhysicalDevice& physicalDevice,
                 const VirtualDevice& virtualDevice, const Queue& queue,
                 const RenderPass& renderPass,
-                CommandBuffer& temporaryCommandBuffer, const Fence& fence);
+                CommandBuffer& temporaryCommandBuffer, const Fence& fence,
+                const VkSampleCountFlagBits samples);
   ~ImGuiInstance();
 
   ImGuiInstance(ImGuiInstance&& other) noexcept;

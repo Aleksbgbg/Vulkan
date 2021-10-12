@@ -70,40 +70,33 @@ u32 Swapchain::GetImageCount() const {
   return images.size();
 }
 
-std::vector<Framebuffer> Swapchain::GetFramebuffers(RenderPass& renderPass) {
-  std::vector<Framebuffer> framebuffers;
-  std::transform(
-      imageViews.begin(), imageViews.end(), std::back_inserter(framebuffers),
-      [this, &renderPass](ImageView& imageView) {
-        std::array<VkImageView, 1> attachments{imageView.imageView};
-
-        return Framebuffer(device, FramebufferCreateInfoBuilder()
-                                       .SetRenderPass(renderPass.renderPass)
-                                       .SetAttachmentCount(attachments.size())
-                                       .SetPAttachments(attachments.data())
-                                       .SetWidth(imageExtent.width)
-                                       .SetHeight(imageExtent.height)
-                                       .SetLayers(1));
-      });
-  return framebuffers;
+std::vector<Framebuffer> Swapchain::GetFramebuffers(
+    const RenderPass& renderPass) const {
+  return GetFramebuffers(renderPass, {});
 }
 
-std::vector<Framebuffer> Swapchain::GetFramebuffers(RenderPass& renderPass,
-                                                    ImageView& depthImageView) {
-  std::vector<Framebuffer> framebuffers;
+std::vector<Framebuffer> Swapchain::GetFramebuffers(
+    const RenderPass& renderPass,
+    const std::vector<const ImageView*>& attachments) const {
+  std::vector<VkImageView> imageViewAttachments(attachments.size() + 1);
   std::transform(
-      imageViews.begin(), imageViews.end(), std::back_inserter(framebuffers),
-      [this, &renderPass, &depthImageView](ImageView& imageView) {
-        std::array<VkImageView, 2> attachments{imageView.imageView,
-                                               depthImageView.imageView};
+      attachments.begin(), attachments.end(), imageViewAttachments.begin() + 1,
+      [](const ImageView* const imageView) { return imageView->imageView; });
 
-        return Framebuffer(device, FramebufferCreateInfoBuilder()
-                                       .SetRenderPass(renderPass.renderPass)
-                                       .SetAttachmentCount(attachments.size())
-                                       .SetPAttachments(attachments.data())
-                                       .SetWidth(imageExtent.width)
-                                       .SetHeight(imageExtent.height)
-                                       .SetLayers(1));
+  std::vector<Framebuffer> framebuffers(imageViews.size());
+  std::transform(
+      imageViews.begin(), imageViews.end(), framebuffers.begin(),
+      [this, &renderPass, &imageViewAttachments](const ImageView& imageView) {
+        imageViewAttachments[0] = imageView.imageView;
+        return Framebuffer(device,
+                           FramebufferCreateInfoBuilder()
+                               .SetRenderPass(renderPass.renderPass)
+                               .SetAttachmentCount(imageViewAttachments.size())
+                               .SetPAttachments(imageViewAttachments.data())
+                               .SetWidth(imageExtent.width)
+                               .SetHeight(imageExtent.height)
+                               .SetLayers(1));
       });
+
   return framebuffers;
 }

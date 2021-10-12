@@ -466,9 +466,13 @@ void App::InitializeSwapchain() {
                        0.1f, 1000.0f);
   projectionTransform.value[1][1] *= -1;
 
+  const VkSampleCountFlagBits samples =
+      SelectMsaaSamples(VK_SAMPLE_COUNT_16_BIT);
+
   Image depthStencilImage = virtualDevice.CreateImage(
       ImageCreateInfoBuilder(IMAGE_2D)
           .SetFormat(depthStencilFormat)
+          .SetSamples(samples)
           .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
           .SetUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
   ReservedMemory depthStencilMemory = deviceAllocator.BindMemory(
@@ -484,7 +488,25 @@ void App::InitializeSwapchain() {
   depthStencil = {.image = std::move(depthStencilImage),
                   .memory = std::move(depthStencilMemory)};
 
-  const std::array<VkAttachmentDescription, 2> attachmentDescriptions{
+  Image multisampling = virtualDevice.CreateImage(
+      ImageCreateInfoBuilder(IMAGE_2D)
+          .SetFormat(swapchain.GetImageFormat())
+          .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
+          .SetSamples(samples)
+          .SetUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT));
+  ReservedMemory multisamplingMemory = deviceAllocator.BindMemory(
+      multisampling, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  multisamplingImageView = multisampling.CreateView(
+      ImageViewCreateInfoBuilder()
+          .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
+          .SetSubresourceRange(ImageSubresourceRangeBuilder()
+                                   .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
+                                   .SetLevelCount(1)
+                                   .SetLayerCount(1)));
+  multisamplingImage = {.image = std::move(multisampling),
+                        .memory = std::move(multisamplingMemory)};
+
+  const std::array<VkAttachmentDescription, 3> attachmentDescriptions{
       AttachmentDescriptionBuilder()
           .SetFormat(swapchain.GetImageFormat())
           .SetSamples(VK_SAMPLE_COUNT_1_BIT)
@@ -495,8 +517,17 @@ void App::InitializeSwapchain() {
           .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
           .SetFinalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR),
       AttachmentDescriptionBuilder()
+          .SetFormat(swapchain.GetImageFormat())
+          .SetSamples(samples)
+          .SetLoadOp(VK_ATTACHMENT_LOAD_OP_CLEAR)
+          .SetStoreOp(VK_ATTACHMENT_STORE_OP_STORE)
+          .SetStencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE)
+          .SetStencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
+          .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+          .SetFinalLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL),
+      AttachmentDescriptionBuilder()
           .SetFormat(depthStencilFormat)
-          .SetSamples(VK_SAMPLE_COUNT_1_BIT)
+          .SetSamples(samples)
           .SetLoadOp(VK_ATTACHMENT_LOAD_OP_CLEAR)
           .SetStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
           .SetStencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE)
@@ -504,18 +535,21 @@ void App::InitializeSwapchain() {
           .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
           .SetFinalLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL),
   };
-  const std::array<VkAttachmentReference, 1> colorAttachments = {
+  const VkAttachmentReference resolveAttachment =
       AttachmentReferenceBuilder().SetAttachment(0).SetLayout(
-          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL),
-  };
-  const VkAttachmentReference depthStencilAttachment =
+          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  const VkAttachmentReference colorAttachment =
       AttachmentReferenceBuilder().SetAttachment(1).SetLayout(
+          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  const VkAttachmentReference depthStencilAttachment =
+      AttachmentReferenceBuilder().SetAttachment(2).SetLayout(
           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
   const std::array<VkSubpassDescription, 1> subpasses{
       SubpassDescriptionBuilder()
           .SetPipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS)
-          .SetColorAttachmentCount(colorAttachments.size())
-          .SetPColorAttachments(colorAttachments.data())
+          .SetPResolveAttachments(&resolveAttachment)
+          .SetColorAttachmentCount(1)
+          .SetPColorAttachments(&colorAttachment)
           .SetPDepthStencilAttachment(&depthStencilAttachment),
   };
   const std::array<VkSubpassDependency, 1> subpassDependencies{
@@ -538,8 +572,8 @@ void App::InitializeSwapchain() {
           .SetPSubpasses(subpasses.data())
           .SetDependencyCount(subpassDependencies.size())
           .SetPDependencies(subpassDependencies.data()));
-  swapchainFramebuffers =
-      swapchain.GetFramebuffers(renderPass, depthStencilView);
+  swapchainFramebuffers = swapchain.GetFramebuffers(
+      renderPass, {&multisamplingImageView, &depthStencilView});
 
   const std::array<VkVertexInputBindingDescription, 1>
       vertexBindingDescriptions{
@@ -642,10 +676,9 @@ void App::InitializeSwapchain() {
                   .SetFrontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
                   .SetPolygonMode(VK_POLYGON_MODE_FILL)
                   .SetLineWidth(1.0f))
-          .SetPMultisampleState(
-              PipelineMultisampleStateCreateInfoBuilder()
-                  .SetRasterizationSamples(VK_SAMPLE_COUNT_1_BIT)
-                  .SetMinSampleShading(1.0f))
+          .SetPMultisampleState(PipelineMultisampleStateCreateInfoBuilder()
+                                    .SetRasterizationSamples(samples)
+                                    .SetMinSampleShading(1.0f))
           .SetPColorBlendState(
               PipelineColorBlendStateCreateInfoBuilder()
                   .SetAttachmentCount(1)
@@ -730,7 +763,7 @@ void App::InitializeSwapchain() {
                   .SetLineWidth(1.0f))
           .SetPMultisampleState(
               PipelineMultisampleStateCreateInfoBuilder()
-                  .SetRasterizationSamples(VK_SAMPLE_COUNT_1_BIT)
+                  .SetRasterizationSamples(samples)
                   .SetMinSampleShading(1.0f))
           .SetPColorBlendState(
               PipelineColorBlendStateCreateInfoBuilder()
@@ -751,10 +784,10 @@ void App::InitializeSwapchain() {
 
   uiRenderer = nullptr;
   uiRenderer = std::make_unique<UiRenderer>(
-      windowInfo.rect,
-      ImGuiInstance(windowInfo.window, instance, targetPhysicalDevice,
-                    virtualDevice, queue, renderPass,
-                    shortExecutionCommandBuffer, fence));
+      windowInfo.rect, ImGuiInstance(windowInfo.window, instance,
+                                     targetPhysicalDevice, virtualDevice, queue,
+                                     renderPass, shortExecutionCommandBuffer,
+                                     fence, samples));
 
   const u32 swapchainImages = swapchain.GetImageCount();
   const std::array<VkDescriptorPoolSize, 3> descriptorPoolSizes{
@@ -1139,7 +1172,12 @@ void App::Render() {
 
   swapchainRender.submitCompleteFence.Wait().Reset();
   {
-    const std::array<VkClearValue, 2> clearValues{
+    const std::array<VkClearValue, 3> clearValues{
+        ClearValueBuilder().SetColor(ClearColorValueBuilder()
+                                         .SetFloat0(0.2f)
+                                         .SetFloat1(0.2f)
+                                         .SetFloat2(0.2f)
+                                         .SetFloat3(1.0f)),
         ClearValueBuilder().SetColor(ClearColorValueBuilder()
                                          .SetFloat0(0.2f)
                                          .SetFloat1(0.2f)
@@ -1275,4 +1313,20 @@ VkFormat App::SelectDepthStencilFormat(
   }
 
   throw std::runtime_error("Could not find suitable depth stencil format.");
+}
+VkSampleCountFlagBits App::SelectMsaaSamples(
+    const VkSampleCountFlagBits preferred) {
+  const VkSampleCountFlags supportedSamples =
+      physicalDeviceProperties.limits.framebufferColorSampleCounts &
+      physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+  for (VkSampleCountFlagBits samples = preferred;
+       samples > VK_SAMPLE_COUNT_1_BIT;
+       samples = static_cast<VkSampleCountFlagBits>(samples >> 1)) {
+    if ((supportedSamples & samples) == samples) {
+      return samples;
+    }
+  }
+
+  return VK_SAMPLE_COUNT_1_BIT;
 }

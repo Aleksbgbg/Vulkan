@@ -12,9 +12,10 @@ ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
                              const VirtualDevice& virtualDevice,
                              const Queue& queue, const RenderPass& renderPass,
                              CommandBuffer& temporaryCommandBuffer,
-                             const Fence& fence)
+                             const Fence& fence,
+                             const VkSampleCountFlagBits samples)
     : sdlWindow(sdlWindow) {
-  constexpr u32 poolSize = 1000;
+  constexpr u32 poolSize = 100;
   VkDescriptorPoolSize poolSizes[] = {
       {VK_DESCRIPTOR_TYPE_SAMPLER, poolSize},
       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, poolSize},
@@ -48,7 +49,7 @@ ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
   imguiVulkanInitInfo.DescriptorPool = descriptorPool.descriptorPool;
   imguiVulkanInitInfo.MinImageCount = 3;
   imguiVulkanInitInfo.ImageCount = 3;
-  imguiVulkanInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+  imguiVulkanInitInfo.MSAASamples = samples;
 
   ImGui_ImplVulkan_Init(&imguiVulkanInitInfo, renderPass.renderPass);
 

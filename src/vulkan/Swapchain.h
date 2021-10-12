@@ -59,9 +59,10 @@ class Swapchain {
 
   u32 GetImageCount() const;
 
-  std::vector<Framebuffer> GetFramebuffers(RenderPass& renderPass);
-  std::vector<Framebuffer> GetFramebuffers(RenderPass& renderPass,
-                                           ImageView& depthImageView);
+  std::vector<Framebuffer> GetFramebuffers(const RenderPass& renderPass) const;
+  std::vector<Framebuffer> GetFramebuffers(
+      const RenderPass& renderPass,
+      const std::vector<const ImageView*>& attachments) const;
 
  private:
   VkDevice device;
