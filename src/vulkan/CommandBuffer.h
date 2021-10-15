@@ -48,20 +48,20 @@ class CommandBuffer {
     return *this;
   }
 
-  void Begin();
-  void BeginOneTimeSubmit();
-  CommandBuffer& End();
-  const Fence& Submit(const Fence& fence);
-  void Submit(const SynchronisationPack& synchronisationPack);
+  void Begin() const;
+  void BeginOneTimeSubmit() const;
+  const CommandBuffer& End() const;
+  const Fence& Submit(const Fence& fence) const;
+  void Submit(const SynchronisationPack& synchronisationPack) const;
   void Reset() const;
   void Reset(const VkCommandBufferResetFlags flags) const;
 
-  void CmdCopyBufferFull(Buffer& source, Buffer& dest);
+  void CmdCopyBufferFull(Buffer& source, Buffer& dest) const;
   void CmdCopyBuffer(Buffer& source, Buffer& dest,
-                     const VkBufferCopy& copyRegion);
+                     const VkBufferCopy& copyRegion) const;
   void CmdCopyBufferToImage(Buffer& source, Image& dest,
                             const VkImageLayout destLayout,
-                            BufferImageCopyBuilder& infoBuilder);
+                            BufferImageCopyBuilder& infoBuilder) const;
 
   void CmdGlobalMemoryBarrier(const VkPipelineStageFlags srcStageMask,
                               const VkPipelineStageFlags dstStageMask,
@@ -77,20 +77,28 @@ class CommandBuffer {
 
   void CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder,
                           const VkSubpassContents subpassContents,
-                          RenderPass& renderPass, Framebuffer& framebuffer);
-  void CmdBindPipeline(const VkPipelineBindPoint bindPoint, Pipeline& pipeline);
+                          RenderPass& renderPass,
+                          Framebuffer& framebuffer) const;
+  void CmdBindPipeline(const VkPipelineBindPoint bindPoint,
+                       Pipeline& pipeline) const;
   void CmdPushConstants(PipelineLayout& pipelineLayout,
                         const VkShaderStageFlags shaderStageFlags,
-                        const u32 offset, const u32 size, void* values);
-  void CmdBindVertexBuffers(Buffer& buffer, const u32 binding);
-  void CmdBindIndexBuffer(Buffer& buffer, const VkIndexType indexType);
+                        const u32 offset, const u32 size, void* values) const;
+  void CmdBindVertexBuffers(Buffer& buffer, const u32 binding) const;
+  void CmdBindIndexBuffer(Buffer& buffer, const VkIndexType indexType) const;
   void CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint,
                              const PipelineLayout& pipelineLayout,
                              const u32 firstSet, const u32 descriptorSetCount,
                              const DescriptorSet& descriptorSet) const;
-  void CmdDrawIndexed(const u32 indexCount, const u32 instanceCount);
-  void CmdNextSubpass(const VkSubpassContents contents);
-  void CmdEndRenderPass();
+  void CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint,
+                             const PipelineLayout& pipelineLayout,
+                             const u32 firstSet, const u32 descriptorSetCount,
+                             const DescriptorSet& descriptorSet,
+                             const u32 dynamicOffsetCount,
+                             const u32* const dynamicOffsets) const;
+  void CmdDrawIndexed(const u32 indexCount, const u32 instanceCount) const;
+  void CmdNextSubpass(const VkSubpassContents contents) const;
+  void CmdEndRenderPass() const;
 
  private:
   VkDevice device;

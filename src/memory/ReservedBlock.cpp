@@ -8,10 +8,6 @@ MemoryBlock ReservedBlock::GetMemoryBlock() const {
                      .size = info.availableSize};
 }
 
-MemoryObject* ReservedBlock::GetMemoryObject() const {
-  return memory;
-}
-
 ReservedBlock::ReservedBlock() : heap(nullptr) {}
 
 ReservedBlock::ReservedBlock(DeviceHeap* heap, MemoryObject* memory,

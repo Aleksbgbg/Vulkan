@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "Alignment.h"
+
 constexpr float DefaultEnlargementFactor = 1.5f;
 constexpr u32 PaddingAbsorbtionThreshold = 128;
 
@@ -17,12 +19,6 @@ DeviceHeap::DeviceHeap(u64 initialAllocationSize, float enlargementFactor,
       allocator(allocator),
       enlargementIndex(0),
       allocations() {}
-
-u32 Align(const u32 address, const u32 alignment) {
-  const u32 currentOffset = address % alignment;
-  const u32 requiredPadding = (alignment - currentOffset) % alignment;
-  return address + requiredPadding;
-}
 
 ReservedBlock DeviceHeap::ReserveMemory(
     const MemoryAllocation requestedAllocation) {

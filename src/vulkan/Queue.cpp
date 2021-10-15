@@ -33,7 +33,7 @@ VkResult Queue::Present(Swapchain& swapchain, const u32 imageIndex,
 
   if (!((status == VK_ERROR_OUT_OF_DATE_KHR) ||
         (status == VK_SUBOPTIMAL_KHR))) {
-    PROCEED_ON_VALID_RESULT(status)
+    PROCEED_ON_VALID_RESULT(status);
   }
 
   return status;

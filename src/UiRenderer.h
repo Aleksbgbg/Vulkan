@@ -16,10 +16,10 @@ struct VulkanDebugInfo {
 
 struct ObjectsInSceneInfo {
   glm::vec2 cameraRotation;
-  glm::vec3 cameraCenter;
+  glm::vec3 cameraLookAt;
   glm::vec3 cameraPosition;
-  std::vector<glm::vec3*>& cubePositions;
-  u32* selectedObjectIndex;
+
+  glm::vec3* modelPosition;
 };
 
 class UiRenderer {
@@ -71,10 +71,6 @@ class UiRenderer {
   u32 frametimeHistoryIndex;
   std::array<float, 10> frametimeHistory;
   float timeSum;
-
-  bool autoSelectLastCube;
-  u32 selectedCube;
-  u32 lastCubeCount;
 
   std::array<std::vector<KeyDescription>, 2> sceneObjectControls;
   std::array<KeyDescription, 4> cameraKeys;

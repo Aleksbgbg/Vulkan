@@ -22,26 +22,6 @@ Buffer::~Buffer() {
   }
 }
 
-DeviceMemory Buffer::AllocateAndBindMemory(
-    const VkMemoryPropertyFlags requiredProperties) const {
-  const VkMemoryRequirements memoryRequirements = GetMemoryRequirements();
-
-  const std::optional<u32> memoryTypeIndex =
-      DeviceMemory::FindSuitableMemoryTypeIndex(
-          *memoryProperties, requiredProperties,
-          memoryRequirements.memoryTypeBits);
-
-  if (!memoryTypeIndex.has_value()) {
-    throw std::runtime_error("Could not find suitable GPU memory to allocate.");
-  }
-
-  return std::move(
-      DeviceMemory(device, MemoryAllocateInfoBuilder()
-                               .SetAllocationSize(memoryRequirements.size)
-                               .SetMemoryTypeIndex(memoryTypeIndex.value()))
-          .BindAll(buffer));
-}
-
 VkDeviceSize Buffer::Size() const {
   return size;
 }

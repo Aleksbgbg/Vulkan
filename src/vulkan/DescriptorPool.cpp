@@ -18,18 +18,33 @@ DescriptorPool::~DescriptorPool() {
   }
 }
 
-std::vector<DescriptorSet> DescriptorPool::AllocateDescriptorSets(
-    DescriptorSetLayout& descriptorSetLayout, const u32 count) const {
-  std::vector<VkDescriptorSetLayout> rawLayouts(
-      count, descriptorSetLayout.descriptorSetLayout);
-  VkDescriptorSetAllocateInfo allocateInfo =
+DescriptorSet DescriptorPool::AllocateDescriptorSet(
+    const DescriptorSetLayout& descriptorSetLayout) const {
+  VkDescriptorSet descriptorSet;
+  PROCEED_ON_VALID_RESULT(vkAllocateDescriptorSets(
+      device,
       DescriptorSetAllocateInfoBuilder()
           .SetDescriptorPool(descriptorPool)
-          .SetDescriptorSetCount(count)
-          .SetPSetLayouts(rawLayouts.data());
+          .SetDescriptorSetCount(1)
+          .SetPSetLayouts(&descriptorSetLayout.descriptorSetLayout)
+          .Build(),
+      &descriptorSet));
+  return DescriptorSet(descriptorSet);
+}
+
+std::vector<DescriptorSet> DescriptorPool::AllocateDescriptorSets(
+    const DescriptorSetLayout& descriptorSetLayout, const u32 count) const {
+  std::vector<VkDescriptorSetLayout> rawLayouts(
+      count, descriptorSetLayout.descriptorSetLayout);
   std::vector<VkDescriptorSet> rawDescriptorSets(count);
   PROCEED_ON_VALID_RESULT(
-      vkAllocateDescriptorSets(device, &allocateInfo, rawDescriptorSets.data()))
+      vkAllocateDescriptorSets(device,
+                               DescriptorSetAllocateInfoBuilder()
+                                   .SetDescriptorPool(descriptorPool)
+                                   .SetDescriptorSetCount(count)
+                                   .SetPSetLayouts(rawLayouts.data())
+                                   .Build(),
+                               rawDescriptorSets.data()));
   std::vector<DescriptorSet> descriptorSets;
   std::transform(rawDescriptorSets.begin(), rawDescriptorSets.end(),
                  std::back_inserter(descriptorSets),

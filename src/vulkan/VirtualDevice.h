@@ -86,8 +86,7 @@ class VirtualDevice {
       const;
   PipelineLayout CreatePipelineLayout(
       const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
-      PipelineLayoutCreateInfoBuilder& infoBuilder)
-      const;
+      PipelineLayoutCreateInfoBuilder& infoBuilder) const;
   RenderPass CreateRenderPass(RenderPassCreateInfoBuilder& infoBuilder) const;
   Pipeline CreateGraphicsPipeline(
       const PipelineCache& pipelineCache,

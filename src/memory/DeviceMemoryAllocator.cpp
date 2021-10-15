@@ -35,23 +35,23 @@ DeviceMemoryAllocator::DeviceMemoryAllocator(
   }
 }
 
-ReservedMemory DeviceMemoryAllocator::BindMemory(
+DeviceMemorySubAllocation DeviceMemoryAllocator::BindMemory(
     const Buffer& buffer, const VkMemoryPropertyFlags requiredProperties) {
-  ReservedMemory reservedMemory =
+  DeviceMemorySubAllocation reservedMemory =
       ReserveMemoryBlock(buffer.GetMemoryRequirements(), requiredProperties);
-  reservedMemory.memory->Bind(buffer, reservedMemory.offset);
+  reservedMemory.Bind(buffer);
   return reservedMemory;
 }
 
-ReservedMemory DeviceMemoryAllocator::BindMemory(
+DeviceMemorySubAllocation DeviceMemoryAllocator::BindMemory(
     const Image& image, const VkMemoryPropertyFlags requiredProperties) {
-  ReservedMemory reservedMemory =
+  DeviceMemorySubAllocation reservedMemory =
       ReserveMemoryBlock(image.GetMemoryRequirements(), requiredProperties);
-  reservedMemory.memory->Bind(image, reservedMemory.offset);
+  reservedMemory.Bind(image);
   return reservedMemory;
 }
 
-ReservedMemory DeviceMemoryAllocator::ReserveMemoryBlock(
+DeviceMemorySubAllocation DeviceMemoryAllocator::ReserveMemoryBlock(
     const VkMemoryRequirements& memoryRequirements,
     const VkMemoryPropertyFlags requiredProperties) {
   const std::optional<u32> memoryTypeIndex =
@@ -68,11 +68,7 @@ ReservedMemory DeviceMemoryAllocator::ReserveMemoryBlock(
       heap.ReserveMemory({.size = memoryRequirements.size,
                           .alignment = memoryRequirements.alignment});
 
-  ReservedMemory reservedMemory;
-  reservedMemory.memory =
-      &reinterpret_cast<DeviceMemoryObject*>(reservedBlock.GetMemoryObject())
-           ->deviceMemory;
-  reservedMemory.offset = reservedBlock.GetMemoryBlock().offset;
-  reservedMemory.reservedBlock = std::move(reservedBlock);
-  return reservedMemory;
+  return DeviceMemorySubAllocation(
+      &reservedBlock.GetMemoryObjectAs<DeviceMemoryObject>().deviceMemory,
+      std::move(reservedBlock));
 }

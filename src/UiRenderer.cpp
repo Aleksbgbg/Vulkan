@@ -28,9 +28,6 @@ UiRenderer::UiRenderer(Rectf windowSize, ImGuiInstance imGuiInstance)
       frametimeHistoryIndex(0),
       frametimeHistory(),
       timeSum(0.0f),
-      autoSelectLastCube(true),
-      selectedCube(0),
-      lastCubeCount(0),
       spawnCubeKey(KeyDescription("F", SDLK_f, "spawn cube")),
       cameraKeys(
           {KeyDescription("\xEF\x84\x86", SDLK_UP, "pivot camera up"),
@@ -123,47 +120,17 @@ void UiRenderer::ShowObjectsInScene(const ObjectsInSceneInfo& info) {
 
   ImGui::Text("Camera positioned at (%.3f, %.3f, %.3f)", info.cameraPosition.x,
               info.cameraPosition.y, info.cameraPosition.z);
-  ImGui::Text("Camera looking at (%.3f, %.3f, %.3f)", info.cameraCenter.x,
-              info.cameraCenter.y, info.cameraCenter.z);
+  ImGui::Text("Camera looking at (%.3f, %.3f, %.3f)", info.cameraLookAt.x,
+              info.cameraLookAt.y, info.cameraLookAt.z);
   ImGui::Text("Camera rotated by (%.1f°, %.1f°)", info.cameraRotation.x,
               info.cameraRotation.y);
 
   ImGui::Separator();
-  ImGui::Checkbox("Auto-select new cube", &autoSelectLastCube);
 
-  if (ImGui::BeginListBox("Cubes",
-                          ImVec2(ImGui::GetContentRegionAvailWidth(),
-                                 5 * ImGui::GetTextLineHeightWithSpacing()))) {
-    const bool focusNewCube =
-        autoSelectLastCube && (lastCubeCount != info.cubePositions.size());
-
-    if (focusNewCube) {
-      selectedCube = info.cubePositions.size() - 1;
-    }
-
-    for (u32 cubeIndex = 0; cubeIndex < info.cubePositions.size();
-         ++cubeIndex) {
-      if (ImGui::Selectable(std::format("Cube {}", cubeIndex + 1).c_str(),
-                            selectedCube == cubeIndex)) {
-        selectedCube = cubeIndex;
-      }
-    }
-
-    if (focusNewCube) {
-      ImGui::SetScrollHereY(1.0f);
-    }
-    ImGui::EndListBox();
-  }
-
-  glm::vec3* value = info.cubePositions[selectedCube];
-
-  ImGui::InputFloat("X", &value->x, 0.0f, 0.0f, "%.3f");
-  ImGui::InputFloat("Y", &value->y, 0.0f, 0.0f, "%.3f");
-  ImGui::InputFloat("Z", &value->z, 0.0f, 0.0f, "%.3f");
+  ImGui::InputFloat("X", &info.modelPosition->x, 0.0f, 0.0f, "%.3f");
+  ImGui::InputFloat("Y", &info.modelPosition->y, 0.0f, 0.0f, "%.3f");
+  ImGui::InputFloat("Z", &info.modelPosition->z, 0.0f, 0.0f, "%.3f");
   ImGui::End();
-
-  (*info.selectedObjectIndex) = selectedCube;
-  lastCubeCount = info.cubePositions.size();
 }
 
 void UiRenderer::RenderKey(Keyboard& keyboard, KeyDescription& key) {

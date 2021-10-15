@@ -5,7 +5,8 @@
 
 class NormalizedOneTimeFunctionAnimation {
  public:
-  NormalizedOneTimeFunctionAnimation(std::function<float(float)> function, float endTime);
+  NormalizedOneTimeFunctionAnimation(std::function<float(float)> function,
+                                     float endTime);
 
   bool Finished();
   float UpdateValue(const float deltaTime);

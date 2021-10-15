@@ -15,7 +15,6 @@ class Keyboard {
   bool IsKeyDown(const SDL_Keycode keycode) const;
   bool PressedKey(const SDL_Keycode keycode) const;
 
-
  private:
   std::unordered_set<SDL_Keycode> keysDown;
   std::unordered_set<SDL_Keycode> pressedKeys;

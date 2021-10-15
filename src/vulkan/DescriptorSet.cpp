@@ -4,16 +4,17 @@ DescriptorSet::DescriptorSet(VkDescriptorSet descriptorSet)
     : descriptorSet(descriptorSet) {}
 
 void DescriptorSet::CreateBufferWrite(
-    const Buffer& buffer,
+    const Buffer& buffer, const VkDeviceSize range,
+    const VkDescriptorType descriptorType,
     DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const {
   writeDescriptorSet.info.bufferInfo = DescriptorBufferInfoBuilder()
                                            .SetBuffer(buffer.buffer)
                                            .SetOffset(0)
-                                           .SetRange(buffer.Size());
+                                           .SetRange(range);
   writeDescriptorSet.writeBuilder =
       WriteDescriptorSetBuilder()
           .SetDstSet(descriptorSet)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+          .SetDescriptorType(descriptorType)
           .SetDescriptorCount(1)
           .SetPBufferInfo(&writeDescriptorSet.info.bufferInfo);
 }

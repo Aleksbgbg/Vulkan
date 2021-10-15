@@ -1,6 +1,7 @@
 #include "DeviceMemory.h"
 
 #include "error.h"
+#include "vulkan/structures/MappedMemoryRange.h"
 
 DeviceMemory::DeviceMemory(VkDevice device,
                            MemoryAllocateInfoBuilder& infoBuilder)
@@ -15,30 +16,24 @@ DeviceMemory::~DeviceMemory() {
   }
 }
 
-DeviceMemory& DeviceMemory::BindAll(VkBuffer buffer) {
-  return Bind(buffer, 0);
-}
-
-DeviceMemory& DeviceMemory::Bind(VkBuffer buffer, const VkDeviceSize offset) {
-  PROCEED_ON_VALID_RESULT(vkBindBufferMemory(device, buffer, memory, offset))
-  return *this;
-}
-
-DeviceMemory& DeviceMemory::BindAll(VkImage image) {
-  return Bind(image, 0);
-}
-
-DeviceMemory& DeviceMemory::Bind(VkImage image, const VkDeviceSize offset) {
-  PROCEED_ON_VALID_RESULT(vkBindImageMemory(device, image, memory, offset))
-  return *this;
-}
-
-void DeviceMemory::MapCopy(const void* data, const VkDeviceSize offset,
-                           const VkDeviceSize size) {
+void* DeviceMemory::Map(const VkDeviceSize offset,
+                        const VkDeviceSize size) const {
   void* mappedMemory;
   PROCEED_ON_VALID_RESULT(
-      vkMapMemory(device, memory, offset, size, 0, &mappedMemory))
-  memcpy(mappedMemory, data, size);
+      vkMapMemory(device, memory, offset, size, 0, &mappedMemory));
+  return mappedMemory;
+}
+
+void DeviceMemory::Unmap() const {
+  vkUnmapMemory(device, memory);
+}
+
+void DeviceMemory::MapCopy(const void* const data, const VkDeviceSize offset,
+                           const VkDeviceSize size) const {
+  void* mappedMemory;
+  PROCEED_ON_VALID_RESULT(
+      vkMapMemory(device, memory, offset, size, 0, &mappedMemory));
+  std::memcpy(mappedMemory, data, size);
   vkUnmapMemory(device, memory);
 }
 
@@ -62,10 +57,20 @@ std::optional<u32> DeviceMemory::FindSuitableMemoryTypeIndex(
 
 void DeviceMemory::Bind(const Buffer& buffer, const VkDeviceSize offset) const {
   PROCEED_ON_VALID_RESULT(
-      vkBindBufferMemory(device, buffer.buffer, memory, offset))
+      vkBindBufferMemory(device, buffer.buffer, memory, offset));
 }
 
 void DeviceMemory::Bind(const Image& image, const VkDeviceSize offset) const {
   PROCEED_ON_VALID_RESULT(
-      vkBindImageMemory(device, image.image, memory, offset))
+      vkBindImageMemory(device, image.image, memory, offset));
+}
+
+void DeviceMemory::FlushMappedMemoryRange(const VkDeviceSize offset,
+                                          const VkDeviceSize size) const {
+  PROCEED_ON_VALID_RESULT(vkFlushMappedMemoryRanges(device, 1,
+                                                    MappedMemoryRangeBuilder()
+                                                        .SetMemory(memory)
+                                                        .SetOffset(offset)
+                                                        .SetSize(size)
+                                                        .Build()));
 }

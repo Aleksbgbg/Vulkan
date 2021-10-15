@@ -38,8 +38,6 @@ class Image {
 
   VkMemoryRequirements GetMemoryRequirements() const;
 
-  DeviceMemory AllocateAndBindMemory(
-      const VkMemoryPropertyFlags requiredProperties) const;
   ImageView CreateView(ImageViewCreateInfoBuilder& infoBuilder);
 
  private:

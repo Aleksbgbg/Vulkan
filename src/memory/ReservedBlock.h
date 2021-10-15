@@ -10,7 +10,11 @@ class ReservedBlock {
 
  public:
   MemoryBlock GetMemoryBlock() const;
-  MemoryObject* GetMemoryObject() const;
+
+  template <typename T>
+  T& GetMemoryObjectAs() const {
+    return *reinterpret_cast<T*>(memory);
+  }
 
   ReservedBlock();
   ~ReservedBlock();

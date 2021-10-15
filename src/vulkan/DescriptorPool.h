@@ -27,8 +27,10 @@ class DescriptorPool {
 
   DescriptorPool& operator=(const DescriptorPool&) = delete;
 
+  DescriptorSet AllocateDescriptorSet(
+      const DescriptorSetLayout& descriptorSetLayout) const;
   std::vector<DescriptorSet> AllocateDescriptorSets(
-      DescriptorSetLayout& descriptorSetLayout, const u32 count) const;
+      const DescriptorSetLayout& descriptorSetLayout, const u32 count) const;
 
  private:
   VkDevice device;

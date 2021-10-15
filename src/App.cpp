@@ -13,6 +13,7 @@
 #include <thread>
 
 #include "GradientVertex.h"
+#include "Model.h"
 #include "VertexBuilder.h"
 #include "build_definition.h"
 #include "file.h"
@@ -53,67 +54,24 @@ App::WindowInfo App::InitSdl() {
                     .rect = windowRect};
 }
 
-std::vector<u16> GenerateIndices(const std::vector<GradientVertex>& vertices) {
-  std::vector<u16> indices;
-
-  for (u32 plane = 0; plane < 3; ++plane) {
-    for (i32 value = -1; value < 2; value += 2) {
-      const float planeValue = static_cast<float>(value);
-
-      std::vector<u16> planeVertices;
-
-      for (u16 vertexIndex = 0; vertexIndex < vertices.size(); ++vertexIndex) {
-        if (vertices[vertexIndex].position[plane] == planeValue) {
-          planeVertices.push_back(vertexIndex);
-        }
-      }
-
-      u32 otherAxis1;
-      u32 otherAxis2;
-
-      if (value == 1) {
-        otherAxis1 = (plane + 1) % 3;
-        otherAxis2 = (plane + 2) % 3;
-      } else {
-        otherAxis1 = (plane + 2) % 3;
-        otherAxis2 = (plane + 1) % 3;
-      }
-
-      const u32 axesToModify[] = {otherAxis1, otherAxis2, otherAxis1,
-                                  otherAxis2};
-
-      u32 added = 1;
-      indices.push_back(planeVertices[0]);
-
-      glm::vec3 vertex = vertices[planeVertices[0]].position;
-
-      for (u32 index = 0; index < 4; ++index) {
-        const u32 axisToModify = axesToModify[index];
-
-        if (vertex[axisToModify] == 1.0f) {
-          vertex[axisToModify] = -1.0f;
-        } else {
-          vertex[axisToModify] = 1.0f;
-        }
-
-        for (u16 vertexIndex = 0; vertexIndex < vertices.size();
-             ++vertexIndex) {
-          if (vertices[vertexIndex].position == vertex) {
-            ++added;
-            indices.push_back(vertexIndex);
-
-            if (added == 3) {
-              indices.push_back(vertexIndex);
-            }
-
-            break;
-          }
-        }
-      }
-    }
+namespace std {
+template <>
+class hash<TexturedVertex> {
+ public:
+  size_t operator()(const TexturedVertex& vertex) const {
+    size_t xHash = std::hash<u32>()(vertex.position.x);
+    size_t yHash = std::hash<u32>()(vertex.position.y);
+    size_t zHash = std::hash<u32>()(vertex.position.z);
+    size_t uHash = std::hash<u32>()(vertex.textureCoordinate.x);
+    size_t vHash = std::hash<u32>()(vertex.textureCoordinate.y);
+    return xHash ^ yHash ^ zHash ^ uHash ^ vHash;
   }
+};
+}  // namespace std
 
-  return indices;
+bool operator==(const TexturedVertex& left, const TexturedVertex& right) {
+  return (left.position == right.position) &&
+         (left.textureCoordinate == right.textureCoordinate);
 }
 
 App::App()
@@ -121,11 +79,9 @@ App::App()
       hasSwapchain(false),
       hasOldSwapchain(false),
       previousTime(std::chrono::high_resolution_clock::now()),
-      cubePosition(),
-      cameraRotation(glm::vec2(0.0f)),
       threadMessenger(),
-      highlightAnimation(0.25f, 1.0f, 0.75f),
-      lastSelectedObjectIndex(0) {
+      modelCenter(),
+      modelPosition() {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
 
@@ -250,40 +206,67 @@ App::App()
   fence = virtualDevice.CreateFence();
 
   shortExecutionCommandPool =
-      queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT |
-                              VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+      queue.CreateCommandPool(VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   shortExecutionCommandBuffer =
       shortExecutionCommandPool.AllocatePrimaryCommandBuffer();
 
-  const std::vector<TexturedVertex> vertices = {
-      // Sides:
-      /* 0  */ {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
-      /* 1  */ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}},
-      /* 2  */ {{-1.0f, -1.0f, 1.0f}, {0.0f, 1.0f}},
-      /* 3  */ {{1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
-      /* 4  */ {{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f}},
-      /* 5  */ {{1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
-      /* 6  */ {{-1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-      /* 7  */ {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
-      // Top
-      /* 8  */ {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f}},
-      /* 9  */ {{1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
-      /* 10 */ {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
-      /* 11 */ {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-      // Bottom
-      /* 12 */ {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
-      /* 13 */ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}},
-      /* 14 */ {{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f}},
-      /* 15 */ {{1.0f, -1.0f, 1.0f}, {1.0f, 1.0f}},
-  };
-  const std::vector<u16> indices = {
-      12, 13, 15, 15, 14, 12,  // bottom face
-      0,  4,  5,  5,  1,  0,   // back face
-      0,  2,  6,  6,  4,  0,   // left face
-      3,  1,  5,  5,  7,  3,   // right face
-      2,  3,  7,  7,  6,  2,   // front face
-      8,  10, 11, 11, 9,  8,   // top face
-  };
+  const Model model = ModelFromObjFile("resources/InterstellarRunner.obj");
+
+  std::unordered_map<TexturedVertex, u16> uniqueVertices;
+  std::vector<TexturedVertex> vertices;
+  std::vector<u16> indices;
+
+  glm::vec3 corner1 = glm::vec3(0.0f, 0.0f, 0.0f);
+  glm::vec3 corner2 = glm::vec3(0.0f, 0.0f, 0.0f);
+
+  for (const auto& face : model.faces) {
+    for (int vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
+      ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
+
+      TexturedVertex vertex;
+      vertex.position.x = model.vertices[modelFaceVertex.vertexIndex].x;
+      vertex.position.y = model.vertices[modelFaceVertex.vertexIndex].y;
+      vertex.position.z = model.vertices[modelFaceVertex.vertexIndex].z;
+      vertex.textureCoordinate.x =
+          model.textureVertices[modelFaceVertex.textureVertexIndex].u;
+      vertex.textureCoordinate.y =
+          model.textureVertices[modelFaceVertex.textureVertexIndex].v;
+
+      if (uniqueVertices.contains(vertex)) {
+        indices.push_back(uniqueVertices[vertex]);
+      } else {
+        const u16 index = static_cast<u16>(uniqueVertices.size());
+
+        uniqueVertices.emplace(vertex, index);
+
+        vertices.push_back(vertex);
+        indices.push_back(index);
+
+        if (corner1.x < vertex.position.x) {
+          corner1.x = vertex.position.x;
+        }
+        if (corner1.y < vertex.position.y) {
+          corner1.y = vertex.position.y;
+        }
+        if (corner1.z < vertex.position.z) {
+          corner1.z = vertex.position.z;
+        }
+        if (corner2.x > vertex.position.x) {
+          corner2.x = vertex.position.x;
+        }
+        if (corner2.y > vertex.position.y) {
+          corner2.y = vertex.position.y;
+        }
+        if (corner2.z > vertex.position.z) {
+          corner2.z = vertex.position.z;
+        }
+      }
+    }
+  }
+
+  modelCenter = (corner1 + corner2) / 2.0f;
+  modelSize = corner1 - corner2;
+
   indexCount = indices.size();
 
   vertexMemoryBuffer = TransferDataToGpuLocalMemory(
@@ -293,29 +276,7 @@ App::App()
       shortExecutionCommandBuffer, indices.data(),
       sizeof(indices[0]) * indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
-  const std::vector<GradientVertex> gradientVertices = {
-      /* 0 */ {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
-      /* 1 */ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
-      /* 2 */ {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-      /* 3 */ {{1.0f, -1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
-      /* 4 */ {{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
-      /* 5 */ {{1.0f, 1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
-      /* 6 */ {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-      /* 7 */ {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
-  };
-  const std::vector<u16> gradientIndices = GenerateIndices(gradientVertices);
-  gradientIndexCount = gradientIndices.size();
-
-  gradientVertexMemoryBuffer = TransferDataToGpuLocalMemory(
-      shortExecutionCommandBuffer, gradientVertices.data(),
-      sizeof(gradientVertices[0]) * gradientVertices.size(),
-      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-  gradientIndexMemoryBuffer = TransferDataToGpuLocalMemory(
-      shortExecutionCommandBuffer, gradientIndices.data(),
-      sizeof(gradientIndices[0]) * gradientIndices.size(),
-      VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-
-  Bitmap bitmap = ReadBitmap("resources/Alice.bmp");
+  Bitmap bitmap = ReadBitmap("resources/InterstellarRunner.bmp");
 
   const float pictureWidth = static_cast<float>(bitmap.width);
   const float pictureHeight = static_cast<float>(bitmap.height);
@@ -324,11 +285,10 @@ App::App()
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(bitmap.size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  ReservedMemory stagingBufferMemory = deviceAllocator.BindMemory(
+  DeviceMemorySubAllocation stagingBufferMemory = deviceAllocator.BindMemory(
       stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  stagingBufferMemory.memory->MapCopy(
-      bitmap.data.data(), stagingBufferMemory.offset, stagingBuffer.Size());
+  stagingBufferMemory.MapCopy(bitmap.data.data(), stagingBuffer.Size());
 
   Image textureImage =
       virtualDevice.CreateImage(ImageCreateInfoBuilder(IMAGE_2D)
@@ -339,7 +299,7 @@ App::App()
                                                    .SetDepth(1))
                                     .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                                               VK_IMAGE_USAGE_SAMPLED_BIT));
-  ReservedMemory textureImageMemory = deviceAllocator.BindMemory(
+  DeviceMemorySubAllocation textureImageMemory = deviceAllocator.BindMemory(
       textureImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   shortExecutionCommandBuffer.BeginOneTimeSubmit();
@@ -395,10 +355,6 @@ App::App()
       VK_SHADER_STAGE_VERTEX_BIT, "shaders/textured_cube.vert.spv"));
   shaders.emplace_back(virtualDevice.LoadShader(
       VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/textured_cube.frag.spv"));
-  gradientShaders.emplace_back(virtualDevice.LoadShader(
-      VK_SHADER_STAGE_VERTEX_BIT, "shaders/gradient_cube.vert.spv"));
-  gradientShaders.emplace_back(virtualDevice.LoadShader(
-      VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/gradient_cube.frag.spv"));
 
   InitializeSwapchain();
 
@@ -459,12 +415,12 @@ void App::InitializeSwapchain() {
 
   const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
 
-  projectionTransform.value =
+  projectionTransform.projection =
       glm::perspective(glm::radians(45.0f),
                        static_cast<float>(swapchainExtent.width) /
                            static_cast<float>(swapchainExtent.height),
                        0.1f, 1000.0f);
-  projectionTransform.value[1][1] *= -1;
+  projectionTransform.projection[1][1] *= -1;
 
   const VkSampleCountFlagBits samples =
       SelectMsaaSamples(VK_SAMPLE_COUNT_16_BIT);
@@ -475,7 +431,7 @@ void App::InitializeSwapchain() {
           .SetSamples(samples)
           .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
           .SetUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
-  ReservedMemory depthStencilMemory = deviceAllocator.BindMemory(
+  DeviceMemorySubAllocation depthStencilMemory = deviceAllocator.BindMemory(
       depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   depthStencilView = depthStencilImage.CreateView(
       ImageViewCreateInfoBuilder()
@@ -494,7 +450,7 @@ void App::InitializeSwapchain() {
           .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
           .SetSamples(samples)
           .SetUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT));
-  ReservedMemory multisamplingMemory = deviceAllocator.BindMemory(
+  DeviceMemorySubAllocation multisamplingMemory = deviceAllocator.BindMemory(
       multisampling, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   multisamplingImageView = multisampling.CreateView(
       ImageViewCreateInfoBuilder()
@@ -595,23 +551,24 @@ void App::InitializeSwapchain() {
               .SetFormat(VK_FORMAT_R32G32_SFLOAT)
               .SetOffset(offsetof(TexturedVertex, textureCoordinate)),
       };
-  const std::array<VkDescriptorSetLayoutBinding, 2>
-      projectionViewSetLayoutBindings{
-          DescriptorSetLayoutBindingBuilder()
-              .SetBinding(0)
-              .SetDescriptorCount(1)
-              .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-              .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT),
-          DescriptorSetLayoutBindingBuilder()
-              .SetBinding(1)
-              .SetDescriptorCount(1)
-              .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-              .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT),
-      };
-  projectionViewDescriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
-      DescriptorSetLayoutCreateInfoBuilder()
-          .SetBindingCount(projectionViewSetLayoutBindings.size())
-          .SetPBindings(projectionViewSetLayoutBindings.data()));
+  const VkDescriptorSetLayoutBinding perSceneDescriptorSetLayoutBinding =
+      DescriptorSetLayoutBindingBuilder()
+          .SetBinding(0)
+          .SetDescriptorCount(1)
+          .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT);
+  perSceneDescriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
+      DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
+          &perSceneDescriptorSetLayoutBinding));
+  const VkDescriptorSetLayoutBinding perFrameDescriptorSetLayoutBinding =
+      DescriptorSetLayoutBindingBuilder()
+          .SetBinding(0)
+          .SetDescriptorCount(1)
+          .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
+          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT);
+  perFrameDescriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
+      DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
+          &perFrameDescriptorSetLayoutBinding));
   const VkDescriptorSetLayoutBinding textureSamplerLayoutBinding =
       DescriptorSetLayoutBindingBuilder()
           .SetBinding(0)
@@ -622,16 +579,13 @@ void App::InitializeSwapchain() {
       DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
           &textureSamplerLayoutBinding));
   const std::vector<const DescriptorSetLayout*> descriptorSetLayouts = {
-      &projectionViewDescriptorSetLayout, &textureSamplerDescriptorSetLayout};
-  const std::array<VkPushConstantRange, 2> pushConstantsRanges = {
+      &perSceneDescriptorSetLayout, &perFrameDescriptorSetLayout,
+      &textureSamplerDescriptorSetLayout};
+  const std::array<VkPushConstantRange, 1> pushConstantsRanges = {
       PushConstantRangeBuilder()
           .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
           .SetOffset(0)
-          .SetSize(sizeof(ModelTransformation)),
-      PushConstantRangeBuilder()
-          .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT)
-          .SetOffset(sizeof(ModelTransformation))
-          .SetSize(sizeof(Highlight))};
+          .SetSize(sizeof(PerObjectData))};
   pipeline = virtualDevice.CreateGraphicsPipeline(
       pipelineCache, shaders,
       virtualDevice.CreatePipelineLayout(
@@ -695,174 +649,67 @@ void App::InitializeSwapchain() {
                           .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
                           .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
 
-  const std::array<VkVertexInputBindingDescription, 1>
-      gradientVertexBindingDescriptions{
-          VertexInputBindingDescriptionBuilder()
-              .SetBinding(0)
-              .SetStride(sizeof(GradientVertex))
-              .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
-      };
-  const std::array<VkVertexInputAttributeDescription, 2>
-      gradientVertexAttributeDescriptions{
-          VertexInputAttributeDescriptionBuilder()
-              .SetBinding(0)
-              .SetLocation(0)
-              .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-              .SetOffset(offsetof(GradientVertex, position)),
-          VertexInputAttributeDescriptionBuilder()
-              .SetBinding(0)
-              .SetLocation(1)
-              .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-              .SetOffset(offsetof(GradientVertex, color)),
-      };
-
-  gradientPipeline = virtualDevice.CreateGraphicsPipeline(
-      pipelineCache, gradientShaders,
-      virtualDevice.CreatePipelineLayout(
-          projectionViewDescriptorSetLayout,
-          PipelineLayoutCreateInfoBuilder()
-              .SetPushConstantRangeCount(pushConstantsRanges.size())
-              .SetPPushConstantRanges(pushConstantsRanges.data())),
-      SubpassReference(renderPass, 0),
-      GraphicsPipelineCreateInfoBuilder()
-          .SetPDepthStencilState(PipelineDepthStencilStateCreateInfoBuilder()
-                                     .SetDepthTestEnable(VK_TRUE)
-                                     .SetDepthWriteEnable(VK_TRUE)
-                                     .SetDepthCompareOp(VK_COMPARE_OP_LESS)
-                                     .SetDepthBoundsTestEnable(VK_FALSE))
-          .SetPVertexInputState(
-              PipelineVertexInputStateCreateInfoBuilder()
-                  .SetVertexBindingDescriptionCount(
-                      gradientVertexBindingDescriptions.size())
-                  .SetPVertexBindingDescriptions(
-                      gradientVertexBindingDescriptions.data())
-                  .SetVertexAttributeDescriptionCount(
-                      gradientVertexAttributeDescriptions.size())
-                  .SetPVertexAttributeDescriptions(
-                      gradientVertexAttributeDescriptions.data()))
-          .SetPInputAssemblyState(
-              PipelineInputAssemblyStateCreateInfoBuilder().SetTopology(
-                  VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST))
-          .SetPViewportState(
-              PipelineViewportStateCreateInfoBuilder()
-                  .SetViewportCount(1)
-                  .SetPViewports(
-                      ViewportBuilder(VIEWPORT_BASE)
-                          .SetWidth(static_cast<float>(swapchainExtent.width))
-                          .SetHeight(
-                              static_cast<float>(swapchainExtent.height)))
-                  .SetScissorCount(1)
-                  .SetPScissors(Rect2DBuilder()
-                                    .SetOffset(OFFSET2D_ZERO)
-                                    .SetExtent(swapchainExtent)))
-          .SetPRasterizationState(
-              PipelineRasterizationStateCreateInfoBuilder()
-                  .SetCullMode(VK_CULL_MODE_BACK_BIT)
-                  .SetFrontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
-                  .SetPolygonMode(VK_POLYGON_MODE_FILL)
-                  .SetLineWidth(1.0f))
-          .SetPMultisampleState(
-              PipelineMultisampleStateCreateInfoBuilder()
-                  .SetRasterizationSamples(samples)
-                  .SetMinSampleShading(1.0f))
-          .SetPColorBlendState(
-              PipelineColorBlendStateCreateInfoBuilder()
-                  .SetAttachmentCount(1)
-                  .SetPAttachments(
-                      PipelineColorBlendAttachmentStateBuilder()
-                          .SetBlendEnable(VK_TRUE)
-                          .SetColorWriteMask(VK_COLOR_COMPONENT_R_BIT |
-                                             VK_COLOR_COMPONENT_G_BIT |
-                                             VK_COLOR_COMPONENT_B_BIT |
-                                             VK_COLOR_COMPONENT_A_BIT)
-                          .SetSrcColorBlendFactor(VK_BLEND_FACTOR_ONE)
-                          .SetDstColorBlendFactor(VK_BLEND_FACTOR_ZERO)
-                          .SetColorBlendOp(VK_BLEND_OP_ADD)
-                          .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
-                          .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
-                          .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
-
   uiRenderer = nullptr;
   uiRenderer = std::make_unique<UiRenderer>(
-      windowInfo.rect, ImGuiInstance(windowInfo.window, instance,
-                                     targetPhysicalDevice, virtualDevice, queue,
-                                     renderPass, shortExecutionCommandBuffer,
-                                     fence, samples));
+      windowInfo.rect,
+      ImGuiInstance(windowInfo.window, instance, targetPhysicalDevice,
+                    virtualDevice, queue, renderPass,
+                    shortExecutionCommandBuffer, fence, samples));
 
   const u32 swapchainImages = swapchain.GetImageCount();
   const std::array<VkDescriptorPoolSize, 3> descriptorPoolSizes{
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-          .SetDescriptorCount(swapchainImages * 2),
+          .SetDescriptorCount(1),
       DescriptorPoolSizeBuilder()
-          .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-          .SetDescriptorCount(swapchainImages * 2),
+          .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
+          .SetDescriptorCount(1),
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-          .SetDescriptorCount(swapchainImages),
+          .SetDescriptorCount(1),
   };
   descriptorPool = virtualDevice.CreateDescriptorPool(
       DescriptorPoolCreateInfoBuilder()
           .SetPoolSizeCount(descriptorPoolSizes.size())
           .SetPPoolSizes(descriptorPoolSizes.data())
-          .SetMaxSets(swapchainImages * 2));
-  projectionViewDescriptorSets = descriptorPool.AllocateDescriptorSets(
-      projectionViewDescriptorSetLayout, swapchainImages);
-  textureSamplerDescriptorSets = descriptorPool.AllocateDescriptorSets(
-      textureSamplerDescriptorSetLayout, swapchainImages);
+          .SetMaxSets(3));
+  sceneDescriptorSet =
+      descriptorPool.AllocateDescriptorSet(perSceneDescriptorSetLayout);
+  textureSamplerDescriptorSet =
+      descriptorPool.AllocateDescriptorSet(textureSamplerDescriptorSetLayout);
+
+  viewTransformBuffer = DynamicUniformBuffer<PerFrameData>(
+      swapchainImages, physicalDeviceProperties.limits, descriptorPool,
+      perFrameDescriptorSetLayout, virtualDevice, deviceAllocator);
 
   projectionTransformBuffer = TransferDataToGpuLocalMemory(
       shortExecutionCommandBuffer, &projectionTransform,
       sizeof(projectionTransform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
+  DescriptorSet::WriteDescriptorSet projectionBufferWrite;
+  sceneDescriptorSet.CreateBufferWrite(
+      projectionTransformBuffer.buffer, VK_WHOLE_SIZE,
+      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, projectionBufferWrite);
+
+  DescriptorSet::WriteDescriptorSet viewBufferWrite;
+  viewTransformBuffer.CreateWriteDescriptorSet(viewBufferWrite);
+
+  DescriptorSet::WriteDescriptorSet textureSamplerWrite;
+  textureSamplerDescriptorSet.CreateImageSamplerWrite(
+      textureView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      textureSamplerWrite);
+
+  std::array<VkWriteDescriptorSet, 3> descriptorSetWrites{
+      projectionBufferWrite, viewBufferWrite, textureSamplerWrite};
+  virtualDevice.UpdateDescriptorSets(descriptorSetWrites.size(),
+                                     descriptorSetWrites.data());
+
   for (u32 renderIndex = 0; renderIndex < swapchainImages; ++renderIndex) {
-    BufferWithMemory viewTransformCpuBuffer;
-    viewTransformCpuBuffer.buffer = virtualDevice.CreateBuffer(
-        BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
-            .SetSize(sizeof(ViewTransformation))
-            .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-    viewTransformCpuBuffer.memory = deviceAllocator.BindMemory(
-        viewTransformCpuBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-    BufferWithMemory viewTransformGpuBuffer;
-    viewTransformGpuBuffer.buffer = virtualDevice.CreateBuffer(
-        BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
-            .SetSize(sizeof(ViewTransformation))
-            .SetUsage(VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT));
-    viewTransformGpuBuffer.memory = deviceAllocator.BindMemory(
-        viewTransformGpuBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-    DescriptorSet& projectionViewDescriptorSet =
-        projectionViewDescriptorSets[renderIndex];
-    DescriptorSet& textureSamplerDescriptorSet =
-        textureSamplerDescriptorSets[renderIndex];
-
-    DescriptorSet::WriteDescriptorSet projectionBufferWrite;
-    projectionViewDescriptorSet.CreateBufferWrite(
-        projectionTransformBuffer.buffer, projectionBufferWrite);
-
-    DescriptorSet::WriteDescriptorSet viewBufferWrite;
-    projectionViewDescriptorSet.CreateBufferWrite(viewTransformGpuBuffer.buffer,
-                                                  viewBufferWrite);
-    viewBufferWrite.Builder().SetDstBinding(1);
-
-    DescriptorSet::WriteDescriptorSet textureSamplerWrite;
-    textureSamplerDescriptorSet.CreateImageSamplerWrite(
-        textureView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        textureSamplerWrite);
-
-    std::array<VkWriteDescriptorSet, 3> descriptorSetWrites{
-        projectionBufferWrite, viewBufferWrite, textureSamplerWrite};
-    virtualDevice.UpdateDescriptorSets(descriptorSetWrites.size(),
-                                       descriptorSetWrites.data());
-
     CommandBuffer renderPassCommandBuffer =
         renderCommandPool.AllocatePrimaryCommandBuffer();
 
     swapchainRenderData.emplace_back(std::move<SwapchainRenderPass>(
         {.commandBuffer = std::move(renderPassCommandBuffer),
-         .viewTransformCpuBuffer = std::move(viewTransformCpuBuffer),
-         .viewTransformGpuBuffer = std::move(viewTransformGpuBuffer),
          .renderCompleteSemaphore = virtualDevice.CreateSemaphore(),
          .submitCompleteFence =
              virtualDevice.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)}));
@@ -895,17 +742,16 @@ App::BufferWithMemory App::TransferDataToGpuLocalMemory(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  ReservedMemory stagingBufferMemory = deviceAllocator.BindMemory(
+  DeviceMemorySubAllocation stagingBufferMemory = deviceAllocator.BindMemory(
       stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  stagingBufferMemory.memory->MapCopy(data, stagingBufferMemory.offset,
-                                      stagingBuffer.Size());
+  stagingBufferMemory.MapCopy(data, stagingBuffer.Size());
 
   Buffer finalBuffer = virtualDevice.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage));
-  ReservedMemory finalBufferMemory = deviceAllocator.BindMemory(
+  DeviceMemorySubAllocation finalBufferMemory = deviceAllocator.BindMemory(
       finalBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   commandBuffer.BeginOneTimeSubmit();
@@ -1014,105 +860,20 @@ void App::MainLoop() {
   previousTime = timeNow;
 }
 
-void App::SpawnGradientCube() {
-  gradientCubes.emplace_back(GradientCubeInstance{
-      .highlight = {.multiplier = 1.0f},
-      .spawnAnimation = NormalizedOneTimeFunctionAnimation(
-          [](const float time) { return std::pow(time, 1.0f / 8.0f); }, 1.5f)});
-}
-
 void App::UpdateModel(const float deltaTime) {
   uiRenderer->BeginFrame();
   uiRenderer->ShowVulkanDebugInfo(VulkanDebugInfo{
       .gpuName = physicalDeviceProperties.deviceName, .frametime = deltaTime});
   uiRenderer->ShowKeyboardLayout(keyboard);
 
-  constexpr glm::vec3 cameraStarePoint = glm::vec3(0.0f, -2.0f, -4.0f);
-  glm::mat4 cubeTransform(1.0f);
-  cubeTransform[3][0] = cubePosition.x;
-  cubeTransform[3][1] = cubePosition.y;
-  cubeTransform[3][2] = cubePosition.z;
-  const glm::mat4 cameraCenteredCube =
-      glm::translate(cubeTransform, cameraStarePoint);
-  const glm::mat4 rotatedCube =
-      glm::rotate(cameraCenteredCube, glm::radians(cubeRotation),
-                  glm::vec3(0.0f, 1.0f, 0.0f));
-  modelTransform.model = rotatedCube;
-
-  const glm::mat4 rotateWorldRelativeToCamera =
-      glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(cameraRotation.x),
-                              glm::vec3(0.0f, 1.0f, 0.0f)),
-                  glm::radians(cameraRotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
-  const glm::vec4 cameraRotatedCenter =
-      rotateWorldRelativeToCamera * glm::vec4(cameraStarePoint, 1.0f);
-  const glm::vec3 cameraCenter = glm::vec3(cameraRotatedCenter);
-
-  viewTransform.view =
-      glm::lookAt(glm::vec3(0.0f), cameraCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-
-  for (GradientCubeInstance& gradientCube : gradientCubes) {
-    if (!gradientCube.spawnAnimation.Finished()) {
-      constexpr glm::vec3 cubeSpawnPosition(0.0f, 0.0f, -2000.0f);
-      constexpr glm::vec3 cubeEndPosition(0.0f, 0.0f, -2.0f);
-
-      gradientCube.position =
-          cubeSpawnPosition +
-          ((cubeEndPosition - cubeSpawnPosition) *
-           gradientCube.spawnAnimation.UpdateValue(deltaTime));
-    }
-
-    glm::mat4 transform(1.0f);
-    transform[3][0] = gradientCube.position.x;
-    transform[3][1] = gradientCube.position.y;
-    transform[3][2] = gradientCube.position.z;
-    gradientCube.modelTransform.model =
-        glm::translate(transform, cameraStarePoint);
-  }
-
-  std::vector<glm::vec3*> cubePositions(1 + gradientCubes.size());
-  {
-    i32 insertIndex = -1;
-
-    cubePositions[++insertIndex] = &cubePosition;
-    for (GradientCubeInstance& gradientCube : gradientCubes) {
-      cubePositions[++insertIndex] = &gradientCube.position;
-    }
-  }
-
-  u32 selectedObjectIndex = 0;
-  uiRenderer->ShowObjectsInScene(ObjectsInSceneInfo{
-      .cameraRotation = glm::vec2(cameraRotation.x, cameraRotation.y - 26.565f),
-      .cameraCenter =
-          glm::vec3(cameraCenter.x, cameraCenter.y - cameraStarePoint.y,
-                    cameraCenter.z - cameraStarePoint.z),
-      .cameraPosition = glm::vec3(cameraStarePoint.x, -cameraStarePoint.y,
-                                  -cameraStarePoint.z),
-      .cubePositions = cubePositions,
-      .selectedObjectIndex = &selectedObjectIndex});
-
-  if (selectedObjectIndex != lastSelectedObjectIndex) {
-    if (lastSelectedObjectIndex == 0) {
-      highlight.multiplier = 1.0f;
-    } else {
-      gradientCubes[lastSelectedObjectIndex - 1].highlight.multiplier = 1.0f;
-    }
-  }
-
-  if (selectedObjectIndex == 0) {
-    highlight.multiplier = highlightAnimation.UpdateValue(deltaTime);
-  } else {
-    gradientCubes[selectedObjectIndex - 1].highlight.multiplier =
-        highlightAnimation.UpdateValue(deltaTime);
-  }
-
   constexpr float movementSpeed = 10.0f;
 
   glm::vec3 movement(0.0f);
   if (keyboard.IsKeyDown(SDLK_a)) {
-    movement.x = -1.0f;
+    movement.x = 1.0f;
   }
   if (keyboard.IsKeyDown(SDLK_d)) {
-    movement.x = 1.0f;
+    movement.x = -1.0f;
   }
   if (keyboard.IsKeyDown(SDLK_w)) {
     movement.y = 1.0f;
@@ -1131,32 +892,27 @@ void App::UpdateModel(const float deltaTime) {
       0.0f) {
     const glm::vec3 normalizedMovement =
         glm::normalize(movement) * movementSpeed * deltaTime;
-    *cubePositions[selectedObjectIndex] += normalizedMovement;
+    modelPosition += normalizedMovement;
   }
 
-  constexpr float cameraRotationSpeed = 75.0f;
-  if (keyboard.IsKeyDown(SDLK_LEFT)) {
-    cameraRotation.x += deltaTime * cameraRotationSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_RIGHT)) {
-    cameraRotation.x -= deltaTime * cameraRotationSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_UP)) {
-    cameraRotation.y += deltaTime * cameraRotationSpeed;
-  }
-  if (keyboard.IsKeyDown(SDLK_DOWN)) {
-    cameraRotation.y -= deltaTime * cameraRotationSpeed;
-  }
+  modelTransform.model =
+      glm::translate(glm::mat4(1.0f), modelPosition - modelCenter);
 
-  cubeRotation += deltaTime * 90.0f;
+  const glm::vec3 cameraLookAt = modelPosition;
+  const glm::vec3 cameraPosition =
+      modelPosition - glm::vec3(0.0f, 0.0f, modelSize.z);
 
-  if (keyboard.PressedKey(SDLK_f)) {
-    SpawnGradientCube();
-  }
+  viewTransformBuffer.Value().view =
+      glm::lookAt(cameraPosition, cameraLookAt, glm::vec3(0.0f, 1.0f, 0.0f));
+
+  uiRenderer->ShowObjectsInScene(
+      ObjectsInSceneInfo{.cameraRotation = glm::vec2(0.0f, 0.0f),
+                         .cameraLookAt = cameraLookAt,
+                         .cameraPosition = cameraPosition,
+                         .modelPosition = &modelPosition});
 
   keyboard.ClearPressedKeys();
   uiRenderer->EndFrame();
-  lastSelectedObjectIndex = selectedObjectIndex;
 }
 
 void App::Render() {
@@ -1174,42 +930,21 @@ void App::Render() {
   {
     const std::array<VkClearValue, 3> clearValues{
         ClearValueBuilder().SetColor(ClearColorValueBuilder()
-                                         .SetFloat0(0.2f)
-                                         .SetFloat1(0.2f)
-                                         .SetFloat2(0.2f)
+                                         .SetFloat0(0.0f)
+                                         .SetFloat1(0.0f)
+                                         .SetFloat2(0.0f)
                                          .SetFloat3(1.0f)),
         ClearValueBuilder().SetColor(ClearColorValueBuilder()
-                                         .SetFloat0(0.2f)
-                                         .SetFloat1(0.2f)
-                                         .SetFloat2(0.2f)
+                                         .SetFloat0(0.0f)
+                                         .SetFloat1(0.0f)
+                                         .SetFloat2(0.0f)
                                          .SetFloat3(1.0f)),
         ClearValueBuilder().SetDepthStencil(
             ClearDepthStencilValueBuilder().SetDepth(1.0f))};
 
-    swapchainRender.viewTransformCpuBuffer.memory.memory->MapCopy(
-        &viewTransform, swapchainRender.viewTransformCpuBuffer.memory.offset,
-        sizeof(viewTransform));
+    viewTransformBuffer.Flush(imageIndex);
 
     swapchainRender.commandBuffer.Begin();
-    swapchainRender.commandBuffer.CmdBufferMemoryBarrier(
-        swapchainRender.viewTransformCpuBuffer.buffer,
-        VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-        BufferMemoryBarrierBuilder()
-            .SetSrcAccessMask(VK_ACCESS_HOST_WRITE_BIT)
-            .SetDstAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
-            .SetOffset(0)
-            .SetSize(swapchainRender.viewTransformCpuBuffer.buffer.Size()));
-    swapchainRender.commandBuffer.CmdCopyBufferFull(
-        swapchainRender.viewTransformCpuBuffer.buffer,
-        swapchainRender.viewTransformGpuBuffer.buffer);
-    swapchainRender.commandBuffer.CmdBufferMemoryBarrier(
-        swapchainRender.viewTransformGpuBuffer.buffer,
-        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-        BufferMemoryBarrierBuilder()
-            .SetSrcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
-            .SetDstAccessMask(VK_ACCESS_UNIFORM_READ_BIT)
-            .SetOffset(0)
-            .SetSize(swapchainRender.viewTransformGpuBuffer.buffer.Size()));
     swapchainRender.commandBuffer.CmdBeginRenderPass(
         RenderPassBeginInfoBuilder()
             .SetRenderArea(
@@ -1219,31 +954,15 @@ void App::Render() {
         VK_SUBPASS_CONTENTS_INLINE, renderPass,
         swapchainFramebuffers[imageIndex]);
     swapchainRender.commandBuffer.CmdBindPipeline(
-        VK_PIPELINE_BIND_POINT_GRAPHICS, gradientPipeline);
-    swapchainRender.commandBuffer.CmdBindDescriptorSets(
-        VK_PIPELINE_BIND_POINT_GRAPHICS, gradientPipeline.GetLayout(), 0, 1,
-        projectionViewDescriptorSets[0]);
-    swapchainRender.commandBuffer.CmdBindVertexBuffers(
-        gradientVertexMemoryBuffer.buffer, 0);
-    swapchainRender.commandBuffer.CmdBindIndexBuffer(
-        gradientIndexMemoryBuffer.buffer, VK_INDEX_TYPE_UINT16);
-    for (GradientCubeInstance& gradientCube : gradientCubes) {
-      swapchainRender.commandBuffer.CmdPushConstants(
-          pipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
-          sizeof(gradientCube.modelTransform), &gradientCube.modelTransform);
-      swapchainRender.commandBuffer.CmdPushConstants(
-          pipeline.GetLayout(), VK_SHADER_STAGE_FRAGMENT_BIT,
-          sizeof(gradientCube.modelTransform), sizeof(gradientCube.highlight),
-          &gradientCube.highlight);
-      swapchainRender.commandBuffer.CmdDrawIndexed(
-          gradientIndexCount,
-          /* instanceCount= */ 1);  // TODO: More instances
-    }
-    swapchainRender.commandBuffer.CmdBindPipeline(
         VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     swapchainRender.commandBuffer.CmdBindDescriptorSets(
-        VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 1, 1,
-        textureSamplerDescriptorSets[0]);
+        VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 0, 1,
+        sceneDescriptorSet);
+    viewTransformBuffer.BindDescriptorSets(swapchainRender.commandBuffer,
+                                           pipeline.GetLayout(), 1, imageIndex);
+    swapchainRender.commandBuffer.CmdBindDescriptorSets(
+        VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 2, 1,
+        textureSamplerDescriptorSet);
     swapchainRender.commandBuffer.CmdBindVertexBuffers(
         vertexMemoryBuffer.buffer, 0);
     swapchainRender.commandBuffer.CmdBindIndexBuffer(indexMemoryBuffer.buffer,
@@ -1251,9 +970,6 @@ void App::Render() {
     swapchainRender.commandBuffer.CmdPushConstants(
         pipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
         sizeof(modelTransform), &modelTransform);
-    swapchainRender.commandBuffer.CmdPushConstants(
-        pipeline.GetLayout(), VK_SHADER_STAGE_FRAGMENT_BIT,
-        sizeof(modelTransform), sizeof(highlight), &highlight);
     swapchainRender.commandBuffer.CmdDrawIndexed(
         indexCount, /* instanceCount= */ 1);  // TODO: More instances
     uiRenderer->Render(swapchainRender.commandBuffer);

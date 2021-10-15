@@ -39,9 +39,6 @@ class Buffer {
     return *this;
   }
 
-  DeviceMemory AllocateAndBindMemory(
-      const VkMemoryPropertyFlags requiredProperties) const;
-
   VkDeviceSize Size() const;
 
   VkMemoryRequirements GetMemoryRequirements() const;

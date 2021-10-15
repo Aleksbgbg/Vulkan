@@ -212,8 +212,8 @@ TEST(DeviceMemoryAllocatorTest, HeapDoesNotGetFragmentedForBigAllocations) {
   // Act
   const ReservedBlock* const reservedBlock1 =
       new ReservedBlock(heap.ReserveMemory({.size = 10, .alignment = 1}));
-  const ReservedBlock* const reservedBlock2 =
-      new ReservedBlock(heap.ReserveMemory({.size = 128000, .alignment = 65536}));
+  const ReservedBlock* const reservedBlock2 = new ReservedBlock(
+      heap.ReserveMemory({.size = 128000, .alignment = 65536}));
   const ReservedBlock* const reservedBlock3 =
       new ReservedBlock(heap.ReserveMemory({.size = 65000, .alignment = 1}));
 
@@ -326,12 +326,8 @@ TEST(DeviceMemoryAllocatorTest,
   const ReservedBlock reservedBlock2 =
       heap.ReserveMemory({.size = 1, .alignment = 1});
 
-  ASSERT_EQ(
-      1, reinterpret_cast<MemoryObjectWithId*>(reservedBlock1.GetMemoryObject())
-             ->id);
-  ASSERT_EQ(
-      2, reinterpret_cast<MemoryObjectWithId*>(reservedBlock2.GetMemoryObject())
-             ->id);
+  ASSERT_EQ(1, reservedBlock1.GetMemoryObjectAs<MemoryObjectWithId>().id);
+  ASSERT_EQ(2, reservedBlock2.GetMemoryObjectAs<MemoryObjectWithId>().id);
 }
 
 TEST(DeviceMemoryAllocatorTest,
@@ -361,15 +357,9 @@ TEST(DeviceMemoryAllocatorTest,
   const ReservedBlock reservedBlock3 =
       heap.ReserveMemory({.size = 3, .alignment = 1});
 
-  ASSERT_EQ(
-      1, reinterpret_cast<MemoryObjectWithId*>(reservedBlock1.GetMemoryObject())
-             ->id);
-  ASSERT_EQ(
-      2, reinterpret_cast<MemoryObjectWithId*>(reservedBlock2.GetMemoryObject())
-             ->id);
-  ASSERT_EQ(
-      3, reinterpret_cast<MemoryObjectWithId*>(reservedBlock3.GetMemoryObject())
-             ->id);
+  ASSERT_EQ(1, reservedBlock1.GetMemoryObjectAs<MemoryObjectWithId>().id);
+  ASSERT_EQ(2, reservedBlock2.GetMemoryObjectAs<MemoryObjectWithId>().id);
+  ASSERT_EQ(3, reservedBlock3.GetMemoryObjectAs<MemoryObjectWithId>().id);
 }
 
 TEST(DeviceMemoryAllocatorTest, IncreasesAllocationSizeBy150Percent) {
@@ -490,11 +480,10 @@ TEST(DeviceMemoryAllocatorTest, ReservedBlockCanBeMoveConstructed) {
   TestAllocator allocator(objectsToAllocate);
   DeviceHeap heap(1, &allocator);
 
-  const ReservedBlock reservedBlock1(
+  const ReservedBlock reservedBlock(
       std::move(heap.ReserveMemory({.size = 1, .alignment = 1})));
 
-  ASSERT_EQ(allocation, reinterpret_cast<MemoryObjectWithId*>(
-                            reservedBlock1.GetMemoryObject()));
+  ASSERT_EQ(allocation, &reservedBlock.GetMemoryObjectAs<MemoryObjectWithId>());
 }
 
 TEST(DeviceMemoryAllocatorTest, ReservedBlockCanBeMoveAssigned) {
@@ -507,6 +496,5 @@ TEST(DeviceMemoryAllocatorTest, ReservedBlockCanBeMoveAssigned) {
   ReservedBlock reservedBlock;
   reservedBlock = heap.ReserveMemory({.size = 1, .alignment = 1});
 
-  ASSERT_EQ(allocation, reinterpret_cast<MemoryObjectWithId*>(
-                            reservedBlock.GetMemoryObject()));
+  ASSERT_EQ(allocation, &reservedBlock.GetMemoryObjectAs<MemoryObjectWithId>());
 }

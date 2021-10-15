@@ -1,0 +1,15 @@
+#ifndef VULKAN_SRC_VULKAN_STRUCTURES_MAPPEDMEMORYRANGE_H
+#define VULKAN_SRC_VULKAN_STRUCTURES_MAPPEDMEMORYRANGE_H
+
+#include <vulkan/vulkan.h>
+
+#include "define_structure.h"
+
+STRUCTURE_BUILDER(MappedMemoryRangeBuilder, VkMappedMemoryRange,
+                  VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE)
+STRUCTURE_SETTER(Memory, VkDeviceMemory, memory)
+STRUCTURE_SETTER(Offset, VkDeviceSize, offset)
+STRUCTURE_SETTER(Size, VkDeviceSize, size)
+END_STRUCTURE_BUILDER
+
+#endif  // VULKAN_SRC_VULKAN_STRUCTURES_MAPPEDMEMORYRANGE_H

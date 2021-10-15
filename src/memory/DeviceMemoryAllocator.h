@@ -5,20 +5,11 @@
 #include <vector>
 
 #include "DeviceHeap.h"
+#include "DeviceMemorySubAllocation.h"
 #include "vulkan/Buffer.h"
 #include "vulkan/DeviceMemory.h"
 #include "vulkan/Image.h"
 #include "vulkan/VirtualDevice.h"
-
-struct ReservedMemory {
-  friend class DeviceMemoryAllocator;
-
-  DeviceMemory* memory;
-  VkDeviceSize offset;
-
- private:
-  ReservedBlock reservedBlock;
-};
 
 class DeviceMemoryAllocator {
  public:
@@ -27,13 +18,13 @@ class DeviceMemoryAllocator {
       VirtualDevice* virtualDevice,
       const VkPhysicalDeviceMemoryProperties* const memoryProperties);
 
-  ReservedMemory BindMemory(const Buffer& buffer,
-                            const VkMemoryPropertyFlags requiredProperties);
-  ReservedMemory BindMemory(const Image& image,
-                            const VkMemoryPropertyFlags requiredProperties);
+  DeviceMemorySubAllocation BindMemory(
+      const Buffer& buffer, const VkMemoryPropertyFlags requiredProperties);
+  DeviceMemorySubAllocation BindMemory(
+      const Image& image, const VkMemoryPropertyFlags requiredProperties);
 
  private:
-  ReservedMemory ReserveMemoryBlock(
+  DeviceMemorySubAllocation ReserveMemoryBlock(
       const VkMemoryRequirements& memoryRequirements,
       const VkMemoryPropertyFlags requiredProperties);
 

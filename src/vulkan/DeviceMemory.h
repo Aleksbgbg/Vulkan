@@ -27,12 +27,14 @@ class DeviceMemory {
   void Bind(const Buffer& buffer, const VkDeviceSize offset) const;
   void Bind(const Image& image, const VkDeviceSize offset) const;
 
-  DeviceMemory& BindAll(VkBuffer buffer);
-  DeviceMemory& Bind(VkBuffer buffer, const VkDeviceSize offset);
-  DeviceMemory& BindAll(VkImage image);
-  DeviceMemory& Bind(VkImage image, const VkDeviceSize offset);
-  void MapCopy(const void* data, const VkDeviceSize offset,
-               const VkDeviceSize size);
+  void* Map(const VkDeviceSize offset, const VkDeviceSize size) const;
+  void Unmap() const;
+
+  void MapCopy(const void* const data, const VkDeviceSize offset,
+               const VkDeviceSize size) const;
+
+  void FlushMappedMemoryRange(const VkDeviceSize offset,
+                              const VkDeviceSize size) const;
 
   static std::optional<u32> FindSuitableMemoryTypeIndex(
       const VkPhysicalDeviceMemoryProperties& memoryProperties,

@@ -45,7 +45,8 @@ class DescriptorSet {
   DescriptorSet& operator=(DescriptorSet&&) = default;
 
   void CreateBufferWrite(
-      const Buffer& buffer,
+      const Buffer& buffer, const VkDeviceSize range,
+      const VkDescriptorType descriptorType,
       DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
   void CreateImageSamplerWrite(
       const ImageView& samplerImageView, const Sampler& sampler,
