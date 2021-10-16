@@ -8,6 +8,7 @@
 
 #include "DynamicUniformBuffer.h"
 #include "Keyboard.h"
+#include "Mouse.h"
 #include "MultithreadedMessageQueue.h"
 #include "NormalizedOneTimeFunctionAnimation.h"
 #include "Rect.h"
@@ -182,6 +183,7 @@ class App {
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
 
   Keyboard keyboard;
+  Mouse mouse;
 };
 
 #endif  // VULKAN_SRC_APP_H

@@ -809,6 +809,15 @@ void App::MainThread() {
         case SDL_KEYUP:
           keyboard.Keyup(event.key.keysym.sym);
           break;
+
+        case SDL_MOUSEMOTION:
+          mouse.Movement(event.motion);
+          break;
+
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+          mouse.Button(event.button);
+          break;
       }
     }
   }
@@ -898,9 +907,36 @@ void App::UpdateModel(const float deltaTime) {
   modelTransform.model =
       glm::translate(glm::mat4(1.0f), modelPosition - modelCenter);
 
+  glm::mat4 cameraTransform(1.0f);
+  cameraTransform = glm::translate(cameraTransform, modelPosition);
+
+  const bool reverseView = keyboard.IsKeyDown(SDLK_c);
+
+  glm::vec2 mouseDelta = mouse.GetPositionDeltaFromRightClick();
+
+  if (reverseView) {
+    mouseDelta.y = -mouseDelta.y;
+  }
+
+  cameraTransform = glm::rotate(
+      cameraTransform,
+      glm::pi<float>() *
+          (-mouseDelta.x / windowInfo.rect.width),
+      glm::vec3(0.0f, 1.0f, 0.0f));
+  cameraTransform = glm::rotate(
+      cameraTransform,
+      glm::pi<float>() *
+          (mouseDelta.y / windowInfo.rect.height),
+      glm::vec3(1.0f, 0.0f, 0.0f));
+
+  if (reverseView) {
+    cameraTransform = glm::rotate(cameraTransform, glm::pi<float>(),
+                                  glm::vec3(0.0f, 1.0f, 0.0f));
+  }
+
   const glm::vec3 cameraLookAt = modelPosition;
   const glm::vec3 cameraPosition =
-      modelPosition - glm::vec3(0.0f, 0.0f, modelSize.z);
+      cameraTransform * glm::vec4(0.0f, 0.0f, -modelSize.z, 1.0f);
 
   viewTransformBuffer.Value().view =
       glm::lookAt(cameraPosition, cameraLookAt, glm::vec3(0.0f, 1.0f, 0.0f));
