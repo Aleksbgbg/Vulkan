@@ -276,7 +276,7 @@ App::App()
       shortExecutionCommandBuffer, indices.data(),
       sizeof(indices[0]) * indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
-  Bitmap bitmap = ReadBitmap("resources/InterstellarRunner.bmp");
+  const Bitmap bitmap = ReadBitmap("resources/InterstellarRunner.bmp");
 
   const float pictureWidth = static_cast<float>(bitmap.width);
   const float pictureHeight = static_cast<float>(bitmap.height);
@@ -476,7 +476,7 @@ void App::InitializeSwapchain() {
           .SetFormat(swapchain.GetImageFormat())
           .SetSamples(samples)
           .SetLoadOp(VK_ATTACHMENT_LOAD_OP_CLEAR)
-          .SetStoreOp(VK_ATTACHMENT_STORE_OP_STORE)
+          .SetStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
           .SetStencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE)
           .SetStencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
           .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
@@ -491,13 +491,13 @@ void App::InitializeSwapchain() {
           .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
           .SetFinalLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL),
   };
-  const VkAttachmentReference resolveAttachment =
+  constexpr const VkAttachmentReference resolveAttachment =
       AttachmentReferenceBuilder().SetAttachment(0).SetLayout(
           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-  const VkAttachmentReference colorAttachment =
+  constexpr const VkAttachmentReference colorAttachment =
       AttachmentReferenceBuilder().SetAttachment(1).SetLayout(
           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-  const VkAttachmentReference depthStencilAttachment =
+  constexpr const VkAttachmentReference depthStencilAttachment =
       AttachmentReferenceBuilder().SetAttachment(2).SetLayout(
           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
   const std::array<VkSubpassDescription, 1> subpasses{
@@ -508,7 +508,7 @@ void App::InitializeSwapchain() {
           .SetPColorAttachments(&colorAttachment)
           .SetPDepthStencilAttachment(&depthStencilAttachment),
   };
-  const std::array<VkSubpassDependency, 1> subpassDependencies{
+  constexpr const std::array<VkSubpassDependency, 1> subpassDependencies{
       SubpassDependencyBuilder()
           .SetSrcSubpass(VK_SUBPASS_EXTERNAL)
           .SetDstSubpass(0)
@@ -531,7 +531,7 @@ void App::InitializeSwapchain() {
   swapchainFramebuffers = swapchain.GetFramebuffers(
       renderPass, {&multisamplingImageView, &depthStencilView});
 
-  const std::array<VkVertexInputBindingDescription, 1>
+  constexpr const std::array<VkVertexInputBindingDescription, 1>
       vertexBindingDescriptions{
           VertexInputBindingDescriptionBuilder()
               .SetBinding(0)
@@ -551,25 +551,27 @@ void App::InitializeSwapchain() {
               .SetFormat(VK_FORMAT_R32G32_SFLOAT)
               .SetOffset(offsetof(TexturedVertex, textureCoordinate)),
       };
-  const VkDescriptorSetLayoutBinding perSceneDescriptorSetLayoutBinding =
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(0)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT);
+  constexpr const VkDescriptorSetLayoutBinding
+      perSceneDescriptorSetLayoutBinding =
+          DescriptorSetLayoutBindingBuilder()
+              .SetBinding(0)
+              .SetDescriptorCount(1)
+              .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+              .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT);
   perSceneDescriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
       DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
           &perSceneDescriptorSetLayoutBinding));
-  const VkDescriptorSetLayoutBinding perFrameDescriptorSetLayoutBinding =
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(0)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
-          .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT);
+  constexpr const VkDescriptorSetLayoutBinding
+      perFrameDescriptorSetLayoutBinding =
+          DescriptorSetLayoutBindingBuilder()
+              .SetBinding(0)
+              .SetDescriptorCount(1)
+              .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
+              .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT);
   perFrameDescriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
       DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
           &perFrameDescriptorSetLayoutBinding));
-  const VkDescriptorSetLayoutBinding textureSamplerLayoutBinding =
+  constexpr const VkDescriptorSetLayoutBinding textureSamplerLayoutBinding =
       DescriptorSetLayoutBindingBuilder()
           .SetBinding(0)
           .SetDescriptorCount(1)
@@ -657,7 +659,7 @@ void App::InitializeSwapchain() {
                     shortExecutionCommandBuffer, fence, samples));
 
   const u32 swapchainImages = swapchain.GetImageCount();
-  const std::array<VkDescriptorPoolSize, 3> descriptorPoolSizes{
+  constexpr const std::array<VkDescriptorPoolSize, 3> descriptorPoolSizes{
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
           .SetDescriptorCount(1),
@@ -918,16 +920,14 @@ void App::UpdateModel(const float deltaTime) {
     mouseDelta.y = -mouseDelta.y;
   }
 
-  cameraTransform = glm::rotate(
-      cameraTransform,
-      glm::pi<float>() *
-          (-mouseDelta.x / windowInfo.rect.width),
-      glm::vec3(0.0f, 1.0f, 0.0f));
-  cameraTransform = glm::rotate(
-      cameraTransform,
-      glm::pi<float>() *
-          (mouseDelta.y / windowInfo.rect.height),
-      glm::vec3(1.0f, 0.0f, 0.0f));
+  cameraTransform =
+      glm::rotate(cameraTransform,
+                  glm::pi<float>() * (-mouseDelta.x / windowInfo.rect.width),
+                  glm::vec3(0.0f, 1.0f, 0.0f));
+  cameraTransform =
+      glm::rotate(cameraTransform,
+                  glm::pi<float>() * (mouseDelta.y / windowInfo.rect.height),
+                  glm::vec3(1.0f, 0.0f, 0.0f));
 
   if (reverseView) {
     cameraTransform = glm::rotate(cameraTransform, glm::pi<float>(),
@@ -964,19 +964,21 @@ void App::Render() {
 
   swapchainRender.submitCompleteFence.Wait().Reset();
   {
-    const std::array<VkClearValue, 3> clearValues{
+    constexpr const VkClearValue colorClear =
         ClearValueBuilder().SetColor(ClearColorValueBuilder()
                                          .SetFloat0(0.0f)
                                          .SetFloat1(0.0f)
                                          .SetFloat2(0.0f)
-                                         .SetFloat3(1.0f)),
-        ClearValueBuilder().SetColor(ClearColorValueBuilder()
-                                         .SetFloat0(0.0f)
-                                         .SetFloat1(0.0f)
-                                         .SetFloat2(0.0f)
-                                         .SetFloat3(1.0f)),
+                                         .SetFloat3(1.0f));
+    constexpr const VkClearValue depthClear =
         ClearValueBuilder().SetDepthStencil(
-            ClearDepthStencilValueBuilder().SetDepth(1.0f))};
+            ClearDepthStencilValueBuilder().SetDepth(1.0f));
+
+    constexpr const std::array<VkClearValue, 3> clearValues{
+        colorClear,
+        colorClear,
+        depthClear,
+    };
 
     viewTransformBuffer.Flush(imageIndex);
 

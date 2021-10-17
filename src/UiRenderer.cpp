@@ -28,12 +28,7 @@ UiRenderer::UiRenderer(Rectf windowSize, ImGuiInstance imGuiInstance)
       frametimeHistoryIndex(0),
       frametimeHistory(),
       timeSum(0.0f),
-      spawnCubeKey(KeyDescription("F", SDLK_f, "spawn cube")),
-      cameraKeys(
-          {KeyDescription("\xEF\x84\x86", SDLK_UP, "pivot camera up"),
-           KeyDescription("\xEF\x84\x84", SDLK_LEFT, "pivot camera left"),
-           KeyDescription("\xEF\x84\x87", SDLK_DOWN, "pivot camera down"),
-           KeyDescription("\xEF\x84\x85", SDLK_RIGHT, "pivot camera right")}) {
+      lookBackKey(KeyDescription("C", SDLK_c, "look back")) {
   sceneObjectControls[0].emplace_back(
       KeyDescription("Q", SDLK_q, "decrease Z"));
   sceneObjectControls[0].emplace_back(
@@ -178,18 +173,8 @@ void UiRenderer::ShowKeyboardLayout(Keyboard& keyboard) {
     RenderKey(keyboard, row[row.size() - 1]);
   }
 
-  ImGui::Text("Pivot camera");
-  ImGui::Dummy(ImVec2(ButtonSize, ButtonSize));
-  ImGui::SameLine();
-  RenderKey(keyboard, cameraKeys[0]);
-  RenderKey(keyboard, cameraKeys[1]);
-  ImGui::SameLine();
-  RenderKey(keyboard, cameraKeys[2]);
-  ImGui::SameLine();
-  RenderKey(keyboard, cameraKeys[3]);
-
-  ImGui::Text("Spawn cube");
-  RenderKey(keyboard, spawnCubeKey);
+  ImGui::Text("Reverse camera");
+  RenderKey(keyboard, lookBackKey);
 
   ImGui::End();
 }

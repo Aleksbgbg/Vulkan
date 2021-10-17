@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "BufferCreateInfo.h"
 #include "BufferMemoryBarrier.h"
@@ -12,10 +12,10 @@
 #include "ImageViewCreateInfo.h"
 #include "Viewport.h"
 
-inline const VkBufferCreateInfo BUFFER_EXCLUSIVE =
+inline constexpr const VkBufferCreateInfo BUFFER_EXCLUSIVE =
     BufferCreateInfoBuilder().SetSharingMode(VK_SHARING_MODE_EXCLUSIVE);
 
-inline const VkImageCreateInfo IMAGE_2D =
+inline constexpr const VkImageCreateInfo IMAGE_2D =
     ImageCreateInfoBuilder()
         .SetImageType(VK_IMAGE_TYPE_2D)
         .SetMipLevels(1)
@@ -25,45 +25,39 @@ inline const VkImageCreateInfo IMAGE_2D =
         .SetSharingMode(VK_SHARING_MODE_EXCLUSIVE)
         .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
 
-// inline const VkImageViewCreateInfo IMAGE_VIEW_2D =
-//     ImageViewCreateInfoBuilder()
-//         .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
-//         .SetImageType(VK_IMAGE_TYPE_2D)
-//         .SetMipLevels(1)
-//         .SetArrayLayers(1)
-//         .SetSamples(VK_SAMPLE_COUNT_1_BIT)
-//         .SetTiling(VK_IMAGE_TILING_OPTIMAL)
-//         .SetSharingMode(VK_SHARING_MODE_EXCLUSIVE)
-//         .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-//         ;
+inline constexpr const VkSamplerCreateInfo SAMPLER_EMPTY =
+    SamplerCreateInfoBuilder();
 
-inline const VkSamplerCreateInfo SAMPLER_EMPTY = SamplerCreateInfoBuilder();
+inline constexpr const VkViewport VIEWPORT_BASE =
+    ViewportBuilder().SetMaxDepth(1.0f);
 
-inline const VkViewport VIEWPORT_BASE = ViewportBuilder().SetMaxDepth(1.0f);
+inline constexpr const VkOffset2D OFFSET2D_ZERO = {};
 
-inline const VkOffset2D OFFSET2D_ZERO = {};
+inline constexpr const VkExtent3D EXTENT3D_SINGLE_DEPTH = {.depth = 1};
 
-inline const VkExtent3D EXTENT3D_SINGLE_DEPTH = {.depth = 1};
+inline constexpr const VkImageSubresourceLayers
+    SUBRESOURCE_LAYERS_COLOR_SINGLE_LAYER =
+        ImageSubresourceLayersBuilder()
+            .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
+            .SetLayerCount(1);
 
-inline const VkImageSubresourceLayers SUBRESOURCE_LAYERS_COLOR_SINGLE_LAYER =
-    ImageSubresourceLayersBuilder()
-        .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
-        .SetLayerCount(1);
+inline constexpr const VkImageSubresourceRange
+    SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER =
+        ImageSubresourceRangeBuilder()
+            .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
+            .SetLayerCount(1)
+            .SetLevelCount(1);
 
-inline const VkImageSubresourceRange SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER =
-    ImageSubresourceRangeBuilder()
-        .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
-        .SetLayerCount(1)
-        .SetLevelCount(1);
+inline constexpr const VkBufferMemoryBarrier
+    BUFFER_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER =
+        BufferMemoryBarrierBuilder()
+            .SetSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+            .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
 
-inline const VkBufferMemoryBarrier BUFFER_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER =
-    BufferMemoryBarrierBuilder()
-        .SetSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-        .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
-
-inline const VkImageMemoryBarrier IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER =
-    ImageMemoryBarrierBuilder()
-        .SetSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-        .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+inline constexpr const VkImageMemoryBarrier
+    IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER =
+        ImageMemoryBarrierBuilder()
+            .SetSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+            .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
 
 #endif  // VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H

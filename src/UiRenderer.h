@@ -73,8 +73,7 @@ class UiRenderer {
   float timeSum;
 
   std::array<std::vector<KeyDescription>, 2> sceneObjectControls;
-  std::array<KeyDescription, 4> cameraKeys;
-  KeyDescription spawnCubeKey;
+  KeyDescription lookBackKey;
 };
 
 #endif  // VULKAN_SRC_UIRENDERER_H
