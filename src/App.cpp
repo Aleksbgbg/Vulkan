@@ -1,5 +1,7 @@
 #include "App.h"
 
+#include <general/files/images/png.h>
+
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -13,8 +15,8 @@
 #include <thread>
 
 #include "TexturedVertex.h"
-#include "general/files/bmp.h"
 #include "general/files/file.h"
+#include "general/files/images/bmp.h"
 #include "general/files/obj.h"
 #include "util/build_definition.h"
 #include "util/filenames.h"
@@ -276,7 +278,7 @@ App::App()
       shortExecutionCommandBuffer, indices.data(),
       sizeof(indices[0]) * indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
-  const Bitmap bitmap = ReadBitmap("resources/InterstellarRunner.bmp");
+  const ImageBits bitmap = ReadPng("resources/InterstellarRunner.png");
 
   const float pictureWidth = static_cast<float>(bitmap.width);
   const float pictureHeight = static_cast<float>(bitmap.height);
