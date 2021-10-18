@@ -12,14 +12,13 @@
 #include <stdexcept>
 #include <thread>
 
-#include "GradientVertex.h"
-#include "Model.h"
-#include "VertexBuilder.h"
-#include "build_definition.h"
-#include "file.h"
-#include "filenames.h"
-#include "include_sdl.h"
-#include "read_bitmap.h"
+#include "TexturedVertex.h"
+#include "general/files/bmp.h"
+#include "general/files/file.h"
+#include "general/files/obj.h"
+#include "util/build_definition.h"
+#include "util/filenames.h"
+#include "util/include/sdl.h"
 #include "vulkan/Buffer.h"
 #include "vulkan/DescriptorPool.h"
 #include "vulkan/structures/AttachmentReference.h"
@@ -210,7 +209,8 @@ App::App()
   shortExecutionCommandBuffer =
       shortExecutionCommandPool.AllocatePrimaryCommandBuffer();
 
-  const Model model = ModelFromObjFile("resources/InterstellarRunner.obj");
+  const obj::Model model =
+      obj::ModelFromObjFile("resources/InterstellarRunner.obj");
 
   std::unordered_map<TexturedVertex, u16> uniqueVertices;
   std::vector<TexturedVertex> vertices;
@@ -221,7 +221,7 @@ App::App()
 
   for (const auto& face : model.faces) {
     for (int vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
-      ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
+      obj::ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
 
       TexturedVertex vertex;
       vertex.position.x = model.vertices[modelFaceVertex.vertexIndex].x;

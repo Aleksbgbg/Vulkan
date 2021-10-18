@@ -4,7 +4,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(DescriptorSetAllocateInfoBuilder, VkDescriptorSetAllocateInfo,
                   VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO)

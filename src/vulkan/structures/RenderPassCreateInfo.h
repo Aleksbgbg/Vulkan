@@ -7,7 +7,7 @@
 #include "SubpassDependency.h"
 #include "SubpassDescription.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(RenderPassCreateInfoBuilder, VkRenderPassCreateInfo,
                   VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO)

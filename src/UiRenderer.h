@@ -3,10 +3,9 @@
 
 #include <array>
 
-#include "Iterable.h"
-#include "Keyboard.h"
-#include "Rect.h"
-#include "include_glm.h"
+#include "general/geometry/Rect.h"
+#include "general/input/Keyboard.h"
+#include "util/include/glm.h"
 #include "vulkan/ImGuiInstance.h"
 
 struct VulkanDebugInfo {

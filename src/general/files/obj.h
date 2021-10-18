@@ -4,7 +4,9 @@
 #include <array>
 #include <vector>
 
-#include "types.h"
+#include "util/types.h"
+
+namespace obj {
 
 struct ModelVertex {
   float x;
@@ -33,5 +35,7 @@ struct Model {
 };
 
 Model ModelFromObjFile(const char* const name);
+
+}  // namespace obj
 
 #endif  // VULKAN_SRC_MODEL_H

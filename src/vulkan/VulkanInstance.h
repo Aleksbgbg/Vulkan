@@ -10,7 +10,7 @@
 #include "structures/DebugUtilsMessengerCreateInfo.h"
 #include "structures/InstanceCreateInfo.h"
 #include "structures/Win32SurfaceCreateInfo.h"
-#include "types.h"
+#include "util/types.h"
 
 class VulkanInstance {
   friend class ImGuiInstance;

@@ -3,8 +3,8 @@
 
 #include <optional>
 
-#include "include_glm.h"
-#include "include_sdl.h"
+#include "util/include/glm.h"
+#include "util/include/sdl.h"
 
 class Mouse {
  public:

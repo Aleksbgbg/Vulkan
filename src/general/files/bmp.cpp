@@ -1,4 +1,4 @@
-#include "read_bitmap.h"
+#include "bmp.h"
 
 #include "file.h"
 
@@ -40,7 +40,7 @@ struct BitmapHeader {
 };
 #pragma pack(pop, r1)
 
-Bitmap ReadBitmap(const char* const path) {
+Bitmap ReadBitmap(const std::string_view path) {
   const std::vector<u8> fileData = ReadFile(path);
 
   const BitmapHeader bitmapHeader =

@@ -5,7 +5,7 @@
 #include <SDL_syswm.h>
 #include <SDL_vulkan.h>
 
-#include "include_windows.h"
+#include "windows.h"
 
 // Bad SDL macros
 #undef main

@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_TEXTUREDVERTEX_H
 #define VULKAN_SRC_TEXTUREDVERTEX_H
 
-#include "include_glm.h"
+#include "util/include/glm.h"
 
 struct TexturedVertex {
   glm::vec3 position;

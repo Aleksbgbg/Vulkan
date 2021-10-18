@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_MEMORY_ALLOCATEDBLOCK_H
 #define VULKAN_SRC_MEMORY_ALLOCATEDBLOCK_H
 
-#include "types.h"
+#include "util/types.h"
 
 struct AllocatedBlock {
   u64 allocationIndex;

@@ -3,7 +3,7 @@
 
 #include "memory/Alignment.h"
 #include "memory/DeviceMemoryAllocator.h"
-#include "types.h"
+#include "util/types.h"
 #include "vulkan/DescriptorSet.h"
 #include "vulkan/structures/default.h"
 

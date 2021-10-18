@@ -6,7 +6,7 @@
 #include "DescriptorBufferInfo.h"
 #include "DescriptorImageInfo.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(WriteDescriptorSetBuilder, VkWriteDescriptorSet,
                   VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET)

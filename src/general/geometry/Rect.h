@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_RECT_H
 #define VULKAN_SRC_RECT_H
 
-#include "types.h"
+#include "util/types.h"
 
 template <typename T>
 struct Rect;

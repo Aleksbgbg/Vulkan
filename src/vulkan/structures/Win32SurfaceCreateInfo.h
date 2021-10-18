@@ -5,7 +5,7 @@
 
 #include "Windows.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(Win32SurfaceCreateInfoBuilder, VkWin32SurfaceCreateInfoKHR,
                   VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR)

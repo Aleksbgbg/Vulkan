@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "build_definition.h"
+#include "util/build_definition.h"
 
 #ifdef DIAGNOSTICS
 class VulkanResultException : public std::exception {

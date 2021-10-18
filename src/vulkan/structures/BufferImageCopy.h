@@ -6,7 +6,7 @@
 #include "Extent3D.h"
 #include "ImageSubresourceLayers.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER_NO_STYPE(BufferImageCopyBuilder, VkBufferImageCopy)
 STRUCTURE_SETTER(BufferOffset, VkDeviceSize, bufferOffset)

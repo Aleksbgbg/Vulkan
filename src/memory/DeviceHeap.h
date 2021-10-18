@@ -9,7 +9,7 @@
 #include "MemoryAllocation.h"
 #include "MemoryBlock.h"
 #include "ReservedBlock.h"
-#include "types.h"
+#include "util/types.h"
 
 class DeviceHeap {
   friend ReservedBlock;

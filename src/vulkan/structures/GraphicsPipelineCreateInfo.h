@@ -16,7 +16,7 @@
 #include "PipelineVertexInputStateCreateInfo.h"
 #include "PipelineViewportStateCreateInfo.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(GraphicsPipelineCreateInfoBuilder,
                   VkGraphicsPipelineCreateInfo,

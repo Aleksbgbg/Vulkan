@@ -4,7 +4,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER_NO_STYPE(Extent2DBuilder, VkExtent2D)
 STRUCTURE_SETTER(Width, const u32, width)

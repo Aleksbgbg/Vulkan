@@ -5,7 +5,7 @@
 #include <set>
 #include <vector>
 
-#include "types.h"
+#include "util/types.h"
 
 template <typename>
 struct second_arg;

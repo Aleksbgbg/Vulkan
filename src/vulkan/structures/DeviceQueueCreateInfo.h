@@ -4,7 +4,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(DeviceQueueCreateInfoBuilder, VkDeviceQueueCreateInfo,
                   VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO)

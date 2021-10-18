@@ -5,7 +5,7 @@
 
 #include "ApplicationInfo.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(InstanceCreateInfoBuilder, VkInstanceCreateInfo,
                   VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO)

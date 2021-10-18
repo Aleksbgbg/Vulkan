@@ -5,7 +5,7 @@
 
 #include "Extent3D.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(ImageCreateInfoBuilder, VkImageCreateInfo,
                   VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO)

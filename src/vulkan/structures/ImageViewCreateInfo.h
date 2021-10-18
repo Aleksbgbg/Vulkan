@@ -5,7 +5,7 @@
 
 #include "ImageSubresourceRange.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(ImageViewCreateInfoBuilder, VkImageViewCreateInfo,
                   VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO)

@@ -6,7 +6,7 @@
 #include "CommandPool.h"
 #include "Semaphore.h"
 #include "Swapchain.h"
-#include "types.h"
+#include "util/types.h"
 
 class Queue {
   friend class ImGuiInstance;

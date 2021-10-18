@@ -1,9 +1,10 @@
 #ifndef VULKAN_SRC_READ_BITMAP_H
 #define VULKAN_SRC_READ_BITMAP_H
 
+#include <string_view>
 #include <vector>
 
-#include "types.h"
+#include "util/types.h"
 
 struct Bitmap {
   u32 width;
@@ -15,6 +16,6 @@ struct Bitmap {
   std::vector<u8> data;
 };
 
-Bitmap ReadBitmap(const char* const path);
+Bitmap ReadBitmap(const std::string_view path);
 
 #endif  // VULKAN_SRC_READ_BITMAP_H

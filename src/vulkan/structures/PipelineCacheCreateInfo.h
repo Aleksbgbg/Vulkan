@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(PipelineCacheCreateInfoBuilder, VkPipelineCacheCreateInfo,
                   VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO)

@@ -5,7 +5,7 @@
 
 #include "DescriptorPoolSize.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(DescriptorPoolCreateInfoBuilder, VkDescriptorPoolCreateInfo,
                   VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO)

@@ -5,7 +5,7 @@
 
 #include "PhysicalDeviceFeatures.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER(DeviceCreateInfoBuilder, VkDeviceCreateInfo,
                   VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO)

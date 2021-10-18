@@ -4,13 +4,13 @@
 #include <stdexcept>
 #include <string>
 
-std::runtime_error CannotOpen(const char* const filename) {
-  return std::runtime_error(std::string("Failed to open file '") + filename +
-                            "'.");
+std::runtime_error CannotOpen(const std::string_view filename) {
+  return std::runtime_error(std::string("Failed to open file '") +
+                            filename.data() + "'.");
 }
 
-std::vector<u8> ReadFile(const char* const filename) {
-  std::ifstream file(filename, std::ios::ate | std::ios::binary);
+std::vector<u8> ReadFile(const std::string_view filename) {
+  std::ifstream file(filename.data(), std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
     throw CannotOpen(filename);
@@ -28,8 +28,9 @@ std::vector<u8> ReadFile(const char* const filename) {
 
   return buffer;
 }
-void WriteFile(const char* const filename, const std::vector<u8>& data) {
-  std::ofstream file(filename, std::ios::binary);
+
+void WriteFile(const std::string_view filename, const std::vector<u8>& data) {
+  std::ofstream file(filename.data(), std::ios::binary);
 
   if (!file.is_open()) {
     throw CannotOpen(filename);

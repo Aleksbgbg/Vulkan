@@ -6,7 +6,7 @@
 #include "ClearColorValue.h"
 #include "ClearDepthStencilValue.h"
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER_NO_STYPE(ClearValueBuilder, VkClearValue)
 STRUCTURE_SETTER(Color, VkClearColorValue, color)

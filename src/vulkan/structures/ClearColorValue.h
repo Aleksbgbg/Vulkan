@@ -4,7 +4,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "define_structure.h"
-#include "types.h"
+#include "util/types.h"
 
 STRUCTURE_BUILDER_NO_STYPE(ClearColorValueBuilder, VkClearColorValue)
 STRUCTURE_SETTER_CUSTOM_ASSIGNMENT(Float0, float, float32, float32[0])

@@ -58,8 +58,8 @@ ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
   io.Fonts->AddFontFromFileTTF("resources/SEGOEUI.TTF", textSize);
   ImFontConfig fontConfig;
   fontConfig.MergeMode = true;
-  // io.Fonts->AddFontFromFileTTF("resources/IBMPlexSansKR-Regular.ttf",
-  // textSize, &fontConfig, io.Fonts->GetGlyphRangesKorean());
+  // input.Fonts->AddFontFromFileTTF("resources/IBMPlexSansKR-Regular.ttf",
+  // textSize, &fontConfig, input.Fonts->GetGlyphRangesKorean());
   const ImWchar iconRanges[] = {0xf104, 0xf107};
   io.Fonts->AddFontFromFileTTF("resources/fontawesome-webfont.ttf", textSize,
                                &fontConfig, iconRanges);
