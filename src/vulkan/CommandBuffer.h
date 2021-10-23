@@ -81,11 +81,13 @@ class CommandBuffer {
                           Framebuffer& framebuffer) const;
   void CmdBindPipeline(const VkPipelineBindPoint bindPoint,
                        Pipeline& pipeline) const;
-  void CmdPushConstants(PipelineLayout& pipelineLayout,
+  void CmdPushConstants(const PipelineLayout& pipelineLayout,
                         const VkShaderStageFlags shaderStageFlags,
-                        const u32 offset, const u32 size, void* values) const;
-  void CmdBindVertexBuffers(Buffer& buffer, const u32 binding) const;
-  void CmdBindIndexBuffer(Buffer& buffer, const VkIndexType indexType) const;
+                        const u32 offset, const u32 size,
+                        const void* const values) const;
+  void CmdBindVertexBuffers(const Buffer& buffer, const u32 binding) const;
+  void CmdBindIndexBuffer(const Buffer& buffer,
+                          const VkIndexType indexType) const;
   void CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint,
                              const PipelineLayout& pipelineLayout,
                              const u32 firstSet, const u32 descriptorSetCount,

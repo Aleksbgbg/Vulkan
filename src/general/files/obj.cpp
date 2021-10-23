@@ -27,12 +27,12 @@ std::vector<std::string> Split(const std::string& string,
   return parts;
 }
 
-Model ModelFromObjFile(const char* const name) {
-  std::ifstream file(name);
+Model ModelFromObjFile(const std::string_view name) {
+  std::ifstream file(name.data());
 
   if (!file.is_open()) {
     throw new std::runtime_error(std::string("Could not open obj file ") +
-                                 name);
+                                 name.data());
   }
 
   std::string line;

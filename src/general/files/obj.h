@@ -2,6 +2,7 @@
 #define VULKAN_SRC_MODEL_H
 
 #include <array>
+#include <string_view>
 #include <vector>
 
 #include "util/types.h"
@@ -49,7 +50,7 @@ struct Model {
   std::vector<ModelFace> faces;
 };
 
-Model ModelFromObjFile(const char* const name);
+Model ModelFromObjFile(const std::string_view name);
 
 }  // namespace file
 

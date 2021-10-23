@@ -37,10 +37,7 @@ App::App()
       hasSwapchain(false),
       hasOldSwapchain(false),
       previousTime(std::chrono::high_resolution_clock::now()),
-      threadMessenger(),
-      modelCenter(),
-      modelPosition(),
-      moving(false) {
+      threadMessenger() {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
 
@@ -168,194 +165,10 @@ App::App()
   shortExecutionCommandBuffer =
       shortExecutionCommandPool.AllocatePrimaryCommandBuffer();
 
-  std::unordered_set<file::ModelFace> uniqueFaces;
-  std::unordered_map<TexturedVertex, u16> uniqueVertices;
-  std::vector<TexturedVertex> vertices;
-  std::vector<u16> indices;
+  const MeshLoader meshLoader(virtualDevice, deviceAllocator,
+                              shortExecutionCommandBuffer, fence);
+  spaceship = SpaceshipModel(meshLoader);
 
-  glm::vec3 corner1 = glm::vec3(0.0f, 0.0f, 0.0f);
-  glm::vec3 corner2 = glm::vec3(0.0f, 0.0f, 0.0f);
-
-  const file::Model stationaryModel =
-      file::ModelFromObjFile(SPACESHIP_STATIONARY_MODEL_FILENAME);
-
-  for (const auto& face : stationaryModel.faces) {
-    uniqueFaces.emplace(face);
-
-    for (int vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
-      file::ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
-
-      TexturedVertex vertex;
-      vertex.position.x =
-          stationaryModel.vertices[modelFaceVertex.vertexIndex].x;
-      vertex.position.y =
-          stationaryModel.vertices[modelFaceVertex.vertexIndex].y;
-      vertex.position.z =
-          stationaryModel.vertices[modelFaceVertex.vertexIndex].z;
-      vertex.textureCoordinate.x =
-          stationaryModel.textureVertices[modelFaceVertex.textureVertexIndex].u;
-      vertex.textureCoordinate.y =
-          stationaryModel.textureVertices[modelFaceVertex.textureVertexIndex].v;
-
-      if (uniqueVertices.contains(vertex)) {
-        indices.push_back(uniqueVertices[vertex]);
-      } else {
-        const u16 index = static_cast<u16>(uniqueVertices.size());
-
-        uniqueVertices.emplace(vertex, index);
-
-        vertices.push_back(vertex);
-        indices.push_back(index);
-
-        if (corner1.x < vertex.position.x) {
-          corner1.x = vertex.position.x;
-        }
-        if (corner1.y < vertex.position.y) {
-          corner1.y = vertex.position.y;
-        }
-        if (corner1.z < vertex.position.z) {
-          corner1.z = vertex.position.z;
-        }
-        if (corner2.x > vertex.position.x) {
-          corner2.x = vertex.position.x;
-        }
-        if (corner2.y > vertex.position.y) {
-          corner2.y = vertex.position.y;
-        }
-        if (corner2.z > vertex.position.z) {
-          corner2.z = vertex.position.z;
-        }
-      }
-    }
-  }
-
-  stationaryIndexCount = indices.size();
-
-  const file::Model movingModel =
-      file::ModelFromObjFile(SPACESHIP_MOVING_MODEL_FILENAME);
-
-  for (const auto& face : movingModel.faces) {
-    if (uniqueFaces.contains(face)) {
-      continue;
-    }
-
-    for (int vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
-      file::ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
-
-      TexturedVertex vertex;
-      vertex.position.x = movingModel.vertices[modelFaceVertex.vertexIndex].x;
-      vertex.position.y = movingModel.vertices[modelFaceVertex.vertexIndex].y;
-      vertex.position.z = movingModel.vertices[modelFaceVertex.vertexIndex].z;
-      vertex.textureCoordinate.x =
-          movingModel.textureVertices[modelFaceVertex.textureVertexIndex].u;
-      vertex.textureCoordinate.y =
-          movingModel.textureVertices[modelFaceVertex.textureVertexIndex].v;
-
-      if (uniqueVertices.contains(vertex)) {
-        indices.push_back(uniqueVertices[vertex]);
-      } else {
-        const u16 index = static_cast<u16>(uniqueVertices.size());
-
-        uniqueVertices.emplace(vertex, index);
-
-        vertices.push_back(vertex);
-        indices.push_back(index);
-
-        if (corner1.x < vertex.position.x) {
-          corner1.x = vertex.position.x;
-        }
-        if (corner1.y < vertex.position.y) {
-          corner1.y = vertex.position.y;
-        }
-        if (corner1.z < vertex.position.z) {
-          corner1.z = vertex.position.z;
-        }
-        if (corner2.x > vertex.position.x) {
-          corner2.x = vertex.position.x;
-        }
-        if (corner2.y > vertex.position.y) {
-          corner2.y = vertex.position.y;
-        }
-        if (corner2.z > vertex.position.z) {
-          corner2.z = vertex.position.z;
-        }
-      }
-    }
-  }
-
-  movingIndexCount = indices.size();
-
-  modelCenter = (corner1 + corner2) / 2.0f;
-  modelSize = corner1 - corner2;
-
-  vertexMemoryBuffer = TransferDataToGpuLocalMemory(
-      shortExecutionCommandBuffer, vertices.data(),
-      sizeof(vertices[0]) * vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-  indexMemoryBuffer = TransferDataToGpuLocalMemory(
-      shortExecutionCommandBuffer, indices.data(),
-      sizeof(indices[0]) * indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-
-  const file::Image bitmap = file::ReadPng(SPACESHIP_TEXTURE_FILENAME);
-
-  const float pictureWidth = static_cast<float>(bitmap.width);
-  const float pictureHeight = static_cast<float>(bitmap.height);
-
-  Buffer stagingBuffer = virtualDevice.CreateBuffer(
-      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
-          .SetSize(bitmap.size)
-          .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  DeviceMemorySubAllocation stagingBufferMemory = deviceAllocator.BindMemory(
-      stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  stagingBufferMemory.MapCopy(bitmap.data.data(), stagingBuffer.Size());
-
-  Image textureImage =
-      virtualDevice.CreateImage(ImageCreateInfoBuilder(IMAGE_2D)
-                                    .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
-                                    .SetExtent(Extent3DBuilder()
-                                                   .SetWidth(bitmap.width)
-                                                   .SetHeight(bitmap.height)
-                                                   .SetDepth(1))
-                                    .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                              VK_IMAGE_USAGE_SAMPLED_BIT));
-  DeviceMemorySubAllocation textureImageMemory = deviceAllocator.BindMemory(
-      textureImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-  shortExecutionCommandBuffer.BeginOneTimeSubmit();
-  shortExecutionCommandBuffer.CmdImageMemoryBarrier(
-      textureImage, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      ImageMemoryBarrierBuilder(IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER)
-          .SetSrcAccessMask(0)
-          .SetDstAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
-          .SetOldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-          .SetNewLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-          .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  shortExecutionCommandBuffer.CmdCopyBufferToImage(
-      stagingBuffer, textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      BufferImageCopyBuilder()
-          .SetImageSubresource(SUBRESOURCE_LAYERS_COLOR_SINGLE_LAYER)
-          .SetImageExtent(Extent3DBuilder(EXTENT3D_SINGLE_DEPTH)
-                              .SetWidth(bitmap.width)
-                              .SetHeight(bitmap.height)));
-  shortExecutionCommandBuffer.CmdImageMemoryBarrier(
-      textureImage, VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-      ImageMemoryBarrierBuilder(IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER)
-          .SetSrcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
-          .SetDstAccessMask(VK_ACCESS_SHADER_READ_BIT)
-          .SetOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-          .SetNewLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-          .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  shortExecutionCommandBuffer.End().Submit(fence).Wait().Reset();
-
-  textureView = textureImage.CreateView(
-      ImageViewCreateInfoBuilder()
-          .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
-          .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
-          .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  texture = {.image = std::move(textureImage),
-             .memory = std::move(textureImageMemory)};
   textureSampler = virtualDevice.CreateSampler(
       SamplerCreateInfoBuilder()
           .SetMagFilter(VK_FILTER_LINEAR)
@@ -716,9 +529,9 @@ void App::InitializeSwapchain() {
   viewTransformBuffer.CreateWriteDescriptorSet(viewBufferWrite);
 
   DescriptorSet::WriteDescriptorSet textureSamplerWrite;
-  textureSamplerDescriptorSet.CreateImageSamplerWrite(
-      textureView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-      textureSamplerWrite);
+  TextureRegistry textureRegistry(textureSamplerDescriptorSet, textureSampler,
+                                  textureSamplerWrite);
+  spaceship.WriteTexture(textureRegistry);
 
   std::array<VkWriteDescriptorSet, 3> descriptorSetWrites{
       projectionBufferWrite, viewBufferWrite, textureSamplerWrite};
@@ -726,14 +539,15 @@ void App::InitializeSwapchain() {
                                      descriptorSetWrites.data());
 
   for (u32 renderIndex = 0; renderIndex < swapchainImages; ++renderIndex) {
-    CommandBuffer renderPassCommandBuffer =
-        renderCommandPool.AllocatePrimaryCommandBuffer();
-
-    swapchainRenderData.emplace_back(std::move<SwapchainRenderPass>(
-        {.commandBuffer = std::move(renderPassCommandBuffer),
-         .renderCompleteSemaphore = virtualDevice.CreateSemaphore(),
-         .submitCompleteFence =
-             virtualDevice.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)}));
+    swapchainRenderData.emplace_back(SwapchainRenderPass{
+        .commandBuffer = renderCommandPool.AllocatePrimaryCommandBuffer(),
+        .renderCompleteSemaphore = virtualDevice.CreateSemaphore(),
+        .submitCompleteFence =
+            virtualDevice.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
+  }
+  for (u32 renderIndex = 0; renderIndex < swapchainImages; ++renderIndex) {
+    swapchainRenderData[renderIndex].meshRenderer = MeshRenderer(
+        swapchainRenderData[renderIndex].commandBuffer, pipeline.GetLayout());
   }
 }
 
@@ -755,7 +569,7 @@ VkBool32 App::DebugCallback(
   return VK_FALSE;
 }
 
-App::BufferWithMemory App::TransferDataToGpuLocalMemory(
+BufferWithMemory App::TransferDataToGpuLocalMemory(
     CommandBuffer& commandBuffer, const void* data, const u32 size,
     const VkBufferUsageFlags usage) {
   Buffer stagingBuffer = virtualDevice.CreateBuffer(
@@ -866,44 +680,13 @@ void App::UpdateModel(const float deltaTime) {
       .gpuName = physicalDeviceProperties.deviceName, .frametime = deltaTime});
   uiRenderer->ShowKeyboardLayout(window);
 
-  constexpr float movementSpeed = 10.0f;
+  spaceship.UpdateModel(
+      UpdateContext{.deltaTime = deltaTime, .keyboard = window.GetKeyboard()});
 
-  glm::vec3 movement(0.0f);
-  if (keyboard.IsKeyDown(SDLK_a)) {
-    movement.x = 1.0f;
-  }
-  if (keyboard.IsKeyDown(SDLK_d)) {
-    movement.x = -1.0f;
-  }
-  if (keyboard.IsKeyDown(SDLK_w)) {
-    movement.y = 1.0f;
-  }
-  if (keyboard.IsKeyDown(SDLK_s)) {
-    movement.y = -1.0f;
-  }
-  if (keyboard.IsKeyDown(SDLK_q)) {
-    movement.z = -1.0f;
-  }
-  if (keyboard.IsKeyDown(SDLK_e)) {
-    movement.z = 1.0f;
-  }
-
-  if ((std::abs(movement.x) + std::abs(movement.y) + std::abs(movement.z)) >
-      0.0f) {
-    const glm::vec3 normalizedMovement =
-        glm::normalize(movement) * movementSpeed * deltaTime;
-    modelPosition += normalizedMovement;
-
-    moving = true;
-  } else {
-    moving = false;
-  }
-
-  modelTransform.model =
-      glm::translate(glm::mat4(1.0f), modelPosition - modelCenter);
+  glm::vec3* const modelPosition = spaceship.Position();
 
   glm::mat4 cameraTransform(1.0f);
-  cameraTransform = glm::translate(cameraTransform, modelPosition);
+  cameraTransform = glm::translate(cameraTransform, *modelPosition);
 
   const bool reverseView = keyboard.IsKeyDown(SDLK_c);
 
@@ -915,23 +698,21 @@ void App::UpdateModel(const float deltaTime) {
 
   const Rectf windowRect = window.GetRect();
 
-  cameraTransform =
-      glm::rotate(cameraTransform,
-                  glm::pi<float>() * (-mouseDelta.x / windowRect.width),
-                  glm::vec3(0.0f, 1.0f, 0.0f));
-  cameraTransform =
-      glm::rotate(cameraTransform,
-                  glm::pi<float>() * (mouseDelta.y / windowRect.height),
-                  glm::vec3(1.0f, 0.0f, 0.0f));
+  cameraTransform = glm::rotate(
+      cameraTransform, glm::pi<float>() * (-mouseDelta.x / windowRect.width),
+      glm::vec3(0.0f, 1.0f, 0.0f));
+  cameraTransform = glm::rotate(
+      cameraTransform, glm::pi<float>() * (mouseDelta.y / windowRect.height),
+      glm::vec3(1.0f, 0.0f, 0.0f));
 
   if (reverseView) {
     cameraTransform = glm::rotate(cameraTransform, glm::pi<float>(),
                                   glm::vec3(0.0f, 1.0f, 0.0f));
   }
 
-  const glm::vec3 cameraLookAt = modelPosition;
+  const glm::vec3 cameraLookAt = *modelPosition;
   const glm::vec3 cameraPosition =
-      cameraTransform * glm::vec4(0.0f, 0.0f, -modelSize.z, 1.0f);
+      cameraTransform * glm::vec4(0.0f, 0.0f, -spaceship.Size().z, 1.0f);
 
   viewTransformBuffer.Value().view =
       glm::lookAt(cameraPosition, cameraLookAt, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -940,7 +721,7 @@ void App::UpdateModel(const float deltaTime) {
       ObjectsInSceneInfo{.cameraRotation = glm::vec2(0.0f, 0.0f),
                          .cameraLookAt = cameraLookAt,
                          .cameraPosition = cameraPosition,
-                         .modelPosition = &modelPosition});
+                         .modelPosition = modelPosition});
 
   uiRenderer->EndFrame();
   window.EndFrame();
@@ -996,21 +777,7 @@ void App::Render() {
     swapchainRender.commandBuffer.CmdBindDescriptorSets(
         VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 2, 1,
         textureSamplerDescriptorSet);
-    swapchainRender.commandBuffer.CmdBindVertexBuffers(
-        vertexMemoryBuffer.buffer, 0);
-    swapchainRender.commandBuffer.CmdBindIndexBuffer(indexMemoryBuffer.buffer,
-                                                     VK_INDEX_TYPE_UINT16);
-    swapchainRender.commandBuffer.CmdPushConstants(
-        pipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
-        sizeof(modelTransform), &modelTransform);
-    if (moving) {
-      swapchainRender.commandBuffer.CmdDrawIndexed(
-          movingIndexCount, /* instanceCount= */ 1);  // TODO: More instances
-    } else {
-      swapchainRender.commandBuffer.CmdDrawIndexed(
-          stationaryIndexCount,
-          /* instanceCount= */ 1);  // TODO: More instances
-    }
+    spaceship.Render(swapchainRender.meshRenderer);
     uiRenderer->Render(swapchainRender.commandBuffer);
     swapchainRender.commandBuffer.CmdEndRenderPass();
     swapchainRender.commandBuffer.End();

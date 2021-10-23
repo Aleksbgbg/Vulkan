@@ -131,21 +131,21 @@ void CommandBuffer::CmdBindPipeline(const VkPipelineBindPoint bindPoint,
   vkCmdBindPipeline(commandBuffer, bindPoint, pipeline.pipeline);
 }
 
-void CommandBuffer::CmdPushConstants(PipelineLayout& pipelineLayout,
+void CommandBuffer::CmdPushConstants(const PipelineLayout& pipelineLayout,
                                      const VkShaderStageFlags shaderStageFlags,
                                      const u32 offset, const u32 size,
-                                     void* values) const {
+                                     const void* const values) const {
   vkCmdPushConstants(commandBuffer, pipelineLayout.pipelineLayout,
                      shaderStageFlags, offset, size, values);
 }
 
-void CommandBuffer::CmdBindVertexBuffers(Buffer& buffer,
+void CommandBuffer::CmdBindVertexBuffers(const Buffer& buffer,
                                          const u32 binding) const {
   VkDeviceSize offset = 0;
   vkCmdBindVertexBuffers(commandBuffer, binding, 1, &buffer.buffer, &offset);
 }
 
-void CommandBuffer::CmdBindIndexBuffer(Buffer& buffer,
+void CommandBuffer::CmdBindIndexBuffer(const Buffer& buffer,
                                        const VkIndexType indexType) const {
   vkCmdBindIndexBuffer(commandBuffer, buffer.buffer, 0, indexType);
 }

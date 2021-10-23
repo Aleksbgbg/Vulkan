@@ -8,6 +8,9 @@
 
 #include "DynamicUniformBuffer.h"
 #include "UiRenderer.h"
+#include "game/SpaceshipModel.h"
+#include "game/rendering/BufferWithMemory.h"
+#include "game/rendering/ImageWithMemory.h"
 #include "general/animations/NormalizedOneTimeFunctionAnimation.h"
 #include "general/animations/UpAndDownGlidingAnimation.h"
 #include "general/geometry/Rect.h"
@@ -40,16 +43,6 @@ class App {
   void InitializeSwapchain();
 
  private:
-  struct BufferWithMemory {
-    Buffer buffer;
-    DeviceMemorySubAllocation memory;
-  };
-
-  struct ImageWithMemory {
-    Image image;
-    DeviceMemorySubAllocation memory;
-  };
-
   struct PerSceneData {
     alignas(16) glm::mat4 projection;
   };
@@ -110,15 +103,8 @@ class App {
   CommandPool shortExecutionCommandPool;
   CommandBuffer shortExecutionCommandBuffer;
 
-  BufferWithMemory vertexMemoryBuffer;
-  BufferWithMemory indexMemoryBuffer;
+  SpaceshipModel spaceship;
 
-  bool moving;
-  u32 stationaryIndexCount;
-  u32 movingIndexCount;
-
-  ImageWithMemory texture;
-  ImageView textureView;
   Sampler textureSampler;
 
   RenderPass renderPass;
@@ -153,16 +139,13 @@ class App {
 
   std::unique_ptr<UiRenderer> uiRenderer;
 
-  glm::vec3 modelCenter;
-  glm::vec3 modelSize;
-  glm::vec3 modelPosition;
-  PerObjectData modelTransform;
-
   BufferWithMemory projectionTransformBuffer;
   PerSceneData projectionTransform;
 
   struct SwapchainRenderPass {
     CommandBuffer commandBuffer;
+
+    MeshRenderer meshRenderer;
 
     Semaphore renderCompleteSemaphore;
     Fence submitCompleteFence;

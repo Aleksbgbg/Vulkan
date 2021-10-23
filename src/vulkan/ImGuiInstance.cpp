@@ -83,8 +83,7 @@ ImGuiInstance::~ImGuiInstance() {
 }
 
 ImGuiInstance::ImGuiInstance(ImGuiInstance&& other) noexcept
-    : window(other.window),
-      descriptorPool(std::move(other.descriptorPool)) {
+    : window(other.window), descriptorPool(std::move(other.descriptorPool)) {
   other.window = nullptr;
 }
 
