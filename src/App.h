@@ -11,9 +11,10 @@
 #include "general/animations/NormalizedOneTimeFunctionAnimation.h"
 #include "general/animations/UpAndDownGlidingAnimation.h"
 #include "general/geometry/Rect.h"
-#include "general/input/Keyboard.h"
-#include "general/input/Mouse.h"
 #include "general/threading/MultithreadedMessageQueue.h"
+#include "general/windowing/Window.h"
+#include "general/windowing/input/Keyboard.h"
+#include "general/windowing/input/Mouse.h"
 #include "memory/DeviceMemoryAllocator.h"
 #include "util/include/glm.h"
 #include "vulkan/ImGuiInstance.h"
@@ -39,13 +40,6 @@ class App {
   void InitializeSwapchain();
 
  private:
-  struct WindowInfo {
-    SDL_Window* window;
-    HINSTANCE hinstance;
-    HWND hwnd;
-    Recti rect;
-  };
-
   struct BufferWithMemory {
     Buffer buffer;
     DeviceMemorySubAllocation memory;
@@ -91,9 +85,9 @@ class App {
                 const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                 void* pUserData);
 
-  static WindowInfo InitSdl();
-
-  WindowInfo windowInfo;
+  Window window;
+  const Keyboard& keyboard;
+  const Mouse& mouse;
 
   VulkanInstance instance;
   DebugUtilsMessenger debugMessenger;
@@ -184,9 +178,6 @@ class App {
   MultithreadedMessageQueue<EventNotification> threadMessenger;
 
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
-
-  Keyboard keyboard;
-  Mouse mouse;
 };
 
 #endif  // VULKAN_SRC_APP_H

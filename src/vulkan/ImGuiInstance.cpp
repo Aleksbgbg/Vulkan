@@ -6,9 +6,9 @@
 
 #include "util/filenames.h"
 
-ImGuiInstance::ImGuiInstance() : sdlWindow(nullptr) {}
+ImGuiInstance::ImGuiInstance() : window(nullptr) {}
 
-ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
+ImGuiInstance::ImGuiInstance(const ImGuiWindow& window,
                              const VulkanInstance& instance,
                              const PhysicalDevice& physicalDevice,
                              const VirtualDevice& virtualDevice,
@@ -16,7 +16,7 @@ ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
                              CommandBuffer& temporaryCommandBuffer,
                              const Fence& fence,
                              const VkSampleCountFlagBits samples)
-    : sdlWindow(sdlWindow) {
+    : window(&window) {
   constexpr u32 poolSize = 100;
   VkDescriptorPoolSize poolSizes[] = {
       {VK_DESCRIPTOR_TYPE_SAMPLER, poolSize},
@@ -41,7 +41,7 @@ ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
   ImGui::CreateContext();
   ImGui::StyleColorsDark();
 
-  ImGui_ImplSDL2_InitForVulkan(sdlWindow);
+  window.InitImGui();
 
   ImGui_ImplVulkan_InitInfo imguiVulkanInitInfo = {};
   imguiVulkanInitInfo.Instance = instance.instance;
@@ -75,32 +75,28 @@ ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
 }
 
 ImGuiInstance::~ImGuiInstance() {
-  if (sdlWindow != nullptr) {
+  if (window != nullptr) {
     ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
+    window->ShutdownImGui();
     ImGui::DestroyContext();
   }
 }
 
 ImGuiInstance::ImGuiInstance(ImGuiInstance&& other) noexcept
-    : sdlWindow(other.sdlWindow),
+    : window(other.window),
       descriptorPool(std::move(other.descriptorPool)) {
-  other.sdlWindow = nullptr;
+  other.window = nullptr;
 }
 
 ImGuiInstance& ImGuiInstance::operator=(ImGuiInstance&& other) noexcept {
-  std::swap(sdlWindow, other.sdlWindow);
+  std::swap(window, other.window);
   descriptorPool = std::move(other.descriptorPool);
   return *this;
 }
 
-void ImGuiInstance::ProcessEvent(const SDL_Event& event) const {
-  ImGui_ImplSDL2_ProcessEvent(&event);
-}
-
 void ImGuiInstance::BeginFrame() const {
   ImGui_ImplVulkan_NewFrame();
-  ImGui_ImplSDL2_NewFrame(sdlWindow);
+  window->NewFrame();
 
   ImGui::NewFrame();
 }

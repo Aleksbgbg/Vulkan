@@ -42,10 +42,6 @@ UiRenderer::UiRenderer(Rectf windowSize, ImGuiInstance imGuiInstance)
       KeyDescription("D", SDLK_d, "increase X"));
 }
 
-void UiRenderer::ProcessEvent(const SDL_Event& event) const {
-  imGuiInstance.ProcessEvent(event);
-}
-
 void UiRenderer::BeginFrame() const {
   imGuiInstance.BeginFrame();
 }
@@ -151,7 +147,9 @@ void UiRenderer::RenderKey(Keyboard& keyboard, KeyDescription& key) {
   }
 }
 
-void UiRenderer::ShowKeyboardLayout(Keyboard& keyboard) {
+void UiRenderer::ShowKeyboardLayout(Window& window) {
+  Keyboard& keyboard = window.GetKeyboard();
+
   ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
   ImGui::Begin("Keyboard Layout", nullptr,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);

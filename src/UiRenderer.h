@@ -4,7 +4,8 @@
 #include <array>
 
 #include "general/geometry/Rect.h"
-#include "general/input/Keyboard.h"
+#include "general/windowing/Window.h"
+#include "general/windowing/input/Keyboard.h"
 #include "util/include/glm.h"
 #include "vulkan/ImGuiInstance.h"
 
@@ -26,15 +27,13 @@ class UiRenderer {
   UiRenderer() = default;
   explicit UiRenderer(Rectf windowSize, ImGuiInstance imGuiInstance);
 
-  void ProcessEvent(const SDL_Event& event) const;
-
   void BeginFrame() const;
   void EndFrame() const;
   void Render(const CommandBuffer& commandBuffer) const;
 
   void ShowVulkanDebugInfo(const VulkanDebugInfo& info);
   void ShowObjectsInScene(const ObjectsInSceneInfo& info);
-  void ShowKeyboardLayout(Keyboard& keyboard);
+  void ShowKeyboardLayout(Window& window);
 
  private:
   struct KeyDescription {

@@ -19,7 +19,6 @@
 #include "general/logging/log.h"
 #include "util/build_definition.h"
 #include "util/filenames.h"
-#include "util/include/sdl.h"
 #include "vulkan/Buffer.h"
 #include "vulkan/DescriptorPool.h"
 #include "vulkan/structures/AttachmentReference.h"
@@ -31,27 +30,10 @@
 #include "vulkan/structures/default.h"
 #include "vulkan/util.h"
 
-App::WindowInfo App::InitSdl() {
-  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-
-  Recti windowRect(50, 50, 1920, 1080);
-
-  SDL_Window* window = SDL_CreateWindow(
-      "Vulkan", windowRect.x, windowRect.y, windowRect.width, windowRect.height,
-      SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
-
-  SDL_SysWMinfo sysWmInfo;
-  SDL_VERSION(&sysWmInfo.version)
-  SDL_GetWindowWMInfo(window, &sysWmInfo);
-
-  return WindowInfo{.window = window,
-                    .hinstance = sysWmInfo.info.win.hinstance,
-                    .hwnd = sysWmInfo.info.win.window,
-                    .rect = windowRect};
-}
-
 App::App()
-    : windowInfo(InitSdl()),
+    : window(1920, 1080),
+      keyboard(window.GetKeyboard()),
+      mouse(window.GetMouse()),
       hasSwapchain(false),
       hasOldSwapchain(false),
       previousTime(std::chrono::high_resolution_clock::now()),
@@ -114,9 +96,7 @@ App::App()
           .SetPfnUserCallback(DebugCallback));
 #endif
 
-  windowSurface = instance.CreateSurface(Win32SurfaceCreateInfoBuilder()
-                                             .SetHinstance(windowInfo.hinstance)
-                                             .SetHwnd(windowInfo.hwnd));
+  windowSurface = window.CreateWindowSurface(instance);
 
   std::vector<PhysicalDevice> physicalDevices = instance.GetPhysicalDevices();
 
@@ -692,10 +672,10 @@ void App::InitializeSwapchain() {
 
   uiRenderer = nullptr;
   uiRenderer = std::make_unique<UiRenderer>(
-      windowInfo.rect,
-      ImGuiInstance(windowInfo.window, instance, targetPhysicalDevice,
-                    virtualDevice, queue, renderPass,
-                    shortExecutionCommandBuffer, fence, samples));
+      window.GetRect(),
+      ImGuiInstance(window, instance, targetPhysicalDevice, virtualDevice,
+                    queue, renderPass, shortExecutionCommandBuffer, fence,
+                    samples));
 
   const u32 swapchainImages = swapchain.GetImageCount();
   constexpr const std::array<VkDescriptorPoolSize, 3> descriptorPoolSizes{
@@ -758,7 +738,6 @@ void App::InitializeSwapchain() {
 }
 
 App::~App() {
-  SDL_Quit();
   virtualDevice.WaitIdle();
 }
 
@@ -814,53 +793,23 @@ int App::Run() {
 
 void App::MainThread() {
   while (true) {
-    SDL_Event event;
-    while (SDL_WaitEvent(&event)) {
-      uiRenderer->ProcessEvent(event);
+    switch (window.WaitAndProcessEvent()) {
+      case Window::Event::Exit:
+        threadMessenger.PostMessage(EventNotification::Unpaused);
+        threadMessenger.PostMessage(EventNotification::Exited);
+        return;
 
-      switch (event.type) {
-        case SDL_QUIT:
-          threadMessenger.PostMessage(EventNotification::Unpaused);
-          threadMessenger.PostMessage(EventNotification::Exited);
-          return;
+      case Window::Event::Minimized:
+        threadMessenger.PostMessage(EventNotification::Paused);
+        break;
 
-        case SDL_WINDOWEVENT:
-          switch (event.window.event) {
-            case SDL_WINDOWEVENT_MINIMIZED:
-              threadMessenger.PostMessage(EventNotification::Paused);
-              break;
+      case Window::Event::Restored:
+        threadMessenger.PostMessage(EventNotification::Unpaused);
+        break;
 
-            case SDL_WINDOWEVENT_RESTORED:
-              threadMessenger.PostMessage(EventNotification::Unpaused);
-              break;
-
-            case SDL_WINDOWEVENT_SIZE_CHANGED:
-              windowInfo.rect.width = event.window.data1;
-              windowInfo.rect.height = event.window.data2;
-              threadMessenger.PostMessage(EventNotification::Resized);
-              break;
-          }
-          break;
-
-        case SDL_KEYDOWN:
-          if (event.key.repeat == 0) {
-            keyboard.Keydown(event.key.keysym.sym);
-          }
-          break;
-
-        case SDL_KEYUP:
-          keyboard.Keyup(event.key.keysym.sym);
-          break;
-
-        case SDL_MOUSEMOTION:
-          mouse.Movement(event.motion);
-          break;
-
-        case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEBUTTONUP:
-          mouse.Button(event.button);
-          break;
-      }
+      case Window::Event::SizeChanged:
+        threadMessenger.PostMessage(EventNotification::Resized);
+        break;
     }
   }
 }
@@ -915,7 +864,7 @@ void App::UpdateModel(const float deltaTime) {
   uiRenderer->BeginFrame();
   uiRenderer->ShowVulkanDebugInfo(VulkanDebugInfo{
       .gpuName = physicalDeviceProperties.deviceName, .frametime = deltaTime});
-  uiRenderer->ShowKeyboardLayout(keyboard);
+  uiRenderer->ShowKeyboardLayout(window);
 
   constexpr float movementSpeed = 10.0f;
 
@@ -964,13 +913,15 @@ void App::UpdateModel(const float deltaTime) {
     mouseDelta.y = -mouseDelta.y;
   }
 
+  const Rectf windowRect = window.GetRect();
+
   cameraTransform =
       glm::rotate(cameraTransform,
-                  glm::pi<float>() * (-mouseDelta.x / windowInfo.rect.width),
+                  glm::pi<float>() * (-mouseDelta.x / windowRect.width),
                   glm::vec3(0.0f, 1.0f, 0.0f));
   cameraTransform =
       glm::rotate(cameraTransform,
-                  glm::pi<float>() * (mouseDelta.y / windowInfo.rect.height),
+                  glm::pi<float>() * (mouseDelta.y / windowRect.height),
                   glm::vec3(1.0f, 0.0f, 0.0f));
 
   if (reverseView) {
@@ -991,8 +942,8 @@ void App::UpdateModel(const float deltaTime) {
                          .cameraPosition = cameraPosition,
                          .modelPosition = &modelPosition});
 
-  keyboard.ClearPressedKeys();
   uiRenderer->EndFrame();
+  window.EndFrame();
 }
 
 void App::Render() {
