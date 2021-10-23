@@ -118,7 +118,10 @@ class App {
 
   BufferWithMemory vertexMemoryBuffer;
   BufferWithMemory indexMemoryBuffer;
-  u32 indexCount;
+
+  bool moving;
+  u32 stationaryIndexCount;
+  u32 movingIndexCount;
 
   ImageWithMemory texture;
   ImageView textureView;

@@ -1,7 +1,5 @@
 #include "App.h"
 
-#include <general/files/images/png.h>
-
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -12,10 +10,12 @@
 #include <memory>
 #include <stdexcept>
 #include <thread>
+#include <unordered_set>
 
 #include "TexturedVertex.h"
 #include "general/files/file.h"
 #include "general/files/images/bmp.h"
+#include "general/files/images/png.h"
 #include "general/files/obj.h"
 #include "util/build_definition.h"
 #include "util/filenames.h"
@@ -54,26 +54,6 @@ App::WindowInfo App::InitSdl() {
                     .rect = windowRect};
 }
 
-namespace std {
-template <>
-class hash<TexturedVertex> {
- public:
-  size_t operator()(const TexturedVertex& vertex) const {
-    size_t xHash = std::hash<u32>()(vertex.position.x);
-    size_t yHash = std::hash<u32>()(vertex.position.y);
-    size_t zHash = std::hash<u32>()(vertex.position.z);
-    size_t uHash = std::hash<u32>()(vertex.textureCoordinate.x);
-    size_t vHash = std::hash<u32>()(vertex.textureCoordinate.y);
-    return xHash ^ yHash ^ zHash ^ uHash ^ vHash;
-  }
-};
-}  // namespace std
-
-bool operator==(const TexturedVertex& left, const TexturedVertex& right) {
-  return (left.position == right.position) &&
-         (left.textureCoordinate == right.textureCoordinate);
-}
-
 App::App()
     : windowInfo(InitSdl()),
       hasSwapchain(false),
@@ -81,7 +61,8 @@ App::App()
       previousTime(std::chrono::high_resolution_clock::now()),
       threadMessenger(),
       modelCenter(),
-      modelPosition() {
+      modelPosition(),
+      moving(false) {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
 
@@ -211,9 +192,7 @@ App::App()
   shortExecutionCommandBuffer =
       shortExecutionCommandPool.AllocatePrimaryCommandBuffer();
 
-  const file::Model model =
-      file::ModelFromObjFile("resources/InterstellarRunner-Moving.obj");
-
+  std::unordered_set<file::ModelFace> uniqueFaces;
   std::unordered_map<TexturedVertex, u16> uniqueVertices;
   std::vector<TexturedVertex> vertices;
   std::vector<u16> indices;
@@ -221,18 +200,26 @@ App::App()
   glm::vec3 corner1 = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::vec3 corner2 = glm::vec3(0.0f, 0.0f, 0.0f);
 
-  for (const auto& face : model.faces) {
+  const file::Model stationaryModel =
+      file::ModelFromObjFile("resources/InterstellarRunner-Stationary.obj");
+
+  for (const auto& face : stationaryModel.faces) {
+    uniqueFaces.emplace(face);
+
     for (int vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
       file::ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
 
       TexturedVertex vertex;
-      vertex.position.x = model.vertices[modelFaceVertex.vertexIndex].x;
-      vertex.position.y = model.vertices[modelFaceVertex.vertexIndex].y;
-      vertex.position.z = model.vertices[modelFaceVertex.vertexIndex].z;
+      vertex.position.x =
+          stationaryModel.vertices[modelFaceVertex.vertexIndex].x;
+      vertex.position.y =
+          stationaryModel.vertices[modelFaceVertex.vertexIndex].y;
+      vertex.position.z =
+          stationaryModel.vertices[modelFaceVertex.vertexIndex].z;
       vertex.textureCoordinate.x =
-          model.textureVertices[modelFaceVertex.textureVertexIndex].u;
+          stationaryModel.textureVertices[modelFaceVertex.textureVertexIndex].u;
       vertex.textureCoordinate.y =
-          model.textureVertices[modelFaceVertex.textureVertexIndex].v;
+          stationaryModel.textureVertices[modelFaceVertex.textureVertexIndex].v;
 
       if (uniqueVertices.contains(vertex)) {
         indices.push_back(uniqueVertices[vertex]);
@@ -266,10 +253,64 @@ App::App()
     }
   }
 
+  stationaryIndexCount = indices.size();
+
+  const file::Model movingModel =
+      file::ModelFromObjFile("resources/InterstellarRunner-Moving.obj");
+
+  for (const auto& face : movingModel.faces) {
+    if (uniqueFaces.contains(face)) {
+      continue;
+    }
+
+    for (int vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
+      file::ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
+
+      TexturedVertex vertex;
+      vertex.position.x = movingModel.vertices[modelFaceVertex.vertexIndex].x;
+      vertex.position.y = movingModel.vertices[modelFaceVertex.vertexIndex].y;
+      vertex.position.z = movingModel.vertices[modelFaceVertex.vertexIndex].z;
+      vertex.textureCoordinate.x =
+          movingModel.textureVertices[modelFaceVertex.textureVertexIndex].u;
+      vertex.textureCoordinate.y =
+          movingModel.textureVertices[modelFaceVertex.textureVertexIndex].v;
+
+      if (uniqueVertices.contains(vertex)) {
+        indices.push_back(uniqueVertices[vertex]);
+      } else {
+        const u16 index = static_cast<u16>(uniqueVertices.size());
+
+        uniqueVertices.emplace(vertex, index);
+
+        vertices.push_back(vertex);
+        indices.push_back(index);
+
+        if (corner1.x < vertex.position.x) {
+          corner1.x = vertex.position.x;
+        }
+        if (corner1.y < vertex.position.y) {
+          corner1.y = vertex.position.y;
+        }
+        if (corner1.z < vertex.position.z) {
+          corner1.z = vertex.position.z;
+        }
+        if (corner2.x > vertex.position.x) {
+          corner2.x = vertex.position.x;
+        }
+        if (corner2.y > vertex.position.y) {
+          corner2.y = vertex.position.y;
+        }
+        if (corner2.z > vertex.position.z) {
+          corner2.z = vertex.position.z;
+        }
+      }
+    }
+  }
+
+  movingIndexCount = indices.size();
+
   modelCenter = (corner1 + corner2) / 2.0f;
   modelSize = corner1 - corner2;
-
-  indexCount = indices.size();
 
   vertexMemoryBuffer = TransferDataToGpuLocalMemory(
       shortExecutionCommandBuffer, vertices.data(),
@@ -906,6 +947,10 @@ void App::UpdateModel(const float deltaTime) {
     const glm::vec3 normalizedMovement =
         glm::normalize(movement) * movementSpeed * deltaTime;
     modelPosition += normalizedMovement;
+
+    moving = true;
+  } else {
+    moving = false;
   }
 
   modelTransform.model =
@@ -1010,8 +1055,14 @@ void App::Render() {
     swapchainRender.commandBuffer.CmdPushConstants(
         pipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
         sizeof(modelTransform), &modelTransform);
-    swapchainRender.commandBuffer.CmdDrawIndexed(
-        indexCount, /* instanceCount= */ 1);  // TODO: More instances
+    if (moving) {
+      swapchainRender.commandBuffer.CmdDrawIndexed(
+          movingIndexCount, /* instanceCount= */ 1);  // TODO: More instances
+    } else {
+      swapchainRender.commandBuffer.CmdDrawIndexed(
+          stationaryIndexCount,
+          /* instanceCount= */ 1);  // TODO: More instances
+    }
     uiRenderer->Render(swapchainRender.commandBuffer);
     swapchainRender.commandBuffer.CmdEndRenderPass();
     swapchainRender.commandBuffer.End();
