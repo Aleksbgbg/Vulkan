@@ -4,6 +4,8 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
 
+#include "util/filenames.h"
+
 ImGuiInstance::ImGuiInstance() : sdlWindow(nullptr) {}
 
 ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
@@ -55,14 +57,14 @@ ImGuiInstance::ImGuiInstance(SDL_Window* const sdlWindow,
 
   constexpr float textSize = 32.0f;
   ImGuiIO& io = ImGui::GetIO();
-  io.Fonts->AddFontFromFileTTF("resources/SEGOEUI.TTF", textSize);
+  io.Fonts->AddFontFromFileTTF(UI_FONT_FILENAME, textSize);
   ImFontConfig fontConfig;
   fontConfig.MergeMode = true;
-  // input.Fonts->AddFontFromFileTTF("resources/IBMPlexSansKR-Regular.ttf",
+  // input.Fonts->AddFontFromFileTTF(KOREAN_FONT_FILENAME,
   // textSize, &fontConfig, input.Fonts->GetGlyphRangesKorean());
   const ImWchar iconRanges[] = {0xf104, 0xf107};
-  io.Fonts->AddFontFromFileTTF("resources/fontawesome-webfont.ttf", textSize,
-                               &fontConfig, iconRanges);
+  io.Fonts->AddFontFromFileTTF(FONTAWESOME_FONT_FILENAME, textSize, &fontConfig,
+                               iconRanges);
   io.Fonts->Build();
 
   temporaryCommandBuffer.BeginOneTimeSubmit();

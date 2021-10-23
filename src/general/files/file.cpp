@@ -31,6 +31,16 @@ std::vector<u8> ReadFile(const std::string_view filename) {
   return buffer;
 }
 
+void WriteFile(const std::string_view filename, const std::string& data) {
+  std::ofstream file(filename.data());
+
+  if (!file.is_open()) {
+    throw CannotOpen(filename);
+  }
+
+  file.write(data.c_str(), data.size());
+}
+
 void WriteFile(const std::string_view filename, const std::vector<u8>& data) {
   std::ofstream file(filename.data(), std::ios::binary);
 

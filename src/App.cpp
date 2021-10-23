@@ -6,7 +6,6 @@
 #include <cmath>
 #include <cstring>
 #include <filesystem>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <thread>
@@ -17,6 +16,7 @@
 #include "general/files/images/bmp.h"
 #include "general/files/images/png.h"
 #include "general/files/obj.h"
+#include "general/logging/log.h"
 #include "util/build_definition.h"
 #include "util/filenames.h"
 #include "util/include/sdl.h"
@@ -30,10 +30,6 @@
 #include "vulkan/structures/SubpassDescription.h"
 #include "vulkan/structures/default.h"
 #include "vulkan/util.h"
-
-void Log(const std::string_view text) {
-  std::cout << text << std::endl;
-}
 
 App::WindowInfo App::InitSdl() {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
@@ -128,13 +124,13 @@ App::App()
     throw std::runtime_error("No Vulkan-enabled GPUs found on the machine.");
   }
 
-  Log(std::string("Found ") + std::to_string(physicalDevices.size()) +
-      " GPU(s):");
+  BufferedLog(std::string("Found ") + std::to_string(physicalDevices.size()) +
+              " GPU(s):");
   for (int index = 0; index < physicalDevices.size(); ++index) {
-    Log(std::string("[") + std::to_string(index) + "] " +
-        physicalDevices[index].GetProperties().deviceName);
+    BufferedLog(std::string("[") + std::to_string(index) + "] " +
+                physicalDevices[index].GetProperties().deviceName);
   }
-  Log("Selecting GPU 0 as render target.");
+  ImmediateLog("Selecting GPU 0 as render target.");
 
   targetPhysicalDevice = physicalDevices[0];
   physicalDeviceProperties = targetPhysicalDevice.GetProperties();
@@ -175,9 +171,9 @@ App::App()
           .SetPpEnabledExtensionNames(deviceExtensions.data()));
   queue = virtualDevice.GetQueue(queueFamilyIndex.value(), 0);
 
-  if (std::filesystem::exists(PipelineCacheFilename)) {
-    pipelineCache =
-        virtualDevice.LoadPipelineCache(file::ReadFile(PipelineCacheFilename));
+  if (std::filesystem::exists(PIPELINE_CACHE_FILENAME)) {
+    pipelineCache = virtualDevice.LoadPipelineCache(
+        file::ReadFile(PIPELINE_CACHE_FILENAME));
   } else {
     pipelineCache = virtualDevice.CreatePipelineCache();
   }
@@ -201,7 +197,7 @@ App::App()
   glm::vec3 corner2 = glm::vec3(0.0f, 0.0f, 0.0f);
 
   const file::Model stationaryModel =
-      file::ModelFromObjFile("resources/InterstellarRunner-Stationary.obj");
+      file::ModelFromObjFile(SPACESHIP_STATIONARY_MODEL_FILENAME);
 
   for (const auto& face : stationaryModel.faces) {
     uniqueFaces.emplace(face);
@@ -256,7 +252,7 @@ App::App()
   stationaryIndexCount = indices.size();
 
   const file::Model movingModel =
-      file::ModelFromObjFile("resources/InterstellarRunner-Moving.obj");
+      file::ModelFromObjFile(SPACESHIP_MOVING_MODEL_FILENAME);
 
   for (const auto& face : movingModel.faces) {
     if (uniqueFaces.contains(face)) {
@@ -319,7 +315,7 @@ App::App()
       shortExecutionCommandBuffer, indices.data(),
       sizeof(indices[0]) * indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
-  const file::Image bitmap = file::ReadPng("resources/InterstellarRunner.png");
+  const file::Image bitmap = file::ReadPng(SPACESHIP_TEXTURE_FILENAME);
 
   const float pictureWidth = static_cast<float>(bitmap.width);
   const float pictureHeight = static_cast<float>(bitmap.height);
@@ -776,7 +772,7 @@ VkBool32 App::DebugCallback(
     return VK_FALSE;
   }
 
-  Log(pCallbackData->pMessage);
+  ImmediateLog(pCallbackData->pMessage);
   return VK_FALSE;
 }
 
@@ -811,7 +807,8 @@ int App::Run() {
   std::thread renderThread(&App::RenderThread, this);
   MainThread();
   renderThread.join();
-  file::WriteFile(PipelineCacheFilename, pipelineCache.GetPipelineCacheData());
+  file::WriteFile(PIPELINE_CACHE_FILENAME,
+                  pipelineCache.GetPipelineCacheData());
   return 0;
 }
 
@@ -888,15 +885,15 @@ void App::RenderThread() {
             // TODO: Allow continuous render during recreation
             virtualDevice.WaitIdle();
             swapchainRenderData.clear();
-            Log("Recreating swapchain.");
+            BufferedLog("Recreating swapchain.");
             InitializeSwapchain();
-            Log("Swapchain recreated.");
+            ImmediateLog("Swapchain recreated.");
             break;
         }
       }
     }
   } catch (const std::exception& exception) {
-    Log(exception.what());
+    ImmediateLog(exception.what());
     throw;
   }
 }
@@ -1085,12 +1082,13 @@ VkSurfaceFormatKHR App::SelectSwapSurfaceFormat(
   for (const auto& format : availableFormats) {
     if ((format.format == VK_FORMAT_B8G8R8A8_SRGB) &&
         (format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)) {
-      Log("Selecting sRGB 32-bit BGRA swapchain format.");
+      BufferedLog("Selecting sRGB 32-bit BGRA swapchain format.");
       return format;
     }
   }
 
-  Log("Selecting first available swapchain format (could not find sRGB).");
+  BufferedLog(
+      "Selecting first available swapchain format (could not find sRGB).");
   return availableFormats[0];
 }
 
@@ -1103,7 +1101,7 @@ VkExtent2D App::SelectSwapExtent(
 
 VkPresentModeKHR App::SelectSwapPresentMode(
     const std::vector<VkPresentModeKHR>& availablePresentModes) {
-  Log("Selecting vertically synced swapchain present mode.");
+  BufferedLog("Selecting vertically synced swapchain present mode.");
   return VK_PRESENT_MODE_FIFO_KHR;
 }
 
