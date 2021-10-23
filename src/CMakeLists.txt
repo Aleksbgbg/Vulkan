@@ -12,8 +12,7 @@ function(copy_files GLOB_PATTERN DESTINATION)
 endfunction()
 
 function(add_shader TARGET SHADER_FULL_PATH)
-  # find_program(GLSLC glslc PATHS lib/vulkan/bin)
-  set(GLSLC ${CMAKE_SOURCE_DIR}/lib/vulkan/bin/glslc.exe)
+  find_program(GLSLC glslc PATHS ${CMAKE_SOURCE_DIR}/lib/vulkan/bin)
   get_filename_component(GLSLC ${GLSLC} ABSOLUTE)
 
   get_filename_component(SHADER ${SHADER_FULL_PATH} NAME)
@@ -75,8 +74,8 @@ link(${BINARY_NAME} ${CMAKE_SOURCE_DIR}/lib/sdl/lib/SDL2main.lib)
 link(${BINARY_NAME} ${CMAKE_SOURCE_DIR}/lib/sdl/lib/SDL2.lib)
 link(${BINARY_NAME} ${CMAKE_SOURCE_DIR}/lib/vulkan/lib/vulkan-1.lib)
 
-copy_files(${CMAKE_SOURCE_DIR}/lib/sdl/bin/* ${CMAKE_CURRENT_BINARY_DIR})
-copy_files(${CMAKE_SOURCE_DIR}/resources/* ${CMAKE_CURRENT_BINARY_DIR}/resources)
+add_files_to_output(${CMAKE_SOURCE_DIR}/lib/sdl/bin .)
+add_files_to_output(${CMAKE_SOURCE_DIR}/resources resources)
 
 add_shader(${BINARY_NAME} shaders/textured_cube.frag)
 add_shader(${BINARY_NAME} shaders/textured_cube.vert)

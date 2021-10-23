@@ -8,7 +8,6 @@
 #include <cmath>
 #include <cstring>
 #include <filesystem>
-#include <format>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -148,10 +147,11 @@ App::App()
     throw std::runtime_error("No Vulkan-enabled GPUs found on the machine.");
   }
 
-  Log(std::format("Found {} GPU(s):", physicalDevices.size()));
+  Log(std::string("Found ") + std::to_string(physicalDevices.size()) +
+      " GPU(s):");
   for (int index = 0; index < physicalDevices.size(); ++index) {
-    Log(std::format("[{}] {}", index,
-                    physicalDevices[index].GetProperties().deviceName));
+    Log(std::string("[") + std::to_string(index) + "] " +
+        physicalDevices[index].GetProperties().deviceName);
   }
   Log("Selecting GPU 0 as render target.");
 
@@ -212,7 +212,7 @@ App::App()
       shortExecutionCommandPool.AllocatePrimaryCommandBuffer();
 
   const file::Model model =
-      file::ModelFromObjFile("resources/InterstellarRunner.obj");
+      file::ModelFromObjFile("resources/InterstellarRunner-Moving.obj");
 
   std::unordered_map<TexturedVertex, u16> uniqueVertices;
   std::vector<TexturedVertex> vertices;

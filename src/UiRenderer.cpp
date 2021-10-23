@@ -2,7 +2,6 @@
 
 #include <imgui.h>
 
-#include <format>
 #include <string>
 
 #include "util/build_definition.h"
