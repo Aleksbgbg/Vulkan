@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <string>
 
+namespace file {
+
 std::runtime_error CannotOpen(const std::string_view filename) {
   return std::runtime_error(std::string("Failed to open file '") +
                             filename.data() + "'.");
@@ -38,3 +40,5 @@ void WriteFile(const std::string_view filename, const std::vector<u8>& data) {
 
   file.write(reinterpret_cast<const char*>(data.data()), data.size());
 }
+
+}  // namespace file

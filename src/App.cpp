@@ -196,7 +196,7 @@ App::App()
 
   if (std::filesystem::exists(PipelineCacheFilename)) {
     pipelineCache =
-        virtualDevice.LoadPipelineCache(ReadFile(PipelineCacheFilename));
+        virtualDevice.LoadPipelineCache(file::ReadFile(PipelineCacheFilename));
   } else {
     pipelineCache = virtualDevice.CreatePipelineCache();
   }
@@ -211,8 +211,8 @@ App::App()
   shortExecutionCommandBuffer =
       shortExecutionCommandPool.AllocatePrimaryCommandBuffer();
 
-  const obj::Model model =
-      obj::ModelFromObjFile("resources/InterstellarRunner.obj");
+  const file::Model model =
+      file::ModelFromObjFile("resources/InterstellarRunner.obj");
 
   std::unordered_map<TexturedVertex, u16> uniqueVertices;
   std::vector<TexturedVertex> vertices;
@@ -223,7 +223,7 @@ App::App()
 
   for (const auto& face : model.faces) {
     for (int vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
-      obj::ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
+      file::ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
 
       TexturedVertex vertex;
       vertex.position.x = model.vertices[modelFaceVertex.vertexIndex].x;
@@ -278,7 +278,7 @@ App::App()
       shortExecutionCommandBuffer, indices.data(),
       sizeof(indices[0]) * indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
-  const ImageBits bitmap = ReadPng("resources/InterstellarRunner.png");
+  const file::Image bitmap = file::ReadPng("resources/InterstellarRunner.png");
 
   const float pictureWidth = static_cast<float>(bitmap.width);
   const float pictureHeight = static_cast<float>(bitmap.height);
@@ -770,7 +770,7 @@ int App::Run() {
   std::thread renderThread(&App::RenderThread, this);
   MainThread();
   renderThread.join();
-  WriteFile(PipelineCacheFilename, pipelineCache.GetPipelineCacheData());
+  file::WriteFile(PipelineCacheFilename, pipelineCache.GetPipelineCacheData());
   return 0;
 }
 

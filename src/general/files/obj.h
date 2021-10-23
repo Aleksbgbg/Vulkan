@@ -6,7 +6,7 @@
 
 #include "util/types.h"
 
-namespace obj {
+namespace file {
 
 struct ModelVertex {
   float x;
@@ -36,6 +36,6 @@ struct Model {
 
 Model ModelFromObjFile(const char* const name);
 
-}  // namespace obj
+}  // namespace file
 
 #endif  // VULKAN_SRC_MODEL_H

@@ -3,8 +3,12 @@
 
 #include <string_view>
 
-#include "ImageBits.h"
+#include "Image.h"
 
-ImageBits ReadPng(const std::string_view path);
+namespace file {
+
+Image ReadPng(const std::string_view path);
+
+}  // namespace file
 
 #endif  // VULKAN_SRC_GENERAL_FILES_PNG_H

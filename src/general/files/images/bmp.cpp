@@ -4,6 +4,8 @@
 
 #include "general/files/file.h"
 
+namespace file {
+
 #pragma pack(push, r1, 1)
 struct BitmapHeader {
   struct {
@@ -42,17 +44,18 @@ struct BitmapHeader {
 };
 #pragma pack(pop, r1)
 
-ImageBits ReadBitmap(const std::string_view path) {
+Image ReadBitmap(const std::string_view path) {
   const std::vector<u8> fileData = ReadFile(path);
 
   const BitmapHeader bitmapHeader =
       *reinterpret_cast<const BitmapHeader*>(fileData.data());
 
-  ImageBits bitmap;
+  Image bitmap;
   bitmap.width = bitmapHeader.infoHeader.imageWidth;
   bitmap.height = bitmapHeader.infoHeader.imageHeight;
   bitmap.bytesPerPixel = bitmapHeader.infoHeader.bitsPerPixel / 8;
-  bitmap.size = bitmap.width * bitmap.height * bitmap.bytesPerPixel;
+  bitmap.scanlineSize = bitmap.width * bitmap.bytesPerPixel;
+  bitmap.size = bitmap.scanlineSize * bitmap.height;
   bitmap.data = std::vector<u8>(bitmap.size);
 
   if ((bitmapHeader.infoHeader.bitsPerPixel != 32) || (bitmap.height < 0)) {
@@ -88,3 +91,5 @@ ImageBits ReadBitmap(const std::string_view path) {
 
   return bitmap;
 }
+
+}  // namespace file

@@ -6,6 +6,12 @@
 #include "general/algorithms/HuffmanTree.h"
 #include "general/files/file.h"
 
+namespace file {
+
+#define BYTES_TO_INT(bytes)                                            \
+  ((((bytes)[0]) << 24) | (((bytes)[1]) << 16) | (((bytes)[2]) << 8) | \
+   ((bytes)[3]))
+
 struct LengthCodeInfo {
   u32 bits;
   u32 baseLength;
@@ -146,7 +152,7 @@ class ByteStreamReader {
 
   u32 ReadInt() {
     const u8* const bytes = ReadBytes(4);
-    return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+    return BYTES_TO_INT(bytes);
   }
 
   MarkedPosition MarkPosition(const u32 offset) const {
@@ -430,15 +436,10 @@ void DecompressZlib(ByteStreamReader& streamReader,
 
 class UnboundedScanlineReadWriter {
  public:
-  UnboundedScanlineReadWriter(ImageBits& image)
-      : image(image), scanlineSize(image.width * image.bytesPerPixel) {}
-
-  u32 ScanlineSize() const {
-    return scanlineSize;
-  }
+  UnboundedScanlineReadWriter(Image& image) : image(image) {}
 
   void Copy(const u32 scanline, const u8* const data) const {
-    std::memcpy(ScanlineData(scanline), data, scanlineSize);
+    std::memcpy(ScanlineData(scanline), data, image.scanlineSize);
   }
 
   void WriteByte(const u32 scanline, const i32 byte, const u8 value) const {
@@ -455,17 +456,16 @@ class UnboundedScanlineReadWriter {
 
  private:
   u8* ScanlineData(const u32 scanline) const {
-    return image.data.data() + (scanline * scanlineSize);
+    return image.data.data() + (scanline * image.scanlineSize);
   }
 
  private:
-  ImageBits& image;
-  u32 scanlineSize;
+  Image& image;
 };
 
 class PngDefilter {
  public:
-  PngDefilter(ImageBits& image, const std::vector<u8> filteredData)
+  PngDefilter(Image& image, const std::vector<u8> filteredData)
       : image(image),
         filteredData(std::move(filteredData)),
         source(this->filteredData.data()),
@@ -489,7 +489,7 @@ class PngDefilter {
           throw std::runtime_error("Unsupported PNG filter type on scanline");
       }
 
-      source += scanlineReadWriter.ScanlineSize();
+      source += image.scanlineSize;
     }
   }
 
@@ -499,7 +499,7 @@ class PngDefilter {
   }
 
   void DecodeSubFilter(const u32 scanline) const {
-    for (u32 byte = 0; byte < scanlineReadWriter.ScanlineSize(); ++byte) {
+    for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
       scanlineReadWriter.WriteByte(
           scanline, byte,
           source[byte] + scanlineReadWriter.ReadByte(
@@ -508,24 +508,21 @@ class PngDefilter {
   }
 
  private:
-  ImageBits& image;
+  Image& image;
   std::vector<u8> filteredData;
   u8* source;
   UnboundedScanlineReadWriter scanlineReadWriter;
 };
-
-#define BYTES_TO_INT(byte0, byte1, byte2, byte3) \
-  (((byte0) << 24) | ((byte1) << 16) | ((byte2) << 8) | ((byte3)))
 
 class PngReader {
  public:
   PngReader(const std::string_view path)
       : pngData(ReadFile(path)),
         streamReader(pngData.data()),
-        imageBits(),
+        image(),
         compressedData() {}
 
-  ImageBits Read() {
+  Image Read() {
     if (!IsValidSignature()) {
       throw std::runtime_error("Not a valid PNG image");
     }
@@ -538,8 +535,8 @@ class PngReader {
           break;
 
         case ChunkType::IHDR: {
-          imageBits.width = streamReader.ReadInt();
-          imageBits.height = streamReader.ReadInt();
+          image.width = streamReader.ReadInt();
+          image.height = streamReader.ReadInt();
           const u8 bitDepth = streamReader.ReadByte();
           const u8 colourType = streamReader.ReadByte();
           const u8 compressionMethod = streamReader.ReadByte();
@@ -566,10 +563,10 @@ class PngReader {
             throw std::runtime_error("Unsupported PNG interlace method");
           }
 
-          imageBits.bytesPerPixel = (bitDepth / 8) * 4;
-          imageBits.size =
-              imageBits.bytesPerPixel * imageBits.width * imageBits.height;
-          imageBits.data.resize(imageBits.size);
+          image.bytesPerPixel = (bitDepth / 8) * 4;
+          image.scanlineSize = image.bytesPerPixel * image.width;
+          image.size = image.scanlineSize * image.height;
+          image.data.resize(image.size);
         } break;
 
         case ChunkType::PLTE:
@@ -581,14 +578,13 @@ class PngReader {
 
         case ChunkType::IEND:
           ByteStreamReader dataStreamReader(compressedData.data());
-          std::vector<u8> filteredData((imageBits.width + 1) *
-                                       imageBits.height *
-                                       imageBits.bytesPerPixel);
+          std::vector<u8> filteredData((image.width + 1) * image.height *
+                                       image.bytesPerPixel);
           ByteStreamReadWriter decompressedStreamReadWriter(
               filteredData.data());
           DecompressZlib(dataStreamReader, decompressedStreamReadWriter);
-          PngDefilter(imageBits, filteredData).Run();
-          return imageBits;
+          PngDefilter(image, filteredData).Run();
+          return image;
       }
 
       streamReader.Jump(chunk.end);
@@ -627,7 +623,7 @@ class PngReader {
   }
 
   static u32 ChunkNameToInt(const char* const name) {
-    return BYTES_TO_INT(name[0], name[1], name[2], name[3]);
+    return BYTES_TO_INT(name);
   }
 
   static ChunkType DetermineChunkType(const u32 chunk) {
@@ -665,9 +661,11 @@ class PngReader {
   std::vector<u8> pngData;
   ByteStreamReader streamReader;
   std::vector<u8> compressedData;
-  ImageBits imageBits;
+  Image image;
 };
 
-ImageBits ReadPng(const std::string_view path) {
+Image ReadPng(const std::string_view path) {
   return PngReader(path).Read();
 }
+
+}  // namespace file

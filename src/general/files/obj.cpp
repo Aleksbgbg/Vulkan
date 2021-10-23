@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string>
 
-namespace obj {
+namespace file {
 
 std::vector<std::string> Split(const std::string& string,
                                const std::string_view delimiter) {
@@ -79,4 +79,4 @@ Model ModelFromObjFile(const char* const name) {
   return model;
 }
 
-}  // namespace obj
+}  // namespace file

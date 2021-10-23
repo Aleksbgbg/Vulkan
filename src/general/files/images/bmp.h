@@ -3,8 +3,12 @@
 
 #include <string_view>
 
-#include "ImageBits.h"
+#include "Image.h"
 
-ImageBits ReadBitmap(const std::string_view path);
+namespace file {
+
+Image ReadBitmap(const std::string_view path);
+
+}  // namespace file
 
 #endif  // VULKAN_SRC_READ_BITMAP_H

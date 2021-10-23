@@ -48,7 +48,7 @@ Swapchain VirtualDevice::CreateSwapchain(
 
 ShaderModule VirtualDevice::LoadShader(const VkShaderStageFlagBits stage,
                                        const char* const shaderFilename) const {
-  const std::vector<u8> code = ReadFile(shaderFilename);
+  const std::vector<u8> code = file::ReadFile(shaderFilename);
   return ShaderModule(device, stage,
                       ShaderModuleCreateInfoBuilder()
                           .SetCodeSize(code.size())
