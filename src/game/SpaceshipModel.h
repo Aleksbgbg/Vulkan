@@ -2,21 +2,21 @@
 #define VULKAN_SRC_GAME_SPACESHIPMODEL_H
 
 #include "game/Actor.h"
-#include "game/rendering/resources/MeshLoader.h"
+#include "game/rendering/resources/Mesh.h"
 #include "util/include/glm.h"
 
-class SpaceshipModel : public Actor {
+class SpaceshipModel {
  public:
   SpaceshipModel() = default;
-  SpaceshipModel(const MeshLoader& meshLoader);
+  SpaceshipModel(Mesh mesh);
 
-  glm::vec3* Position() override;
-  glm::vec3 Size() const override;
+  glm::vec3* Position();
+  glm::vec3 Size() const;
 
-  void WriteTexture(TextureRegistry& textureRegistry) const override;
+  void WriteTexture(TextureRegistry& textureRegistry) const;
 
-  void UpdateModel(const UpdateContext& context) override;
-  void Render(const MeshRenderer& renderer) const override;
+  void Move(const glm::vec3 movement, const float deltaTime);
+  void Render(const MeshRenderer& renderer) const;
 
  private:
   Mesh mesh;

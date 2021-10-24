@@ -12,6 +12,7 @@
 #include <unordered_set>
 
 #include "TexturedVertex.h"
+#include "game/rendering/resources/MeshLoader.h"
 #include "general/files/file.h"
 #include "general/files/images/bmp.h"
 #include "general/files/images/png.h"
@@ -167,7 +168,15 @@ App::App()
 
   const MeshLoader meshLoader(virtualDevice, deviceAllocator,
                               shortExecutionCommandBuffer, fence);
-  spaceship = SpaceshipModel(meshLoader);
+
+  player = Player(meshLoader.LoadMesh(MeshLoadParams{
+      .frames = {MeshFrameLoadParams{.model =
+                                         SPACESHIP_STATIONARY_MODEL_FILENAME},
+                 MeshFrameLoadParams{.model = SPACESHIP_MOVING_MODEL_FILENAME}},
+      .texture = SPACESHIP_TEXTURE_FILENAME}));
+  npc = Npc(meshLoader.LoadMesh(MeshLoadParams{
+      .frames = {MeshFrameLoadParams{.model = NPC_SPACESHIP_MODEL_FILENAME}},
+      .texture = NPC_SPACESHIP_TEXTURE_FILENAME}));
 
   textureSampler = virtualDevice.CreateSampler(
       SamplerCreateInfoBuilder()
@@ -409,12 +418,20 @@ void App::InitializeSwapchain() {
           .SetDescriptorCount(1)
           .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
           .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
-  textureSamplerDescriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
-      DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
-          &textureSamplerLayoutBinding));
+  playerTextureSamplerDescriptorSetLayout =
+      virtualDevice.CreateDescriptorSetLayout(
+          DescriptorSetLayoutCreateInfoBuilder()
+              .SetBindingCount(1)
+              .SetPBindings(&textureSamplerLayoutBinding));
+  npcTextureSamplerDescriptorSetLayout =
+      virtualDevice.CreateDescriptorSetLayout(
+          DescriptorSetLayoutCreateInfoBuilder()
+              .SetBindingCount(1)
+              .SetPBindings(&textureSamplerLayoutBinding));
   const std::vector<const DescriptorSetLayout*> descriptorSetLayouts = {
       &perSceneDescriptorSetLayout, &perFrameDescriptorSetLayout,
-      &textureSamplerDescriptorSetLayout};
+      &playerTextureSamplerDescriptorSetLayout,
+      &npcTextureSamplerDescriptorSetLayout};
   const std::array<VkPushConstantRange, 1> pushConstantsRanges = {
       PushConstantRangeBuilder()
           .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
@@ -491,7 +508,7 @@ void App::InitializeSwapchain() {
                     samples));
 
   const u32 swapchainImages = swapchain.GetImageCount();
-  constexpr const std::array<VkDescriptorPoolSize, 3> descriptorPoolSizes{
+  constexpr const std::array<VkDescriptorPoolSize, 4> descriptorPoolSizes{
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
           .SetDescriptorCount(1),
@@ -501,16 +518,21 @@ void App::InitializeSwapchain() {
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
           .SetDescriptorCount(1),
+      DescriptorPoolSizeBuilder()
+          .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+          .SetDescriptorCount(1),
   };
   descriptorPool = virtualDevice.CreateDescriptorPool(
       DescriptorPoolCreateInfoBuilder()
           .SetPoolSizeCount(descriptorPoolSizes.size())
           .SetPPoolSizes(descriptorPoolSizes.data())
-          .SetMaxSets(3));
+          .SetMaxSets(4));
   sceneDescriptorSet =
       descriptorPool.AllocateDescriptorSet(perSceneDescriptorSetLayout);
-  textureSamplerDescriptorSet =
-      descriptorPool.AllocateDescriptorSet(textureSamplerDescriptorSetLayout);
+  playerTextureSamplerDescriptorSet = descriptorPool.AllocateDescriptorSet(
+      playerTextureSamplerDescriptorSetLayout);
+  npcTextureSamplerDescriptorSet = descriptorPool.AllocateDescriptorSet(
+      npcTextureSamplerDescriptorSetLayout);
 
   viewTransformBuffer = DynamicUniformBuffer<PerFrameData>(
       swapchainImages, physicalDeviceProperties.limits, descriptorPool,
@@ -528,13 +550,23 @@ void App::InitializeSwapchain() {
   DescriptorSet::WriteDescriptorSet viewBufferWrite;
   viewTransformBuffer.CreateWriteDescriptorSet(viewBufferWrite);
 
-  DescriptorSet::WriteDescriptorSet textureSamplerWrite;
-  TextureRegistry textureRegistry(textureSamplerDescriptorSet, textureSampler,
-                                  textureSamplerWrite);
-  spaceship.WriteTexture(textureRegistry);
+  DescriptorSet::WriteDescriptorSet playerTextureWrite;
+  {
+    TextureRegistry textureRegistry(playerTextureSamplerDescriptorSet,
+                                    textureSampler, playerTextureWrite);
+    player.WriteTexture(textureRegistry);
+  }
 
-  std::array<VkWriteDescriptorSet, 3> descriptorSetWrites{
-      projectionBufferWrite, viewBufferWrite, textureSamplerWrite};
+  DescriptorSet::WriteDescriptorSet npcTextureWrite;
+  {
+    TextureRegistry textureRegistry(npcTextureSamplerDescriptorSet,
+                                    textureSampler, npcTextureWrite);
+    npc.WriteTexture(textureRegistry);
+  }
+
+  std::array<VkWriteDescriptorSet, 4> descriptorSetWrites{
+      projectionBufferWrite, viewBufferWrite, playerTextureWrite,
+      npcTextureWrite};
   virtualDevice.UpdateDescriptorSets(descriptorSetWrites.size(),
                                      descriptorSetWrites.data());
 
@@ -680,10 +712,13 @@ void App::UpdateModel(const float deltaTime) {
       .gpuName = physicalDeviceProperties.deviceName, .frametime = deltaTime});
   uiRenderer->ShowKeyboardLayout(window);
 
-  spaceship.UpdateModel(
-      UpdateContext{.deltaTime = deltaTime, .keyboard = window.GetKeyboard()});
+  const UpdateContext updateContext{.deltaTime = deltaTime,
+                                    .keyboard = window.GetKeyboard()};
 
-  glm::vec3* const modelPosition = spaceship.Position();
+  player.UpdateModel(updateContext);
+  npc.UpdateModel(updateContext);
+
+  glm::vec3* const modelPosition = player.Position();
 
   glm::mat4 cameraTransform(1.0f);
   cameraTransform = glm::translate(cameraTransform, *modelPosition);
@@ -712,7 +747,7 @@ void App::UpdateModel(const float deltaTime) {
 
   const glm::vec3 cameraLookAt = *modelPosition;
   const glm::vec3 cameraPosition =
-      cameraTransform * glm::vec4(0.0f, 0.0f, -spaceship.Size().z, 1.0f);
+      cameraTransform * glm::vec4(0.0f, 0.0f, -player.Size().z, 1.0f);
 
   viewTransformBuffer.Value().view =
       glm::lookAt(cameraPosition, cameraLookAt, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -774,10 +809,16 @@ void App::Render() {
         sceneDescriptorSet);
     viewTransformBuffer.BindDescriptorSets(swapchainRender.commandBuffer,
                                            pipeline.GetLayout(), 1, imageIndex);
+
     swapchainRender.commandBuffer.CmdBindDescriptorSets(
         VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 2, 1,
-        textureSamplerDescriptorSet);
-    spaceship.Render(swapchainRender.meshRenderer);
+        playerTextureSamplerDescriptorSet);
+    player.Render(swapchainRender.meshRenderer);
+    swapchainRender.commandBuffer.CmdBindDescriptorSets(
+        VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 2, 1,
+        npcTextureSamplerDescriptorSet);
+    npc.Render(swapchainRender.meshRenderer);
+
     uiRenderer->Render(swapchainRender.commandBuffer);
     swapchainRender.commandBuffer.CmdEndRenderPass();
     swapchainRender.commandBuffer.End();

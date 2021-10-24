@@ -21,5 +21,5 @@ void Mesh::WriteTexture(TextureRegistry& textureRegistry) const {
 }
 
 void Mesh::LoadFrame(const u32 frame) {
-  selectedFrame = frame;
+  selectedFrame = std::min(frame, static_cast<u32>(meshFrames.size() - 1));
 }

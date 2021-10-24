@@ -8,6 +8,8 @@
 
 #include "DynamicUniformBuffer.h"
 #include "UiRenderer.h"
+#include "game/Npc.h"
+#include "game/Player.h"
 #include "game/SpaceshipModel.h"
 #include "game/rendering/BufferWithMemory.h"
 #include "game/rendering/ImageWithMemory.h"
@@ -103,7 +105,8 @@ class App {
   CommandPool shortExecutionCommandPool;
   CommandBuffer shortExecutionCommandBuffer;
 
-  SpaceshipModel spaceship;
+  Player player;
+  Npc npc;
 
   Sampler textureSampler;
 
@@ -127,13 +130,16 @@ class App {
 
   DescriptorSetLayout perSceneDescriptorSetLayout;
   DescriptorSetLayout perFrameDescriptorSetLayout;
-  DescriptorSetLayout textureSamplerDescriptorSetLayout;
+
+  DescriptorSetLayout playerTextureSamplerDescriptorSetLayout;
+  DescriptorSetLayout npcTextureSamplerDescriptorSetLayout;
 
   Pipeline pipeline;
 
   DescriptorPool descriptorPool;
   DescriptorSet sceneDescriptorSet;
-  DescriptorSet textureSamplerDescriptorSet;
+  DescriptorSet playerTextureSamplerDescriptorSet;
+  DescriptorSet npcTextureSamplerDescriptorSet;
 
   DynamicUniformBuffer<PerFrameData> viewTransformBuffer;
 
