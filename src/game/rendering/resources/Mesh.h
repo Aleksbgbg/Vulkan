@@ -5,6 +5,7 @@
 
 #include "game/rendering/BufferWithMemory.h"
 #include "game/rendering/ImageWithMemory.h"
+#include "game/rendering/Texture.h"
 #include "game/rendering/resources/TextureRegistry.h"
 #include "util/include/glm.h"
 #include "util/types.h"
@@ -19,9 +20,8 @@ class Mesh {
  public:
   Mesh() = default;
   Mesh(BufferWithMemory vertexBuffer, BufferWithMemory indexBuffer,
-       ImageWithMemory texture, ImageView textureView,
-       std::vector<MeshFrame> meshFrames, glm::vec3 modelCenter,
-       glm::vec3 modelSize);
+       Texture texture, Texture emissive, std::vector<MeshFrame> meshFrames,
+       glm::vec3 modelCenter, glm::vec3 modelSize);
 
   glm::vec3 Size() const;
 
@@ -33,8 +33,8 @@ class Mesh {
   BufferWithMemory vertexBuffer;
   BufferWithMemory indexBuffer;
 
-  ImageWithMemory texture;
-  ImageView textureView;
+  Texture texture;
+  Texture emissive;
 
   std::vector<MeshFrame> meshFrames;
 

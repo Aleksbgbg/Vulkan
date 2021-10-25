@@ -30,3 +30,16 @@ TEST(ReadPngTest, ReadsLargePng) {
   ASSERT_EQ(expectedImage.size, actualImage.size);
   ASSERT_EQ(expectedImage.data, actualImage.data);
 }
+
+TEST(ReadPngTest, ReadsPngUsingPaethAndSubFilters) {
+  const file::Image expectedImage = file::ReadBitmap("data/images/Nebula.bmp");
+
+  const file::Image actualImage = file::ReadPng("data/images/Nebula.png");
+
+  ASSERT_EQ(expectedImage.width, actualImage.width);
+  ASSERT_EQ(expectedImage.height, actualImage.height);
+  ASSERT_EQ(expectedImage.bytesPerPixel, actualImage.bytesPerPixel);
+  ASSERT_EQ(expectedImage.scanlineSize, actualImage.scanlineSize);
+  ASSERT_EQ(expectedImage.size, actualImage.size);
+  ASSERT_EQ(expectedImage.data, actualImage.data);
+}

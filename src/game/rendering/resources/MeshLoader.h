@@ -15,7 +15,9 @@ struct MeshFrameLoadParams {
 
 struct MeshLoadParams {
   std::vector<MeshFrameLoadParams> frames;
+
   std::string_view texture;
+  std::string_view emissive;
 };
 
 class MeshLoader {
@@ -27,6 +29,7 @@ class MeshLoader {
   Mesh LoadMesh(const MeshLoadParams& params) const;
 
  private:
+  Texture LoadTexture(const std::string_view filename) const;
   BufferWithMemory AllocateDeviceBuffer(const void* const data,
                                         const std::size_t size,
                                         const VkBufferUsageFlags usage) const;

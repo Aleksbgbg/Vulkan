@@ -15,6 +15,12 @@ struct ModelVertex {
   float z;
 };
 
+struct ModelNormalVertex {
+  float x;
+  float y;
+  float z;
+};
+
 struct ModelTextureVertex {
   float u;
   float v;
@@ -23,10 +29,12 @@ struct ModelTextureVertex {
 struct ModelFaceVertex {
   bool operator==(const ModelFaceVertex other) const {
     return (vertexIndex == other.vertexIndex) &&
+           (normalVertexIndex == other.normalVertexIndex) &&
            (textureVertexIndex == other.textureVertexIndex);
   }
 
   u32 vertexIndex;
+  u32 normalVertexIndex;
   u32 textureVertexIndex;
 };
 
@@ -46,7 +54,9 @@ struct ModelFace {
 
 struct Model {
   std::vector<ModelVertex> vertices;
+  std::vector<ModelNormalVertex> normalVertices;
   std::vector<ModelTextureVertex> textureVertices;
+
   std::vector<ModelFace> faces;
 };
 
@@ -61,6 +71,7 @@ class hash<file::ModelFaceVertex> {
  public:
   size_t operator()(const file::ModelFaceVertex faceVertex) const {
     return std::hash<u32>()(faceVertex.vertexIndex) ^
+           std::hash<u32>()(faceVertex.normalVertexIndex) ^
            std::hash<u32>()(faceVertex.textureVertexIndex);
   }
 };

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <stdexcept>
+#include <string>
 
 #include "general/algorithms/HuffmanTree.h"
 #include "general/files/file.h"
@@ -485,8 +486,17 @@ class PngDefilter {
           DecodeSubFilter(scanline);
           break;
 
+        case 3:
+          DecodeAverageFilter(scanline);
+          break;
+
+        case 4:
+          DecodePaethFilter(scanline);
+          break;
+
         default:
-          throw std::runtime_error("Unsupported PNG filter type on scanline");
+          throw std::runtime_error("Unsupported PNG filter type on scanline (" +
+                                   std::to_string(filterType) + ")");
       }
 
       source += image.scanlineSize;
@@ -500,11 +510,63 @@ class PngDefilter {
 
   void DecodeSubFilter(const u32 scanline) const {
     for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
-      scanlineReadWriter.WriteByte(
-          scanline, byte,
-          source[byte] + scanlineReadWriter.ReadByte(
-                             scanline, byte - image.bytesPerPixel));
+      const u8 outputByte = source[byte] + ReadPixelA(scanline, byte);
+      scanlineReadWriter.WriteByte(scanline, byte, outputByte);
     }
+  }
+
+  void DecodeAverageFilter(const u32 scanline) const {
+    for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
+      const u8 a = ReadPixelA(scanline, byte);
+      const u8 b = ReadPixelB(scanline, byte);
+
+      const u8 outputByte = source[byte] + static_cast<u8>((a + b) / 2.0f);
+
+      scanlineReadWriter.WriteByte(scanline, byte, outputByte);
+    }
+  }
+
+  void DecodePaethFilter(const u32 scanline) const {
+    for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
+      const u8 a = ReadPixelA(scanline, byte);
+      const u8 b = ReadPixelB(scanline, byte);
+      const u8 c = ReadPixelC(scanline, byte);
+
+      const u8 outputByte = source[byte] + PaethPredictor(a, b, c);
+
+      scanlineReadWriter.WriteByte(scanline, byte, outputByte);
+    }
+  }
+
+  u8 ReadPixelA(const u32 scanline, const u32 byte) const {
+    return scanlineReadWriter.ReadByte(scanline, byte - image.bytesPerPixel);
+  }
+
+  u8 ReadPixelB(const u32 scanline, const u32 byte) const {
+    return scanlineReadWriter.ReadByte(scanline - 1, byte);
+  }
+
+  u8 ReadPixelC(const u32 scanline, const u32 byte) const {
+    return scanlineReadWriter.ReadByte(scanline - 1,
+                                       byte - image.bytesPerPixel);
+  }
+
+  static u8 PaethPredictor(const u8 a, const u8 b, const u8 c) {
+    const u8 p = a + b - c;
+
+    const u8 pa = std::abs(p - a);
+    const u8 pb = std::abs(p - b);
+    const u8 pc = std::abs(p - c);
+
+    if ((pa <= pb) && (pa <= pc)) {
+      return a;
+    }
+
+    if (pb <= pc) {
+      return b;
+    }
+
+    return c;
   }
 
  private:

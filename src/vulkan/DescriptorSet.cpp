@@ -23,6 +23,14 @@ void DescriptorSet::CreateImageSamplerWrite(
     const ImageView& samplerImageView, const Sampler& sampler,
     const VkImageLayout imageLayout,
     DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const {
+  CreateImageSamplerWrite(samplerImageView, sampler, imageLayout, 0,
+                          writeDescriptorSet);
+}
+
+void DescriptorSet::CreateImageSamplerWrite(
+    const ImageView& samplerImageView, const Sampler& sampler,
+    const VkImageLayout imageLayout, const u32 binding,
+    DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const {
   writeDescriptorSet.info.imageInfo =
       DescriptorImageInfoBuilder()
           .SetImageView(samplerImageView.imageView)
@@ -32,6 +40,7 @@ void DescriptorSet::CreateImageSamplerWrite(
       WriteDescriptorSetBuilder()
           .SetDstSet(descriptorSet)
           .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+          .SetDstBinding(binding)
           .SetDescriptorCount(1)
           .SetPImageInfo(&writeDescriptorSet.info.imageInfo);
 }

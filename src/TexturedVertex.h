@@ -5,11 +5,12 @@
 
 struct TexturedVertex {
   bool operator==(const TexturedVertex& other) const {
-    return (position == other.position) &&
+    return (position == other.position) && (normal == other.normal) &&
            (textureCoordinate == other.textureCoordinate);
   }
 
   glm::vec3 position;
+  glm::vec3 normal;
   glm::vec2 textureCoordinate;
 };
 
@@ -19,11 +20,14 @@ template <>
 class hash<TexturedVertex> {
  public:
   size_t operator()(const TexturedVertex& vertex) const {
-    return std::hash<u32>()(vertex.position.x) ^
-           std::hash<u32>()(vertex.position.y) ^
-           std::hash<u32>()(vertex.position.z) ^
-           std::hash<u32>()(vertex.textureCoordinate.x) ^
-           std::hash<u32>()(vertex.textureCoordinate.y);
+    return std::hash<float>()(vertex.position.x) ^
+           std::hash<float>()(vertex.position.y) ^
+           std::hash<float>()(vertex.position.z) ^
+           std::hash<float>()(vertex.normal.x) ^
+           std::hash<float>()(vertex.normal.y) ^
+           std::hash<float>()(vertex.normal.z) ^
+           std::hash<float>()(vertex.textureCoordinate.x) ^
+           std::hash<float>()(vertex.textureCoordinate.y);
   }
 };
 

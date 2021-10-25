@@ -45,7 +45,12 @@ Model ModelFromObjFile(const std::string_view name) {
       if (line[0] != '#') {
         const std::vector<std::string> parts = Split(line, " ");
 
-        if (line.starts_with("v ")) {
+        if (line.starts_with("vn ")) {
+          model.normalVertices.emplace_back(
+              ModelNormalVertex{.x = std::stof(parts[1]),
+                                .y = std::stof(parts[2]),
+                                .z = std::stof(parts[3])});
+        } else if (line.starts_with("v ")) {
           model.vertices.emplace_back(ModelVertex{.x = std::stof(parts[1]),
                                                   .y = std::stof(parts[2]),
                                                   .z = std::stof(parts[3])});
@@ -61,6 +66,8 @@ Model ModelFromObjFile(const std::string_view name) {
 
             modelFace.faceVertices[index - 1] = ModelFaceVertex{
                 .vertexIndex = static_cast<u32>(std::stoi(components[0])) - 1,
+                .normalVertexIndex =
+                    static_cast<u32>(std::stoi(components[2])) - 1,
                 .textureVertexIndex =
                     static_cast<u32>(std::stoi(components[1])) - 1,
             };

@@ -52,6 +52,10 @@ class DescriptorSet {
       const ImageView& samplerImageView, const Sampler& sampler,
       const VkImageLayout imageLayout,
       DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
+  void CreateImageSamplerWrite(
+      const ImageView& samplerImageView, const Sampler& sampler,
+      const VkImageLayout imageLayout, const u32 binding,
+      DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
 
  private:
   VkDescriptorSet descriptorSet = nullptr;

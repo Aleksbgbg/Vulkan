@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstring>
 #include <filesystem>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <thread>
@@ -38,7 +39,8 @@ App::App()
       hasSwapchain(false),
       hasOldSwapchain(false),
       previousTime(std::chrono::high_resolution_clock::now()),
-      threadMessenger() {
+      threadMessenger(),
+      totalTime(0.0f) {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
 
@@ -173,10 +175,12 @@ App::App()
       .frames = {MeshFrameLoadParams{.model =
                                          SPACESHIP_STATIONARY_MODEL_FILENAME},
                  MeshFrameLoadParams{.model = SPACESHIP_MOVING_MODEL_FILENAME}},
-      .texture = SPACESHIP_TEXTURE_FILENAME}));
+      .texture = SPACESHIP_TEXTURE_FILENAME,
+      .emissive = SPACESHIP_EMISSIVE_FILENAME}));
   npc = Npc(meshLoader.LoadMesh(MeshLoadParams{
       .frames = {MeshFrameLoadParams{.model = NPC_SPACESHIP_MODEL_FILENAME}},
-      .texture = NPC_SPACESHIP_TEXTURE_FILENAME}));
+      .texture = NPC_SPACESHIP_TEXTURE_FILENAME,
+      .emissive = NPC_SPACESHIP_EMISSIVE_FILENAME}));
 
   textureSampler = virtualDevice.CreateSampler(
       SamplerCreateInfoBuilder()
@@ -196,6 +200,12 @@ App::App()
       VK_SHADER_STAGE_VERTEX_BIT, "shaders/textured_cube.vert.spv"));
   shaders.emplace_back(virtualDevice.LoadShader(
       VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/textured_cube.frag.spv"));
+
+  const LightingData lightingData{.position = glm::vec3(10.0f, 10.0f, 10.0f)};
+
+  lightingBuffer = TransferDataToGpuLocalMemory(
+      shortExecutionCommandBuffer, &lightingData, sizeof(lightingData),
+      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
   InitializeSwapchain();
 
@@ -379,7 +389,7 @@ void App::InitializeSwapchain() {
               .SetStride(sizeof(TexturedVertex))
               .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
       };
-  const std::array<VkVertexInputAttributeDescription, 2>
+  const std::array<VkVertexInputAttributeDescription, 3>
       vertexAttributeDescriptions{
           VertexInputAttributeDescriptionBuilder()
               .SetBinding(0)
@@ -389,6 +399,11 @@ void App::InitializeSwapchain() {
           VertexInputAttributeDescriptionBuilder()
               .SetBinding(0)
               .SetLocation(1)
+              .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+              .SetOffset(offsetof(TexturedVertex, normal)),
+          VertexInputAttributeDescriptionBuilder()
+              .SetBinding(0)
+              .SetLocation(2)
               .SetFormat(VK_FORMAT_R32G32_SFLOAT)
               .SetOffset(offsetof(TexturedVertex, textureCoordinate)),
       };
@@ -408,29 +423,47 @@ void App::InitializeSwapchain() {
               .SetBinding(0)
               .SetDescriptorCount(1)
               .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
-              .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT);
+              .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT |
+                             VK_SHADER_STAGE_FRAGMENT_BIT);
   perFrameDescriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
       DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
           &perFrameDescriptorSetLayoutBinding));
-  constexpr const VkDescriptorSetLayoutBinding textureSamplerLayoutBinding =
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(0)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-          .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
+  constexpr const VkDescriptorSetLayoutBinding
+      lightingDescriptorSetLayoutBinding =
+          DescriptorSetLayoutBindingBuilder()
+              .SetBinding(0)
+              .SetDescriptorCount(1)
+              .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+              .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
+  lightingDescriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
+      DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
+          &lightingDescriptorSetLayoutBinding));
+  constexpr const std::array<VkDescriptorSetLayoutBinding, 2>
+      textureSamplerLayoutBindings = {
+          DescriptorSetLayoutBindingBuilder()
+              .SetBinding(0)
+              .SetDescriptorCount(1)
+              .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+              .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT),
+          DescriptorSetLayoutBindingBuilder()
+              .SetBinding(1)
+              .SetDescriptorCount(1)
+              .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+              .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT),
+      };
   playerTextureSamplerDescriptorSetLayout =
       virtualDevice.CreateDescriptorSetLayout(
           DescriptorSetLayoutCreateInfoBuilder()
-              .SetBindingCount(1)
-              .SetPBindings(&textureSamplerLayoutBinding));
+              .SetBindingCount(textureSamplerLayoutBindings.size())
+              .SetPBindings(textureSamplerLayoutBindings.data()));
   npcTextureSamplerDescriptorSetLayout =
       virtualDevice.CreateDescriptorSetLayout(
           DescriptorSetLayoutCreateInfoBuilder()
-              .SetBindingCount(1)
-              .SetPBindings(&textureSamplerLayoutBinding));
+              .SetBindingCount(textureSamplerLayoutBindings.size())
+              .SetPBindings(textureSamplerLayoutBindings.data()));
   const std::vector<const DescriptorSetLayout*> descriptorSetLayouts = {
       &perSceneDescriptorSetLayout, &perFrameDescriptorSetLayout,
-      &playerTextureSamplerDescriptorSetLayout,
+      &lightingDescriptorSetLayout, &playerTextureSamplerDescriptorSetLayout,
       &npcTextureSamplerDescriptorSetLayout};
   const std::array<VkPushConstantRange, 1> pushConstantsRanges = {
       PushConstantRangeBuilder()
@@ -508,27 +541,26 @@ void App::InitializeSwapchain() {
                     samples));
 
   const u32 swapchainImages = swapchain.GetImageCount();
-  constexpr const std::array<VkDescriptorPoolSize, 4> descriptorPoolSizes{
+  constexpr const std::array<VkDescriptorPoolSize, 3> descriptorPoolSizes{
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-          .SetDescriptorCount(1),
+          .SetDescriptorCount(2),
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
           .SetDescriptorCount(1),
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-          .SetDescriptorCount(1),
-      DescriptorPoolSizeBuilder()
-          .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-          .SetDescriptorCount(1),
+          .SetDescriptorCount(4),
   };
   descriptorPool = virtualDevice.CreateDescriptorPool(
       DescriptorPoolCreateInfoBuilder()
           .SetPoolSizeCount(descriptorPoolSizes.size())
           .SetPPoolSizes(descriptorPoolSizes.data())
-          .SetMaxSets(4));
+          .SetMaxSets(5));
   sceneDescriptorSet =
       descriptorPool.AllocateDescriptorSet(perSceneDescriptorSetLayout);
+  lightingDescriptorSet =
+      descriptorPool.AllocateDescriptorSet(lightingDescriptorSetLayout);
   playerTextureSamplerDescriptorSet = descriptorPool.AllocateDescriptorSet(
       playerTextureSamplerDescriptorSetLayout);
   npcTextureSamplerDescriptorSet = descriptorPool.AllocateDescriptorSet(
@@ -542,33 +574,50 @@ void App::InitializeSwapchain() {
       shortExecutionCommandBuffer, &projectionTransform,
       sizeof(projectionTransform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
+  std::vector<std::unique_ptr<DescriptorSet::WriteDescriptorSet>>
+      descriptorSetWrites;
+
   DescriptorSet::WriteDescriptorSet projectionBufferWrite;
   sceneDescriptorSet.CreateBufferWrite(
       projectionTransformBuffer.buffer, VK_WHOLE_SIZE,
       VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, projectionBufferWrite);
+  descriptorSetWrites.emplace_back(
+      std::make_unique<DescriptorSet::WriteDescriptorSet>(
+          projectionBufferWrite));
 
   DescriptorSet::WriteDescriptorSet viewBufferWrite;
   viewTransformBuffer.CreateWriteDescriptorSet(viewBufferWrite);
+  descriptorSetWrites.emplace_back(
+      std::make_unique<DescriptorSet::WriteDescriptorSet>(viewBufferWrite));
 
-  DescriptorSet::WriteDescriptorSet playerTextureWrite;
+  DescriptorSet::WriteDescriptorSet lightingBufferWrite;
+  lightingDescriptorSet.CreateBufferWrite(lightingBuffer.buffer, VK_WHOLE_SIZE,
+                                          VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                                          lightingBufferWrite);
+  descriptorSetWrites.emplace_back(
+      std::make_unique<DescriptorSet::WriteDescriptorSet>(lightingBufferWrite));
+
   {
     TextureRegistry textureRegistry(playerTextureSamplerDescriptorSet,
-                                    textureSampler, playerTextureWrite);
+                                    textureSampler, descriptorSetWrites);
     player.WriteTexture(textureRegistry);
   }
 
-  DescriptorSet::WriteDescriptorSet npcTextureWrite;
   {
     TextureRegistry textureRegistry(npcTextureSamplerDescriptorSet,
-                                    textureSampler, npcTextureWrite);
+                                    textureSampler, descriptorSetWrites);
     npc.WriteTexture(textureRegistry);
   }
 
-  std::array<VkWriteDescriptorSet, 4> descriptorSetWrites{
-      projectionBufferWrite, viewBufferWrite, playerTextureWrite,
-      npcTextureWrite};
-  virtualDevice.UpdateDescriptorSets(descriptorSetWrites.size(),
-                                     descriptorSetWrites.data());
+  std::vector<VkWriteDescriptorSet> writeDescriptorSets(
+      descriptorSetWrites.size());
+  std::transform(descriptorSetWrites.begin(), descriptorSetWrites.end(),
+                 writeDescriptorSets.begin(),
+                 [](const std::unique_ptr<DescriptorSet::WriteDescriptorSet>&
+                        writeDescriptorSet) { return *writeDescriptorSet; });
+
+  virtualDevice.UpdateDescriptorSets(writeDescriptorSets.size(),
+                                     writeDescriptorSets.data());
 
   for (u32 renderIndex = 0; renderIndex < swapchainImages; ++renderIndex) {
     swapchainRenderData.emplace_back(SwapchainRenderPass{
@@ -737,7 +786,9 @@ void App::UpdateModel(const float deltaTime) {
       cameraTransform, glm::pi<float>() * (-mouseDelta.x / windowRect.width),
       glm::vec3(0.0f, 1.0f, 0.0f));
   cameraTransform = glm::rotate(
-      cameraTransform, glm::pi<float>() * (mouseDelta.y / windowRect.height),
+      cameraTransform,
+      glm::pi<float>() *
+          std::max(-0.499f, std::min(mouseDelta.y / windowRect.height, 0.499f)),
       glm::vec3(1.0f, 0.0f, 0.0f));
 
   if (reverseView) {
@@ -749,8 +800,25 @@ void App::UpdateModel(const float deltaTime) {
   const glm::vec3 cameraPosition =
       cameraTransform * glm::vec4(0.0f, 0.0f, -player.Size().z, 1.0f);
 
-  viewTransformBuffer.Value().view =
+  totalTime += deltaTime;
+
+  PerFrameData& frame = viewTransformBuffer.Value();
+  frame.view =
       glm::lookAt(cameraPosition, cameraLookAt, glm::vec3(0.0f, 1.0f, 0.0f));
+  frame.cameraPosition = cameraPosition;
+  frame.lightingPosition = glm::vec3(0.0f, 0.0f, 100000.0f);
+  frame.material = {.ambient = glm::vec3(1.0f),   // , 0.5f, 0.31f),
+                    .diffuse = glm::vec3(1.0f),   // , 0.5f, 0.31f),
+                    .specular = glm::vec3(1.0f),  //, 0.5f, 0.5f),
+                    .shininess = 32.0f};
+  const glm::vec3 lightColor(77.0f / 255.0f, 77.0f / 255.0f, 1.0f);
+  frame.light = {.position = glm::vec3(0.0f, 0.0f, 10000.0f),
+                 .ambient = lightColor * 0.02f,
+                 .diffuse = lightColor,
+                 .specular = lightColor};
+
+  // std::cout << glm::vec3(glm::vec4(*modelPosition, 1.0f) * frame.view) << std::endl;
+  // std::cout << glm::vec3(frame.view * glm::vec4(frame.light.position, 1.0f)) << std::endl;
 
   uiRenderer->ShowObjectsInScene(
       ObjectsInSceneInfo{.cameraRotation = glm::vec2(0.0f, 0.0f),
@@ -809,13 +877,16 @@ void App::Render() {
         sceneDescriptorSet);
     viewTransformBuffer.BindDescriptorSets(swapchainRender.commandBuffer,
                                            pipeline.GetLayout(), 1, imageIndex);
-
     swapchainRender.commandBuffer.CmdBindDescriptorSets(
         VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 2, 1,
+        lightingDescriptorSet);
+
+    swapchainRender.commandBuffer.CmdBindDescriptorSets(
+        VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 3, 1,
         playerTextureSamplerDescriptorSet);
     player.Render(swapchainRender.meshRenderer);
     swapchainRender.commandBuffer.CmdBindDescriptorSets(
-        VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 2, 1,
+        VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 3, 1,
         npcTextureSamplerDescriptorSet);
     npc.Render(swapchainRender.meshRenderer);
 

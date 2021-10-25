@@ -49,12 +49,35 @@ class App {
     alignas(16) glm::mat4 projection;
   };
 
+  struct Material {
+    alignas(16) glm::vec3 ambient;
+    alignas(16) glm::vec3 diffuse;
+    alignas(16) glm::vec3 specular;
+    alignas(4) float shininess;
+  };
+
+  struct Light {
+    alignas(16) glm::vec3 position;
+
+    alignas(16) glm::vec3 ambient;
+    alignas(16) glm::vec3 diffuse;
+    alignas(16) glm::vec3 specular;
+  };
+
   struct PerFrameData {
     alignas(16) glm::mat4 view;
+    alignas(16) glm::vec3 cameraPosition;
+    alignas(16) glm::vec3 lightingPosition;
+    Material material;
+    Light light;
   };
 
   struct PerObjectData {
     alignas(16) glm::mat4 model;
+  };
+
+  struct LightingData {
+    alignas(16) glm::vec3 position;
   };
 
   BufferWithMemory TransferDataToGpuLocalMemory(CommandBuffer& commandBuffer,
@@ -131,6 +154,8 @@ class App {
   DescriptorSetLayout perSceneDescriptorSetLayout;
   DescriptorSetLayout perFrameDescriptorSetLayout;
 
+  DescriptorSetLayout lightingDescriptorSetLayout;
+
   DescriptorSetLayout playerTextureSamplerDescriptorSetLayout;
   DescriptorSetLayout npcTextureSamplerDescriptorSetLayout;
 
@@ -138,6 +163,9 @@ class App {
 
   DescriptorPool descriptorPool;
   DescriptorSet sceneDescriptorSet;
+
+  DescriptorSet lightingDescriptorSet;
+
   DescriptorSet playerTextureSamplerDescriptorSet;
   DescriptorSet npcTextureSamplerDescriptorSet;
 
@@ -147,6 +175,9 @@ class App {
 
   BufferWithMemory projectionTransformBuffer;
   PerSceneData projectionTransform;
+
+  BufferWithMemory lightingBuffer;
+  LightingData lighting;
 
   struct SwapchainRenderPass {
     CommandBuffer commandBuffer;
@@ -167,6 +198,8 @@ class App {
   MultithreadedMessageQueue<EventNotification> threadMessenger;
 
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
+
+  float totalTime;
 };
 
 #endif  // VULKAN_SRC_APP_H

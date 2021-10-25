@@ -9,11 +9,15 @@ inline constexpr const char* const SPACESHIP_MOVING_MODEL_FILENAME =
     "resources/InterstellarRunner-Moving.obj";
 inline constexpr const char* const SPACESHIP_TEXTURE_FILENAME =
     "resources/InterstellarRunner.png";
+inline constexpr const char* const SPACESHIP_EMISSIVE_FILENAME =
+    "resources/InterstellarRunner_Emissive.png";
 
 inline constexpr const char* const NPC_SPACESHIP_MODEL_FILENAME =
     "resources/Transtellar.obj";
 inline constexpr const char* const NPC_SPACESHIP_TEXTURE_FILENAME =
     "resources/Transtellar.png";
+inline constexpr const char* const NPC_SPACESHIP_EMISSIVE_FILENAME =
+    "resources/Transtellar_Emissive.png";
 
 inline constexpr const char* const FONTAWESOME_FONT_FILENAME =
     "resources/fontawesome-webfont.ttf";

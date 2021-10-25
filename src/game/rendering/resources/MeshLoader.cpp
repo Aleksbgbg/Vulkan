@@ -44,6 +44,12 @@ Mesh MeshLoader::LoadMesh(const MeshLoadParams& params) const {
         vertex.position.x = frameModel.vertices[modelFaceVertex.vertexIndex].x;
         vertex.position.y = frameModel.vertices[modelFaceVertex.vertexIndex].y;
         vertex.position.z = frameModel.vertices[modelFaceVertex.vertexIndex].z;
+        vertex.normal.x =
+            frameModel.normalVertices[modelFaceVertex.normalVertexIndex].x;
+        vertex.normal.y =
+            frameModel.normalVertices[modelFaceVertex.normalVertexIndex].y;
+        vertex.normal.z =
+            frameModel.normalVertices[modelFaceVertex.normalVertexIndex].z;
         vertex.textureCoordinate.x =
             frameModel.textureVertices[modelFaceVertex.textureVertexIndex].u;
         vertex.textureCoordinate.y =
@@ -85,7 +91,21 @@ Mesh MeshLoader::LoadMesh(const MeshLoadParams& params) const {
         MeshFrame{.indexCount = static_cast<u32>(indices.size())};
   }
 
-  const file::Image bitmap = file::ReadPng(params.texture);
+  const glm::vec3 modelCenter = (corner1 + corner2) / 2.0f;
+  const glm::vec3 modelSize = corner1 - corner2;
+
+  return Mesh(
+      AllocateDeviceBuffer(vertices.data(),
+                           sizeof(vertices[0]) * vertices.size(),
+                           VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
+      AllocateDeviceBuffer(indices.data(), sizeof(indices[0]) * indices.size(),
+                           VK_BUFFER_USAGE_INDEX_BUFFER_BIT),
+      LoadTexture(params.texture), LoadTexture(params.emissive),
+      std::move(meshFrames), modelCenter, modelSize);
+}
+
+Texture MeshLoader::LoadTexture(const std::string_view filename) const {
+  const file::Image bitmap = file::ReadPng(filename);
 
   Buffer stagingBuffer = virtualDevice.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
@@ -141,20 +161,10 @@ Mesh MeshLoader::LoadMesh(const MeshLoadParams& params) const {
           .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
           .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
           .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  ImageWithMemory texture = {.image = std::move(textureImage),
-                             .memory = std::move(textureImageMemory)};
 
-  const glm::vec3 modelCenter = (corner1 + corner2) / 2.0f;
-  const glm::vec3 modelSize = corner1 - corner2;
-
-  return Mesh(
-      AllocateDeviceBuffer(vertices.data(),
-                           sizeof(vertices[0]) * vertices.size(),
-                           VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
-      AllocateDeviceBuffer(indices.data(), sizeof(indices[0]) * indices.size(),
-                           VK_BUFFER_USAGE_INDEX_BUFFER_BIT),
-      std::move(texture), std::move(textureView), std::move(meshFrames),
-      modelCenter, modelSize);
+  return Texture{.image = {.image = std::move(textureImage),
+                           .memory = std::move(textureImageMemory)},
+                 .view = std::move(textureView)};
 }
 
 BufferWithMemory MeshLoader::AllocateDeviceBuffer(
