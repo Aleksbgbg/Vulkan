@@ -75,6 +75,9 @@ class CommandBuffer {
                              const VkPipelineStageFlags dstStageMask,
                              ImageMemoryBarrierBuilder& infoBuilder) const;
 
+  void CmdSetViewport(const VkViewport viewport) const;
+  void CmdSetScissor(const VkRect2D scissor) const;
+
   void CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder,
                           const VkSubpassContents subpassContents,
                           RenderPass& renderPass,

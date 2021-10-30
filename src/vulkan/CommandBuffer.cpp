@@ -115,6 +115,14 @@ void CommandBuffer::CmdImageMemoryBarrier(
                        infoBuilder.SetImage(image.image).Build());
 }
 
+void CommandBuffer::CmdSetViewport(const VkViewport viewport) const {
+  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+}
+
+void CommandBuffer::CmdSetScissor(const VkRect2D scissor) const {
+  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+}
+
 void CommandBuffer::CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder,
                                        const VkSubpassContents subpassContents,
                                        RenderPass& renderPass,

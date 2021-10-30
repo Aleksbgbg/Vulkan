@@ -207,115 +207,19 @@ App::App()
       shortExecutionCommandBuffer, &lightingData, sizeof(lightingData),
       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
-  InitializeSwapchain();
-
-  for (u32 inFlightImage = 0; inFlightImage < framesInFlight; ++inFlightImage) {
-    imagesInFlightSynchronisation.emplace_back(std::move<InFlightImage>(
-        {.acquireImageSemaphore = virtualDevice.CreateSemaphore()}));
-  }
-}
-
-void App::InitializeSwapchain() {
-  VkSurfaceCapabilitiesKHR surfaceCapabilities =
-      windowSurface.GetCapabilities(targetPhysicalDevice);
-  VkSurfaceFormatKHR surfaceFormat =
+  surfaceFormat =
       SelectSwapSurfaceFormat(windowSurface.GetFormats(targetPhysicalDevice));
+  depthStencilFormat = SelectDepthStencilFormat({VK_FORMAT_D32_SFLOAT,
+                                                 VK_FORMAT_D32_SFLOAT_S8_UINT,
+                                                 VK_FORMAT_D24_UNORM_S8_UINT});
 
-  if (hasSwapchain) {
-    oldSwapchain = std::move(swapchain);
-    hasOldSwapchain = true;
+  const VkFormat swapchainImageFormat = surfaceFormat.format;
 
-    swapchain = virtualDevice.CreateSwapchain(
-        windowSurface, oldSwapchain,
-        SwapchainCreateInfoBuilder()
-            .SetMinImageCount(minSwapchainImages + 1)
-            .SetImageFormat(surfaceFormat.format)
-            .SetImageColorSpace(surfaceFormat.colorSpace)
-            .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
-            .SetImageArrayLayers(1)
-            .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-            .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
-            .SetPreTransform(surfaceCapabilities.currentTransform)
-            .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
-            .SetPresentMode(SelectSwapPresentMode(
-                windowSurface.GetPresentModes(targetPhysicalDevice)))
-            .SetClipped(VK_TRUE));
-    hasSwapchain = true;
-  } else {
-    swapchain = virtualDevice.CreateSwapchain(
-        windowSurface,
-        SwapchainCreateInfoBuilder()
-            .SetMinImageCount(minSwapchainImages + 1)
-            .SetImageFormat(surfaceFormat.format)
-            .SetImageColorSpace(surfaceFormat.colorSpace)
-            .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
-            .SetImageArrayLayers(1)
-            .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-            .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
-            .SetPreTransform(surfaceCapabilities.currentTransform)
-            .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
-            .SetPresentMode(SelectSwapPresentMode(
-                windowSurface.GetPresentModes(targetPhysicalDevice)))
-            .SetClipped(VK_TRUE));
-    hasSwapchain = true;
-  }
-
-  VkFormat depthStencilFormat = SelectDepthStencilFormat(
-      {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
-       VK_FORMAT_D24_UNORM_S8_UINT});
-
-  const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
-
-  projectionTransform.projection =
-      glm::perspective(glm::radians(45.0f),
-                       static_cast<float>(swapchainExtent.width) /
-                           static_cast<float>(swapchainExtent.height),
-                       0.1f, 1000.0f);
-  projectionTransform.projection[1][1] *= -1;
-
-  const VkSampleCountFlagBits samples =
-      SelectMsaaSamples(VK_SAMPLE_COUNT_16_BIT);
-
-  Image depthStencilImage = virtualDevice.CreateImage(
-      ImageCreateInfoBuilder(IMAGE_2D)
-          .SetFormat(depthStencilFormat)
-          .SetSamples(samples)
-          .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
-          .SetUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
-  DeviceMemorySubAllocation depthStencilMemory = deviceAllocator.BindMemory(
-      depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  depthStencilView = depthStencilImage.CreateView(
-      ImageViewCreateInfoBuilder()
-          .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
-          .SetSubresourceRange(ImageSubresourceRangeBuilder()
-                                   .SetAspectMask(VK_IMAGE_ASPECT_DEPTH_BIT)
-                                   .SetLevelCount(1)
-                                   .SetLayerCount(1)));
-
-  depthStencil = {.image = std::move(depthStencilImage),
-                  .memory = std::move(depthStencilMemory)};
-
-  Image multisampling = virtualDevice.CreateImage(
-      ImageCreateInfoBuilder(IMAGE_2D)
-          .SetFormat(swapchain.GetImageFormat())
-          .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
-          .SetSamples(samples)
-          .SetUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT));
-  DeviceMemorySubAllocation multisamplingMemory = deviceAllocator.BindMemory(
-      multisampling, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  multisamplingImageView = multisampling.CreateView(
-      ImageViewCreateInfoBuilder()
-          .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
-          .SetSubresourceRange(ImageSubresourceRangeBuilder()
-                                   .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
-                                   .SetLevelCount(1)
-                                   .SetLayerCount(1)));
-  multisamplingImage = {.image = std::move(multisampling),
-                        .memory = std::move(multisamplingMemory)};
+  samples = SelectMsaaSamples(VK_SAMPLE_COUNT_16_BIT);
 
   const std::array<VkAttachmentDescription, 3> attachmentDescriptions{
       AttachmentDescriptionBuilder()
-          .SetFormat(swapchain.GetImageFormat())
+          .SetFormat(swapchainImageFormat)
           .SetSamples(VK_SAMPLE_COUNT_1_BIT)
           .SetLoadOp(VK_ATTACHMENT_LOAD_OP_CLEAR)
           .SetStoreOp(VK_ATTACHMENT_STORE_OP_STORE)
@@ -324,7 +228,7 @@ void App::InitializeSwapchain() {
           .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
           .SetFinalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR),
       AttachmentDescriptionBuilder()
-          .SetFormat(swapchain.GetImageFormat())
+          .SetFormat(swapchainImageFormat)
           .SetSamples(samples)
           .SetLoadOp(VK_ATTACHMENT_LOAD_OP_CLEAR)
           .SetStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
@@ -379,8 +283,6 @@ void App::InitializeSwapchain() {
           .SetPSubpasses(subpasses.data())
           .SetDependencyCount(subpassDependencies.size())
           .SetPDependencies(subpassDependencies.data()));
-  swapchainFramebuffers = swapchain.GetFramebuffers(
-      renderPass, {&multisamplingImageView, &depthStencilView});
 
   constexpr const std::array<VkVertexInputBindingDescription, 1>
       vertexBindingDescriptions{
@@ -470,6 +372,8 @@ void App::InitializeSwapchain() {
           .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
           .SetOffset(0)
           .SetSize(sizeof(PerObjectData))};
+  constexpr const std::array<VkDynamicState, 2> dynamicStates = {
+      VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
   pipeline = virtualDevice.CreateGraphicsPipeline(
       pipelineCache, shaders,
       virtualDevice.CreatePipelineLayout(
@@ -496,18 +400,12 @@ void App::InitializeSwapchain() {
           .SetPInputAssemblyState(
               PipelineInputAssemblyStateCreateInfoBuilder().SetTopology(
                   VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST))
-          .SetPViewportState(
-              PipelineViewportStateCreateInfoBuilder()
-                  .SetViewportCount(1)
-                  .SetPViewports(
-                      ViewportBuilder(VIEWPORT_BASE)
-                          .SetWidth(static_cast<float>(swapchainExtent.width))
-                          .SetHeight(
-                              static_cast<float>(swapchainExtent.height)))
-                  .SetScissorCount(1)
-                  .SetPScissors(Rect2DBuilder()
-                                    .SetOffset(OFFSET2D_ZERO)
-                                    .SetExtent(swapchainExtent)))
+          .SetPViewportState(PipelineViewportStateCreateInfoBuilder()
+                                 .SetViewportCount(1)
+                                 .SetScissorCount(1))
+          .SetPDynamicState(PipelineDynamicStateCreateInfoBuilder()
+                                .SetDynamicStateCount(dynamicStates.size())
+                                .SetPDynamicStates(dynamicStates.data()))
           .SetPRasterizationState(
               PipelineRasterizationStateCreateInfoBuilder()
                   .SetCullMode(VK_CULL_MODE_BACK_BIT)
@@ -532,6 +430,106 @@ void App::InitializeSwapchain() {
                           .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
                           .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
                           .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
+
+  InitializeSwapchain();
+
+  for (u32 inFlightImage = 0; inFlightImage < framesInFlight; ++inFlightImage) {
+    imagesInFlightSynchronisation.emplace_back(std::move<InFlightImage>(
+        {.acquireImageSemaphore = virtualDevice.CreateSemaphore()}));
+  }
+}
+
+void App::InitializeSwapchain() {
+  VkSurfaceCapabilitiesKHR surfaceCapabilities =
+      windowSurface.GetCapabilities(targetPhysicalDevice);
+
+  if (hasSwapchain) {
+    oldSwapchain = std::move(swapchain);
+    hasOldSwapchain = true;
+
+    swapchain = virtualDevice.CreateSwapchain(
+        windowSurface, oldSwapchain,
+        SwapchainCreateInfoBuilder()
+            .SetMinImageCount(minSwapchainImages + 1)
+            .SetImageFormat(surfaceFormat.format)
+            .SetImageColorSpace(surfaceFormat.colorSpace)
+            .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
+            .SetImageArrayLayers(1)
+            .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+            .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
+            .SetPreTransform(surfaceCapabilities.currentTransform)
+            .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+            .SetPresentMode(SelectSwapPresentMode(
+                windowSurface.GetPresentModes(targetPhysicalDevice)))
+            .SetClipped(VK_TRUE));
+    hasSwapchain = true;
+  } else {
+    swapchain = virtualDevice.CreateSwapchain(
+        windowSurface,
+        SwapchainCreateInfoBuilder()
+            .SetMinImageCount(minSwapchainImages + 1)
+            .SetImageFormat(surfaceFormat.format)
+            .SetImageColorSpace(surfaceFormat.colorSpace)
+            .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
+            .SetImageArrayLayers(1)
+            .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+            .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
+            .SetPreTransform(surfaceCapabilities.currentTransform)
+            .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+            .SetPresentMode(SelectSwapPresentMode(
+                windowSurface.GetPresentModes(targetPhysicalDevice)))
+            .SetClipped(VK_TRUE));
+    hasSwapchain = true;
+  }
+
+  const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
+
+  projectionTransform.projection =
+      glm::perspective(glm::radians(45.0f),
+                       static_cast<float>(swapchainExtent.width) /
+                           static_cast<float>(swapchainExtent.height),
+                       0.1f, 1000.0f);
+  projectionTransform.projection[1][1] *= -1;
+
+  Image depthStencilImage = virtualDevice.CreateImage(
+      ImageCreateInfoBuilder(IMAGE_2D)
+          .SetFormat(depthStencilFormat)
+          .SetSamples(samples)
+          .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
+          .SetUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
+  DeviceMemorySubAllocation depthStencilMemory = deviceAllocator.BindMemory(
+      depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  depthStencilView = depthStencilImage.CreateView(
+      ImageViewCreateInfoBuilder()
+          .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
+          .SetSubresourceRange(ImageSubresourceRangeBuilder()
+                                   .SetAspectMask(VK_IMAGE_ASPECT_DEPTH_BIT)
+                                   .SetLevelCount(1)
+                                   .SetLayerCount(1)));
+
+  depthStencil = {.image = std::move(depthStencilImage),
+                  .memory = std::move(depthStencilMemory)};
+
+  Image multisampling = virtualDevice.CreateImage(
+      ImageCreateInfoBuilder(IMAGE_2D)
+          .SetFormat(swapchain.GetImageFormat())
+          .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
+          .SetSamples(samples)
+          .SetUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT));
+  DeviceMemorySubAllocation multisamplingMemory = deviceAllocator.BindMemory(
+      multisampling, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  multisamplingImageView = multisampling.CreateView(
+      ImageViewCreateInfoBuilder()
+          .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
+          .SetSubresourceRange(ImageSubresourceRangeBuilder()
+                                   .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
+                                   .SetLevelCount(1)
+                                   .SetLayerCount(1)));
+  multisamplingImage = {.image = std::move(multisampling),
+                        .memory = std::move(multisamplingMemory)};
+
+  swapchainFramebuffers = swapchain.GetFramebuffers(
+      renderPass, {&multisamplingImageView, &depthStencilView});
 
   uiRenderer = nullptr;
   uiRenderer = std::make_unique<UiRenderer>(
@@ -817,8 +815,9 @@ void App::UpdateModel(const float deltaTime) {
                  .diffuse = lightColor,
                  .specular = lightColor};
 
-  // std::cout << glm::vec3(glm::vec4(*modelPosition, 1.0f) * frame.view) << std::endl;
-  // std::cout << glm::vec3(frame.view * glm::vec4(frame.light.position, 1.0f)) << std::endl;
+  // std::cout << glm::vec3(glm::vec4(*modelPosition, 1.0f) * frame.view) <<
+  // std::endl; std::cout << glm::vec3(frame.view *
+  // glm::vec4(frame.light.position, 1.0f)) << std::endl;
 
   uiRenderer->ShowObjectsInScene(
       ObjectsInSceneInfo{.cameraRotation = glm::vec2(0.0f, 0.0f),
@@ -861,6 +860,9 @@ void App::Render() {
 
     viewTransformBuffer.Flush(imageIndex);
 
+    const Recti windowRecti = window.GetRect();
+    const Rectf windowRectf = windowRecti;
+
     swapchainRender.commandBuffer.Begin();
     swapchainRender.commandBuffer.CmdBeginRenderPass(
         RenderPassBeginInfoBuilder()
@@ -872,6 +874,16 @@ void App::Render() {
         swapchainFramebuffers[imageIndex]);
     swapchainRender.commandBuffer.CmdBindPipeline(
         VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    swapchainRender.commandBuffer.CmdSetViewport(
+        ViewportBuilder(VIEWPORT_BASE)
+            .SetWidth(windowRectf.width)
+            .SetHeight(windowRectf.height));
+    swapchainRender.commandBuffer.CmdSetScissor(
+        Rect2DBuilder()
+            .SetOffset(OFFSET2D_ZERO)
+            .SetExtent(Extent2DBuilder()
+                           .SetWidth(windowRecti.width)
+                           .SetHeight(windowRecti.height)));
     swapchainRender.commandBuffer.CmdBindDescriptorSets(
         VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetLayout(), 0, 1,
         sceneDescriptorSet);

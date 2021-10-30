@@ -1,6 +1,7 @@
 #ifndef VULKAN_SRC_APP_H
 #define VULKAN_SRC_APP_H
 
+#include <game/RenderPipeline.h>
 #include <vulkan/vulkan.h>
 
 #include <chrono>
@@ -127,6 +128,12 @@ class App {
 
   CommandPool shortExecutionCommandPool;
   CommandBuffer shortExecutionCommandBuffer;
+
+  VkSurfaceFormatKHR surfaceFormat;
+  VkFormat depthStencilFormat;
+  VkSampleCountFlagBits samples;
+
+  RenderPipeline spaceshipRenderPipeline;
 
   Player player;
   Npc npc;
