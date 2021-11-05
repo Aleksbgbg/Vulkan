@@ -120,6 +120,7 @@ void UiRenderer::ShowObjectsInScene(const ObjectsInSceneInfo& info) {
   ImGui::InputFloat("X", &info.modelPosition->x, 0.0f, 0.0f, "%.3f");
   ImGui::InputFloat("Y", &info.modelPosition->y, 0.0f, 0.0f, "%.3f");
   ImGui::InputFloat("Z", &info.modelPosition->z, 0.0f, 0.0f, "%.3f");
+
   ImGui::End();
 }
 

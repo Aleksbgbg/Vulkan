@@ -3,6 +3,7 @@
 
 #include <vulkan/vulkan.h>
 
+#include <string_view>
 #include <vector>
 
 #include "Buffer.h"
@@ -59,7 +60,7 @@ class VirtualDevice {
   Queue GetQueue(const u32 familyIndex, const u32 queueIndex) const;
 
   ShaderModule LoadShader(const VkShaderStageFlagBits stage,
-                          const char* const shaderFilename) const;
+                          const std::string_view shaderFilename) const;
 
   Semaphore CreateSemaphore() const;
   Fence CreateFence() const;
@@ -99,7 +100,8 @@ class VirtualDevice {
   PipelineCache CreatePipelineCache() const;
   PipelineCache LoadPipelineCache(const std::vector<u8>& data) const;
 
-  void UpdateDescriptorSets(const u32 count, VkWriteDescriptorSet* writes);
+  void UpdateDescriptorSets(const u32 count,
+                            VkWriteDescriptorSet* writes) const;
 
  private:
   VkDevice device = nullptr;

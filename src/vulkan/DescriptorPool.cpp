@@ -45,10 +45,9 @@ std::vector<DescriptorSet> DescriptorPool::AllocateDescriptorSets(
                                    .SetPSetLayouts(rawLayouts.data())
                                    .Build(),
                                rawDescriptorSets.data()));
-  std::vector<DescriptorSet> descriptorSets;
+  std::vector<DescriptorSet> descriptorSets(count);
   std::transform(rawDescriptorSets.begin(), rawDescriptorSets.end(),
-                 std::back_inserter(descriptorSets),
-                 [](VkDescriptorSet descriptorSet) {
+                 descriptorSets.begin(), [](VkDescriptorSet descriptorSet) {
                    return DescriptorSet(descriptorSet);
                  });
   return descriptorSets;

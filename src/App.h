@@ -1,7 +1,6 @@
 #ifndef VULKAN_SRC_APP_H
 #define VULKAN_SRC_APP_H
 
-#include <game/RenderPipeline.h>
 #include <vulkan/vulkan.h>
 
 #include <chrono>
@@ -9,20 +8,15 @@
 
 #include "DynamicUniformBuffer.h"
 #include "UiRenderer.h"
-#include "game/Npc.h"
-#include "game/Player.h"
-#include "game/SpaceshipModel.h"
-#include "game/rendering/BufferWithMemory.h"
-#include "game/rendering/ImageWithMemory.h"
+#include "game/ResourceAllocator.h"
+#include "game/Scene.h"
 #include "general/animations/NormalizedOneTimeFunctionAnimation.h"
-#include "general/animations/UpAndDownGlidingAnimation.h"
 #include "general/geometry/Rect.h"
 #include "general/threading/MultithreadedMessageQueue.h"
 #include "general/windowing/Window.h"
 #include "general/windowing/input/Keyboard.h"
 #include "general/windowing/input/Mouse.h"
 #include "memory/DeviceMemoryAllocator.h"
-#include "util/include/glm.h"
 #include "vulkan/ImGuiInstance.h"
 #include "vulkan/Swapchain.h"
 #include "vulkan/VulkanInstance.h"
@@ -46,46 +40,6 @@ class App {
   void InitializeSwapchain();
 
  private:
-  struct PerSceneData {
-    alignas(16) glm::mat4 projection;
-  };
-
-  struct Material {
-    alignas(16) glm::vec3 ambient;
-    alignas(16) glm::vec3 diffuse;
-    alignas(16) glm::vec3 specular;
-    alignas(4) float shininess;
-  };
-
-  struct Light {
-    alignas(16) glm::vec3 position;
-
-    alignas(16) glm::vec3 ambient;
-    alignas(16) glm::vec3 diffuse;
-    alignas(16) glm::vec3 specular;
-  };
-
-  struct PerFrameData {
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::vec3 cameraPosition;
-    alignas(16) glm::vec3 lightingPosition;
-    Material material;
-    Light light;
-  };
-
-  struct PerObjectData {
-    alignas(16) glm::mat4 model;
-  };
-
-  struct LightingData {
-    alignas(16) glm::vec3 position;
-  };
-
-  BufferWithMemory TransferDataToGpuLocalMemory(CommandBuffer& commandBuffer,
-                                                const void* data,
-                                                const u32 size,
-                                                const VkBufferUsageFlags usage);
-
   VkFormat SelectDepthStencilFormat(
       const std::vector<VkFormat>& potentialFormats) const;
 
@@ -133,17 +87,15 @@ class App {
   VkFormat depthStencilFormat;
   VkSampleCountFlagBits samples;
 
-  RenderPipeline spaceshipRenderPipeline;
+  ResourceAllocator resourceAllocator;
 
-  Player player;
-  Npc npc;
+  std::unique_ptr<Scene> scene;
 
   Sampler textureSampler;
 
   RenderPass renderPass;
 
   CommandPool renderCommandPool;
-  std::vector<ShaderModule> shaders;
 
   bool hasSwapchain;
   Swapchain swapchain;
@@ -158,38 +110,10 @@ class App {
 
   std::vector<Framebuffer> swapchainFramebuffers;
 
-  DescriptorSetLayout perSceneDescriptorSetLayout;
-  DescriptorSetLayout perFrameDescriptorSetLayout;
-
-  DescriptorSetLayout lightingDescriptorSetLayout;
-
-  DescriptorSetLayout playerTextureSamplerDescriptorSetLayout;
-  DescriptorSetLayout npcTextureSamplerDescriptorSetLayout;
-
-  Pipeline pipeline;
-
-  DescriptorPool descriptorPool;
-  DescriptorSet sceneDescriptorSet;
-
-  DescriptorSet lightingDescriptorSet;
-
-  DescriptorSet playerTextureSamplerDescriptorSet;
-  DescriptorSet npcTextureSamplerDescriptorSet;
-
-  DynamicUniformBuffer<PerFrameData> viewTransformBuffer;
-
   std::unique_ptr<UiRenderer> uiRenderer;
-
-  BufferWithMemory projectionTransformBuffer;
-  PerSceneData projectionTransform;
-
-  BufferWithMemory lightingBuffer;
-  LightingData lighting;
 
   struct SwapchainRenderPass {
     CommandBuffer commandBuffer;
-
-    MeshRenderer meshRenderer;
 
     Semaphore renderCompleteSemaphore;
     Fence submitCompleteFence;
@@ -200,13 +124,12 @@ class App {
   };
   std::vector<InFlightImage> imagesInFlightSynchronisation;
   u32 currentInFlightImage = 0;
+  u32 imageIndex;
 
   enum class EventNotification { Exited, Paused, Unpaused, Resized };
   MultithreadedMessageQueue<EventNotification> threadMessenger;
 
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
-
-  float totalTime;
 };
 
 #endif  // VULKAN_SRC_APP_H

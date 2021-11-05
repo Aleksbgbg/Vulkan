@@ -39,7 +39,7 @@ class Pipeline {
     return *this;
   }
 
-  PipelineLayout& GetLayout();
+  const PipelineLayout& GetLayout() const;
 
  private:
   VkDevice device;

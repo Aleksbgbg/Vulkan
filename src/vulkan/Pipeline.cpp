@@ -37,6 +37,6 @@ Pipeline::~Pipeline() {
   }
 }
 
-PipelineLayout& Pipeline::GetLayout() {
+const PipelineLayout& Pipeline::GetLayout() const {
   return pipelineLayout;
 }

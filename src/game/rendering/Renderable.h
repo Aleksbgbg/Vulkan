@@ -8,11 +8,7 @@ class Renderable {
  public:
   virtual ~Renderable() = default;
 
-  virtual glm::vec3* Position() = 0;
-  virtual glm::vec3 Size() const = 0;
-
   virtual void WriteTexture(TextureRegistry& textureRegistry) const = 0;
-
   virtual void Render(const MeshRenderer& renderer) const = 0;
 };
 

@@ -14,7 +14,13 @@ class Window : public ImGuiWindow {
  public:
   Window(const u32 width, const u32 height);
 
+  Window(const Window&) = delete;
+  Window(Window&&) = delete;
+
   ~Window();
+
+  Window& operator=(const Window&) = delete;
+  Window& operator=(Window&&) = delete;
 
  public:
   enum class Event {

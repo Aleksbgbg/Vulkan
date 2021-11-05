@@ -1,47 +1,20 @@
 #ifndef VULKAN_SRC_GAME_RENDERING_RESOURCES_MESH_H
 #define VULKAN_SRC_GAME_RENDERING_RESOURCES_MESH_H
 
-#include <vector>
-
-#include "game/rendering/BufferWithMemory.h"
-#include "game/rendering/ImageWithMemory.h"
-#include "game/rendering/Texture.h"
 #include "game/rendering/resources/TextureRegistry.h"
 #include "util/include/glm.h"
-#include "util/types.h"
-
-struct MeshFrame {
-  u32 indexCount;
-};
+#include "vulkan/CommandBuffer.h"
+#include "vulkan/PipelineLayout.h"
 
 class Mesh {
-  friend class MeshRenderer;
-
  public:
   Mesh() = default;
-  Mesh(BufferWithMemory vertexBuffer, BufferWithMemory indexBuffer,
-       Texture texture, Texture emissive, std::vector<MeshFrame> meshFrames,
-       glm::vec3 modelCenter, glm::vec3 modelSize);
+  virtual ~Mesh() = default;
 
-  glm::vec3 Size() const;
-
-  void WriteTexture(TextureRegistry& textureRegistry) const;
-
-  void LoadFrame(const u32 frame);
-
- private:
-  BufferWithMemory vertexBuffer;
-  BufferWithMemory indexBuffer;
-
-  Texture texture;
-  Texture emissive;
-
-  std::vector<MeshFrame> meshFrames;
-
-  glm::vec3 modelCenter;
-  glm::vec3 modelSize;
-
-  u32 selectedFrame;
+  virtual void WriteTexture(TextureRegistry& textureRegistry) const = 0;
+  virtual void Render(const CommandBuffer& commandBuffer,
+                      const PipelineLayout& pipelineLayout,
+                      const glm::mat4& transform) const = 0;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERING_RESOURCES_MESH_H

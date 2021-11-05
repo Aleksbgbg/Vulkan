@@ -486,6 +486,10 @@ class PngDefilter {
           DecodeSubFilter(scanline);
           break;
 
+        case 2:
+          DecodeUpFilter(scanline);
+          break;
+
         case 3:
           DecodeAverageFilter(scanline);
           break;
@@ -515,12 +519,20 @@ class PngDefilter {
     }
   }
 
+  void DecodeUpFilter(const u32 scanline) const {
+    for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
+      const u8 outputByte = source[byte] + ReadPixelB(scanline, byte);
+      scanlineReadWriter.WriteByte(scanline, byte, outputByte);
+    }
+  }
+
   void DecodeAverageFilter(const u32 scanline) const {
     for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
       const u8 a = ReadPixelA(scanline, byte);
       const u8 b = ReadPixelB(scanline, byte);
 
-      const u8 outputByte = source[byte] + static_cast<u8>((a + b) / 2.0f);
+      const u16 sum = a + b;
+      const u8 outputByte = source[byte] + static_cast<u8>(sum / 2.0f);
 
       scanlineReadWriter.WriteByte(scanline, byte, outputByte);
     }
@@ -552,11 +564,11 @@ class PngDefilter {
   }
 
   static u8 PaethPredictor(const u8 a, const u8 b, const u8 c) {
-    const u8 p = a + b - c;
+    const i32 p = a + b - c;
 
-    const u8 pa = std::abs(p - a);
-    const u8 pb = std::abs(p - b);
-    const u8 pc = std::abs(p - c);
+    const u32 pa = std::abs(static_cast<i32>(p - a));
+    const u32 pb = std::abs(static_cast<i32>(p - b));
+    const u32 pc = std::abs(static_cast<i32>(p - c));
 
     if ((pa <= pb) && (pa <= pc)) {
       return a;

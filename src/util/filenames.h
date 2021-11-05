@@ -3,6 +3,9 @@
 
 inline constexpr const char* const PIPELINE_CACHE_FILENAME = "pipeline.cache";
 
+inline constexpr const char* const SKYBOX_TEXTURE_FILENAME =
+    "resources/Nebula.png";
+
 inline constexpr const char* const SPACESHIP_STATIONARY_MODEL_FILENAME =
     "resources/InterstellarRunner-Stationary.obj";
 inline constexpr const char* const SPACESHIP_MOVING_MODEL_FILENAME =

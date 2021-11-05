@@ -80,10 +80,10 @@ class CommandBuffer {
 
   void CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder,
                           const VkSubpassContents subpassContents,
-                          RenderPass& renderPass,
-                          Framebuffer& framebuffer) const;
+                          const RenderPass& renderPass,
+                          const Framebuffer& framebuffer) const;
   void CmdBindPipeline(const VkPipelineBindPoint bindPoint,
-                       Pipeline& pipeline) const;
+                       const Pipeline& pipeline) const;
   void CmdPushConstants(const PipelineLayout& pipelineLayout,
                         const VkShaderStageFlags shaderStageFlags,
                         const u32 offset, const u32 size,
@@ -91,6 +91,16 @@ class CommandBuffer {
   void CmdBindVertexBuffers(const Buffer& buffer, const u32 binding) const;
   void CmdBindIndexBuffer(const Buffer& buffer,
                           const VkIndexType indexType) const;
+
+  void CmdBindDescriptorSet(const VkPipelineBindPoint bindPoint,
+                            const PipelineLayout& pipelineLayout,
+                            const u32 setIndex,
+                            const DescriptorSet& descriptorSet) const;
+  void CmdBindDescriptorSet(const VkPipelineBindPoint bindPoint,
+                            const PipelineLayout& pipelineLayout,
+                            const u32 setIndex,
+                            const DescriptorSet& descriptorSet,
+                            const u32 dynamicOffset) const;
   void CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint,
                              const PipelineLayout& pipelineLayout,
                              const u32 firstSet, const u32 descriptorSetCount,
@@ -101,6 +111,7 @@ class CommandBuffer {
                              const DescriptorSet& descriptorSet,
                              const u32 dynamicOffsetCount,
                              const u32* const dynamicOffsets) const;
+
   void CmdDrawIndexed(const u32 indexCount, const u32 instanceCount) const;
   void CmdNextSubpass(const VkSubpassContents contents) const;
   void CmdEndRenderPass() const;

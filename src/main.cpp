@@ -4,9 +4,13 @@
 #include "general/files/file.h"
 #include "general/logging/log.h"
 
+int RunVulkanApp() {
+  return App().Run();
+}
+
 int run() {
   try {
-    return App().Run();
+    return RunVulkanApp();
   } catch (const std::exception& exception) {
     const std::string errorString =
         std::string("Error during run:\n") + exception.what();

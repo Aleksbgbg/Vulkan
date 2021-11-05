@@ -46,8 +46,9 @@ Swapchain VirtualDevice::CreateSwapchain(
                    infoBuilder.SetSurface(surface.surface));
 }
 
-ShaderModule VirtualDevice::LoadShader(const VkShaderStageFlagBits stage,
-                                       const char* const shaderFilename) const {
+ShaderModule VirtualDevice::LoadShader(
+    const VkShaderStageFlagBits stage,
+    const std::string_view shaderFilename) const {
   const std::vector<u8> code = file::ReadFile(shaderFilename);
   return ShaderModule(device, stage,
                       ShaderModuleCreateInfoBuilder()
@@ -109,7 +110,7 @@ Semaphore VirtualDevice::CreateSemaphore() const {
 }
 
 void VirtualDevice::UpdateDescriptorSets(const u32 count,
-                                         VkWriteDescriptorSet* writes) {
+                                         VkWriteDescriptorSet* writes) const {
   vkUpdateDescriptorSets(device, count, writes, 0, nullptr);
 }
 

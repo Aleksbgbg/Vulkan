@@ -125,8 +125,8 @@ void CommandBuffer::CmdSetScissor(const VkRect2D scissor) const {
 
 void CommandBuffer::CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder,
                                        const VkSubpassContents subpassContents,
-                                       RenderPass& renderPass,
-                                       Framebuffer& framebuffer) const {
+                                       const RenderPass& renderPass,
+                                       const Framebuffer& framebuffer) const {
   vkCmdBeginRenderPass(commandBuffer,
                        infoBuilder.SetRenderPass(renderPass.renderPass)
                            .SetFramebuffer(framebuffer.framebuffer)
@@ -135,7 +135,7 @@ void CommandBuffer::CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder,
 }
 
 void CommandBuffer::CmdBindPipeline(const VkPipelineBindPoint bindPoint,
-                                    Pipeline& pipeline) const {
+                                    const Pipeline& pipeline) const {
   vkCmdBindPipeline(commandBuffer, bindPoint, pipeline.pipeline);
 }
 
@@ -156,6 +156,24 @@ void CommandBuffer::CmdBindVertexBuffers(const Buffer& buffer,
 void CommandBuffer::CmdBindIndexBuffer(const Buffer& buffer,
                                        const VkIndexType indexType) const {
   vkCmdBindIndexBuffer(commandBuffer, buffer.buffer, 0, indexType);
+}
+
+void CommandBuffer::CmdBindDescriptorSet(
+    const VkPipelineBindPoint bindPoint, const PipelineLayout& pipelineLayout,
+    const u32 setIndex, const DescriptorSet& descriptorSet) const {
+  vkCmdBindDescriptorSets(commandBuffer, bindPoint,
+                          pipelineLayout.pipelineLayout, setIndex, 1,
+                          &descriptorSet.descriptorSet, 0, nullptr);
+}
+
+void CommandBuffer::CmdBindDescriptorSet(const VkPipelineBindPoint bindPoint,
+                                         const PipelineLayout& pipelineLayout,
+                                         const u32 setIndex,
+                                         const DescriptorSet& descriptorSet,
+                                         const u32 dynamicOffset) const {
+  vkCmdBindDescriptorSets(commandBuffer, bindPoint,
+                          pipelineLayout.pipelineLayout, setIndex, 1,
+                          &descriptorSet.descriptorSet, 1, &dynamicOffset);
 }
 
 void CommandBuffer::CmdBindDescriptorSets(

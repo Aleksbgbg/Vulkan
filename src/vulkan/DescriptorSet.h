@@ -19,15 +19,26 @@ class DescriptorSet {
     friend class DescriptorSet;
 
    public:
-    operator VkWriteDescriptorSet() const {
-      return writeBuilder;
-    }
+    //    WriteDescriptorSet();
+    //
+    //    WriteDescriptorSet(const WriteDescriptorSet& other) noexcept;
+    //    WriteDescriptorSet(WriteDescriptorSet&& other) noexcept;
+    //
+    //    WriteDescriptorSet& operator=(const WriteDescriptorSet& other)
+    //    noexcept; WriteDescriptorSet& operator=(WriteDescriptorSet&& other)
+    //    noexcept;
 
-    WriteDescriptorSetBuilder& Builder() {
-      return writeBuilder;
-    }
+    operator VkWriteDescriptorSet() const;
 
    private:
+    //    enum class Type {
+    //      None,
+    //      Buffer,
+    //      Image
+    //    };
+    //
+    //    Type type;
+
     WriteDescriptorSetBuilder writeBuilder;
 
     union {
@@ -41,12 +52,17 @@ class DescriptorSet {
 
   DescriptorSet(const DescriptorSet&) = delete;
   DescriptorSet(DescriptorSet&&) = default;
+
   DescriptorSet& operator=(const DescriptorSet&) = delete;
   DescriptorSet& operator=(DescriptorSet&&) = default;
 
   void CreateBufferWrite(
       const Buffer& buffer, const VkDeviceSize range,
       const VkDescriptorType descriptorType,
+      DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
+  void CreateBufferWrite(
+      const Buffer& buffer, const VkDeviceSize range,
+      const VkDescriptorType descriptorType, const u32 binding,
       DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
   void CreateImageSamplerWrite(
       const ImageView& samplerImageView, const Sampler& sampler,
