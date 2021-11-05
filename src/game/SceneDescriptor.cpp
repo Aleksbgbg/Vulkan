@@ -36,12 +36,9 @@ DescriptorSetLayout SceneDescriptor::CreateLayout(
 }
 
 void SceneDescriptor::WriteDescriptorSets(
-    std::vector<std::unique_ptr<DescriptorSet::WriteDescriptorSet>>&
-        descriptorSetWrites) const {
-  std::unique_ptr<DescriptorSet::WriteDescriptorSet> viewBufferWrite =
-      std::make_unique<DescriptorSet::WriteDescriptorSet>();
-  viewTransformBuffer.CreateWriteDescriptorSet(0, *viewBufferWrite);
-  descriptorSetWrites.emplace_back(std::move(viewBufferWrite));
+    std::vector<DescriptorSet::WriteDescriptorSet>& descriptorSetWrites) const {
+  descriptorSetWrites.push_back(
+      std::move(viewTransformBuffer.CreateWriteDescriptorSet(0)));
 }
 
 PerFrameData& SceneDescriptor::FrameData() {

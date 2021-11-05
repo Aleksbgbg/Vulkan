@@ -20,7 +20,8 @@ class SceneDescriptor : public SceneDescriptorBinder {
   static DescriptorSetLayout CreateLayout(const VirtualDevice& virtualDevice);
 
   void WriteDescriptorSets(
-      std::vector<std::unique_ptr<DescriptorSet::WriteDescriptorSet>>&
+
+      std::vector<DescriptorSet::WriteDescriptorSet>&
           descriptorSetWrites) const;
 
   PerFrameData& FrameData();

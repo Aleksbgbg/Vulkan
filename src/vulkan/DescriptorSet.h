@@ -11,40 +11,37 @@
 #include "vulkan/structures/WriteDescriptorSet.h"
 
 class DescriptorSet {
-  friend class VirtualDevice;
   friend class CommandBuffer;
 
  public:
   class WriteDescriptorSet {
-    friend class DescriptorSet;
+    friend DescriptorSet;
+    enum class Type { Buffer, Image };
 
    public:
-    //    WriteDescriptorSet();
-    //
-    //    WriteDescriptorSet(const WriteDescriptorSet& other) noexcept;
-    //    WriteDescriptorSet(WriteDescriptorSet&& other) noexcept;
-    //
-    //    WriteDescriptorSet& operator=(const WriteDescriptorSet& other)
-    //    noexcept; WriteDescriptorSet& operator=(WriteDescriptorSet&& other)
-    //    noexcept;
+    WriteDescriptorSet(DescriptorBufferInfoBuilder descriptorBuilder,
+                       WriteDescriptorSetBuilder writeBuilder);
+    WriteDescriptorSet(DescriptorImageInfoBuilder descriptorBuilder,
+                       WriteDescriptorSetBuilder writeBuilder);
 
-    operator VkWriteDescriptorSet() const;
+    WriteDescriptorSet(const WriteDescriptorSet& other) noexcept;
+    WriteDescriptorSet(WriteDescriptorSet&& other) noexcept;
+
+    WriteDescriptorSet& operator=(const WriteDescriptorSet& other) noexcept;
+    WriteDescriptorSet& operator=(WriteDescriptorSet&& other) noexcept;
+
+    VkWriteDescriptorSet Build() const;
 
    private:
-    //    enum class Type {
-    //      None,
-    //      Buffer,
-    //      Image
-    //    };
-    //
-    //    Type type;
+    void ReassignPointers();
 
-    WriteDescriptorSetBuilder writeBuilder;
-
+   private:
+    Type type;
     union {
-      VkDescriptorImageInfo imageInfo;
       VkDescriptorBufferInfo bufferInfo;
+      VkDescriptorImageInfo imageInfo;
     } info;
+    WriteDescriptorSetBuilder writeBuilder;
   };
 
   DescriptorSet() = default;
@@ -56,22 +53,12 @@ class DescriptorSet {
   DescriptorSet& operator=(const DescriptorSet&) = delete;
   DescriptorSet& operator=(DescriptorSet&&) = default;
 
-  void CreateBufferWrite(
+  DescriptorSet::WriteDescriptorSet CreateBufferWrite(
       const Buffer& buffer, const VkDeviceSize range,
-      const VkDescriptorType descriptorType,
-      DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
-  void CreateBufferWrite(
-      const Buffer& buffer, const VkDeviceSize range,
-      const VkDescriptorType descriptorType, const u32 binding,
-      DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
-  void CreateImageSamplerWrite(
+      const VkDescriptorType descriptorType, const u32 binding) const;
+  DescriptorSet::WriteDescriptorSet CreateImageSamplerWrite(
       const ImageView& samplerImageView, const Sampler& sampler,
-      const VkImageLayout imageLayout,
-      DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
-  void CreateImageSamplerWrite(
-      const ImageView& samplerImageView, const Sampler& sampler,
-      const VkImageLayout imageLayout, const u32 binding,
-      DescriptorSet::WriteDescriptorSet& writeDescriptorSet) const;
+      const VkImageLayout imageLayout, const u32 binding) const;
 
  private:
   VkDescriptorSet descriptorSet = nullptr;

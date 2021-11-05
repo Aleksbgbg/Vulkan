@@ -17,11 +17,11 @@ class DynamicUniformBuffer {
         bufferWithMemory(initializer.CreateBuffer(elementPaddedSize)),
         value() {}
 
-  void CreateWriteDescriptorSet(
-      const u32 binding, DescriptorSet::WriteDescriptorSet& write) const {
-    descriptorSet->CreateBufferWrite(bufferWithMemory.buffer, elementPaddedSize,
-                                     VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-                                     binding, write);
+  DescriptorSet::WriteDescriptorSet CreateWriteDescriptorSet(
+      const u32 binding) const {
+    return descriptorSet->CreateBufferWrite(
+        bufferWithMemory.buffer, elementPaddedSize,
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, binding);
   }
 
   void Flush(const u32 objectIndex) const {

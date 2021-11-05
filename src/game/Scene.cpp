@@ -93,8 +93,7 @@ Scene::Scene(const VulkanContext& vulkanContext,
           .SetPoolSizeCount(descriptorPoolSizes.size())
           .SetMaxSets(descriptorSetCount));
 
-  std::vector<std::unique_ptr<DescriptorSet::WriteDescriptorSet>>
-      descriptorSetWrites;
+  std::vector<DescriptorSet::WriteDescriptorSet> descriptorSetWrites;
 
   sceneDescriptor =
       SceneDescriptor(*vulkanContext.virtualDevice, descriptorPool,
@@ -137,11 +136,12 @@ Scene::Scene(const VulkanContext& vulkanContext,
 
   std::vector<VkWriteDescriptorSet> writeDescriptorSets(
       descriptorSetWrites.size());
-  std::transform(descriptorSetWrites.begin(), descriptorSetWrites.end(),
-                 writeDescriptorSets.begin(),
-                 [](const std::unique_ptr<DescriptorSet::WriteDescriptorSet>&
-                        writeDescriptorSet) { return *writeDescriptorSet; });
-
+  std::transform(
+      descriptorSetWrites.begin(), descriptorSetWrites.end(),
+      writeDescriptorSets.begin(),
+      [](const DescriptorSet::WriteDescriptorSet& writeDescriptorSet) {
+        return writeDescriptorSet.Build();
+      });
   vulkanContext.virtualDevice->UpdateDescriptorSets(writeDescriptorSets.size(),
                                                     writeDescriptorSets.data());
 }

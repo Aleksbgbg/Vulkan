@@ -12,16 +12,14 @@ class TextureRegistry {
   TextureRegistry(
       const DescriptorSet& textureSamplerDescriptorSet,
       const Sampler& textureSampler,
-      std::vector<std::unique_ptr<DescriptorSet::WriteDescriptorSet>>&
-          writeDescriptorSets);
+      std::vector<DescriptorSet::WriteDescriptorSet>& writeDescriptorSets);
 
   void WriteTexture(const ImageView& textureView, const u32 binding);
 
  private:
   const DescriptorSet& textureSamplerDescriptorSet;
   const Sampler& textureSampler;
-  std::vector<std::unique_ptr<DescriptorSet::WriteDescriptorSet>>&
-      writeDescriptorSets;
+  std::vector<DescriptorSet::WriteDescriptorSet>& writeDescriptorSets;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERING_RESOURCES_TEXTUREREGISTRY_H
