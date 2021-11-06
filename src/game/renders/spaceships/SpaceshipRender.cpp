@@ -5,8 +5,8 @@
 
 #include "Npc.h"
 #include "Player.h"
-#include "TexturedVertex.h"
 #include "game/rendering/resources/ResourceLoader.h"
+#include "game/rendering/vertices/PositionNormalTextureVertex.h"
 #include "game/renders/spaceships/SpaceshipMesh.h"
 #include "general/files/images/png.h"
 #include "general/files/obj.h"
@@ -26,8 +26,8 @@ struct MeshLoadParams {
 SpaceshipMesh LoadSpaceshipMesh(const ResourceLoader& resourceLoader,
                                 const MeshLoadParams& params) {
   std::unordered_set<file::ModelFace> uniqueFaces;
-  std::unordered_map<TexturedVertex, u16> uniqueVertices;
-  std::vector<TexturedVertex> vertices;
+  std::unordered_map<PositionNormalTextureVertex, u16> uniqueVertices;
+  std::vector<PositionNormalTextureVertex> vertices;
   std::vector<u16> indices;
   std::vector<MeshFrame> meshFrames(params.frames.size());
 
@@ -45,10 +45,11 @@ SpaceshipMesh LoadSpaceshipMesh(const ResourceLoader& resourceLoader,
 
       uniqueFaces.emplace(face);
 
-      for (int vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
-        file::ModelFaceVertex modelFaceVertex = face.faceVertices[vertexIndex];
+      for (u32 vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
+        const file::ModelFaceVertex modelFaceVertex =
+            face.faceVertices[vertexIndex];
 
-        TexturedVertex vertex;
+        PositionNormalTextureVertex vertex;
         vertex.position.x = frameModel.vertices[modelFaceVertex.vertexIndex].x;
         vertex.position.y = frameModel.vertices[modelFaceVertex.vertexIndex].y;
         vertex.position.z = frameModel.vertices[modelFaceVertex.vertexIndex].z;
@@ -102,10 +103,8 @@ SpaceshipMesh LoadSpaceshipMesh(const ResourceLoader& resourceLoader,
   const glm::vec3 modelCenter = (corner1 + corner2) / 2.0f;
   const glm::vec3 modelSize = corner1 - corner2;
 
-  return SpaceshipMesh(resourceLoader.AllocateDeviceBuffer(
-                           vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
-                       resourceLoader.AllocateDeviceBuffer(
-                           indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT),
+  return SpaceshipMesh(resourceLoader.AllocateVertexBuffer(vertices),
+                       resourceLoader.AllocateIndexBuffer(indices),
                        resourceLoader.LoadTexture(params.texture),
                        resourceLoader.LoadTexture(params.emissive),
                        std::move(meshFrames), modelCenter, modelSize);
@@ -125,7 +124,7 @@ class SpaceshipPipelineStateFactory : public PipelineStateFactory {
         vertexBindingDescriptions({
             VertexInputBindingDescriptionBuilder()
                 .SetBinding(0)
-                .SetStride(sizeof(TexturedVertex))
+                .SetStride(sizeof(PositionNormalTextureVertex))
                 .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
         }),
         vertexAttributeDescriptions({
@@ -133,17 +132,17 @@ class SpaceshipPipelineStateFactory : public PipelineStateFactory {
                 .SetBinding(0)
                 .SetLocation(0)
                 .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-                .SetOffset(offsetof(TexturedVertex, position)),
+                .SetOffset(offsetof(PositionNormalTextureVertex, position)),
             VertexInputAttributeDescriptionBuilder()
                 .SetBinding(0)
                 .SetLocation(1)
                 .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-                .SetOffset(offsetof(TexturedVertex, normal)),
+                .SetOffset(offsetof(PositionNormalTextureVertex, normal)),
             VertexInputAttributeDescriptionBuilder()
                 .SetBinding(0)
                 .SetLocation(2)
                 .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-                .SetOffset(offsetof(TexturedVertex, textureCoordinate)),
+                .SetOffset(offsetof(PositionNormalTextureVertex, textureCoordinate)),
         }) {}
 
   std::vector<ShaderModule> LoadShaders(

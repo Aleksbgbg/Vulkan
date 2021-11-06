@@ -7,7 +7,7 @@
 #include "VulkanContext.h"
 #include "game/RenderPipeline.h"
 #include "game/model/UpdateContext.h"
-#include "game/rendering/resources/MeshRenderer.h"
+#include "game/rendering/meshes/MeshRenderer.h"
 
 class SceneRenderer {
  public:

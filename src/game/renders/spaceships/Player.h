@@ -3,7 +3,7 @@
 
 #include "game/Actor.h"
 #include "game/Camera.h"
-#include "game/rendering/resources/Mesh.h"
+#include "game/rendering/meshes/Mesh.h"
 #include "game/renders/spaceships/SpaceshipModel.h"
 #include "general/windowing/Window.h"
 

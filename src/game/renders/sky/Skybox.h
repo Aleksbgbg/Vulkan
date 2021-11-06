@@ -1,8 +1,8 @@
 #ifndef VULKAN_SRC_GAME_SKYBOX_H
 #define VULKAN_SRC_GAME_SKYBOX_H
 
-#include "SkyboxMesh.h"
 #include "game/Actor.h"
+#include "game/rendering/meshes/TexturedMesh.h"
 #include "game/rendering/resources/ResourceLoader.h"
 
 class Skybox : public Actor {
@@ -16,7 +16,7 @@ class Skybox : public Actor {
   void Render(const MeshRenderer& renderer) const override;
 
  private:
-  SkyboxMesh mesh;
+  TexturedMesh mesh;
 };
 
 #endif  // VULKAN_SRC_GAME_SKYBOX_H

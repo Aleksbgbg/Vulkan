@@ -1,9 +1,9 @@
 #ifndef VULKAN_SRC_GAME_LIGHTBOX_H
 #define VULKAN_SRC_GAME_LIGHTBOX_H
 
-#include "LightMesh.h"
 #include "game/Actor.h"
-#include "game/rendering/resources/MeshRenderer.h"
+#include "game/rendering/meshes/MeshRenderer.h"
+#include "game/rendering/meshes/TexturedMesh.h"
 #include "game/rendering/resources/ResourceLoader.h"
 
 class LightBox : public Actor {
@@ -17,7 +17,7 @@ class LightBox : public Actor {
   void Render(const MeshRenderer& renderer) const override;
 
  private:
-  LightMesh lightMesh;
+  TexturedMesh lightMesh;
 };
 
 #endif  // VULKAN_SRC_GAME_LIGHTBOX_H

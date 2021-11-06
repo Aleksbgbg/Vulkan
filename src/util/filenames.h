@@ -3,6 +3,11 @@
 
 inline constexpr const char* const PIPELINE_CACHE_FILENAME = "pipeline.cache";
 
+inline constexpr const char* const SPHERE_MODEL_FILENAME =
+    "resources/Sphere.obj";
+
+inline constexpr const char* const SUN_TEXTURE_FILENAME = "resources/Sun.png";
+
 inline constexpr const char* const SKYBOX_TEXTURE_FILENAME =
     "resources/Nebula.png";
 

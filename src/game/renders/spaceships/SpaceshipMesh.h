@@ -6,7 +6,7 @@
 #include "game/rendering/BufferWithMemory.h"
 #include "game/rendering/ImageWithMemory.h"
 #include "game/rendering/Texture.h"
-#include "game/rendering/resources/Mesh.h"
+#include "game/rendering/meshes/Mesh.h"
 #include "game/rendering/resources/TextureRegistry.h"
 #include "util/include/glm.h"
 #include "util/types.h"

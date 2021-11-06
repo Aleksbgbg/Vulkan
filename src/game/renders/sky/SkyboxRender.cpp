@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "Skybox.h"
-#include "SkyboxVertex.h"
+#include "game/rendering/vertices/PositionTextureVertex.h"
 
 class SkyboxPipelineStateFactory : public PipelineStateFactory {
  public:
@@ -12,7 +12,7 @@ class SkyboxPipelineStateFactory : public PipelineStateFactory {
       : vertexBindingDescriptions({
             VertexInputBindingDescriptionBuilder()
                 .SetBinding(0)
-                .SetStride(sizeof(SkyboxVertex))
+                .SetStride(sizeof(PositionTextureVertex))
                 .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
         }),
         vertexAttributeDescriptions({
@@ -20,12 +20,12 @@ class SkyboxPipelineStateFactory : public PipelineStateFactory {
                 .SetBinding(0)
                 .SetLocation(0)
                 .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-                .SetOffset(offsetof(SkyboxVertex, position)),
+                .SetOffset(offsetof(PositionTextureVertex, position)),
             VertexInputAttributeDescriptionBuilder()
                 .SetBinding(0)
                 .SetLocation(1)
                 .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-                .SetOffset(offsetof(SkyboxVertex, textureCoordinate)),
+                .SetOffset(offsetof(PositionTextureVertex, textureCoordinate)),
         }) {}
 
   std::vector<ShaderModule> LoadShaders(

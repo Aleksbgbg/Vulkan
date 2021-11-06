@@ -59,7 +59,7 @@ void SceneDescriptor::BindActorDescriptorSet(
 
 glm::mat4 Project(const float aspect) {
   glm::mat4 projection =
-      glm::perspective(glm::radians(45.0f), aspect, 0.1f, 4000.0f);
+      glm::perspective(glm::radians(55.0f), aspect, 0.1f, 3000.0f);
   projection[1][1] *= -1;
 
   return projection;

@@ -3,12 +3,12 @@
 
 #include "game/rendering/BufferWithMemory.h"
 #include "game/rendering/Texture.h"
-#include "game/rendering/resources/Mesh.h"
+#include "game/rendering/meshes/Mesh.h"
 
-class SkyboxMesh : public Mesh {
+class TexturedMesh : public Mesh {
  public:
-  SkyboxMesh() = default;
-  SkyboxMesh(BufferWithMemory vertexBuffer, BufferWithMemory indexBuffer,
+  TexturedMesh() = default;
+  TexturedMesh(BufferWithMemory vertexBuffer, BufferWithMemory indexBuffer,
              const u32 indexCount, Texture texture);
 
   void WriteTexture(TextureRegistry& textureRegistry) const override;

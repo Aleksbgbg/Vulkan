@@ -2,7 +2,7 @@
 #define VULKAN_SRC_GAME_NPC_H
 
 #include "game/Actor.h"
-#include "game/rendering/resources/Mesh.h"
+#include "game/rendering/meshes/Mesh.h"
 #include "game/renders/spaceships/SpaceshipModel.h"
 
 class Npc : public Actor {

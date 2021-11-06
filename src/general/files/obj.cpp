@@ -60,20 +60,63 @@ Model ModelFromObjFile(const std::string_view name) {
         } else if (line.starts_with("f ")) {
           ModelFace modelFace;
 
-          for (u32 index = 1; index < parts.size(); ++index) {
-            const std::vector<std::string> components =
-                Split(parts[index], "/");
+          if (parts.size() <= 4) {
+            for (u32 index = 1; index < parts.size(); ++index) {
+              const std::vector<std::string> components =
+                  Split(parts[index], "/");
 
-            modelFace.faceVertices[index - 1] = ModelFaceVertex{
-                .vertexIndex = static_cast<u32>(std::stoi(components[0])) - 1,
-                .normalVertexIndex =
-                    static_cast<u32>(std::stoi(components[2])) - 1,
-                .textureVertexIndex =
-                    static_cast<u32>(std::stoi(components[1])) - 1,
-            };
+              modelFace.faceVertices[index - 1] = ModelFaceVertex{
+                  .vertexIndex = static_cast<u32>(std::stoi(components[0])) - 1,
+                  .normalVertexIndex =
+                      static_cast<u32>(std::stoi(components[2])) - 1,
+                  .textureVertexIndex =
+                      static_cast<u32>(std::stoi(components[1])) - 1,
+              };
+            }
+
+            model.faces.emplace_back(modelFace);
+          } else {
+            for (u32 index = 1; index <= 3; ++index) {
+              const std::vector<std::string> components =
+                  Split(parts[index], "/");
+
+              modelFace.faceVertices[index - 1] = ModelFaceVertex{
+                  .vertexIndex = static_cast<u32>(std::stoi(components[0])) - 1,
+                  .normalVertexIndex =
+                      static_cast<u32>(std::stoi(components[2])) - 1,
+                  .textureVertexIndex =
+                      static_cast<u32>(std::stoi(components[1])) - 1,
+              };
+            }
+
+            model.faces.emplace_back(modelFace);
+
+            u32 i = 0;
+            u32 j = 0;
+
+            for (; i <= 3;) {
+              if (i == 1) {
+                ++i;
+                continue;
+              }
+
+              const std::vector<std::string> components =
+                  Split(parts[i + 1], "/");
+
+              modelFace.faceVertices[j] = ModelFaceVertex{
+                  .vertexIndex = static_cast<u32>(std::stoi(components[0])) - 1,
+                  .normalVertexIndex =
+                      static_cast<u32>(std::stoi(components[2])) - 1,
+                  .textureVertexIndex =
+                      static_cast<u32>(std::stoi(components[1])) - 1,
+              };
+
+              ++i;
+              ++j;
+            }
+
+            model.faces.emplace_back(modelFace);
           }
-
-          model.faces.emplace_back(modelFace);
         }
       }
 

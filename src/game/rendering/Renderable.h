@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_GAME_RENDERING_RENDERABLE_H
 #define VULKAN_SRC_GAME_RENDERING_RENDERABLE_H
 
-#include "game/rendering/resources/MeshRenderer.h"
+#include "game/rendering/meshes/MeshRenderer.h"
 #include "game/rendering/resources/TextureRegistry.h"
 
 class Renderable {
