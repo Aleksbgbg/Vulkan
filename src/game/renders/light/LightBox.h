@@ -13,11 +13,12 @@ class LightBox : public Actor {
 
   void UpdateModel(const UpdateContext& context) override;
 
-  void WriteTexture(TextureRegistry& textureRegistry) const override;
+  const Mesh& GetMesh() const override;
+
   void Render(const MeshRenderer& renderer) const override;
 
  private:
-  TexturedMesh lightMesh;
+  TexturedMesh mesh;
 };
 
 #endif  // VULKAN_SRC_GAME_LIGHTBOX_H

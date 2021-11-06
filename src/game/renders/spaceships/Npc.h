@@ -12,7 +12,8 @@ class Npc : public Actor {
 
   void UpdateModel(const UpdateContext& context) override;
 
-  void WriteTexture(TextureRegistry& textureRegistry) const;
+  const Mesh& GetMesh() const override;
+
   void Render(const MeshRenderer& renderer) const override;
 
  private:

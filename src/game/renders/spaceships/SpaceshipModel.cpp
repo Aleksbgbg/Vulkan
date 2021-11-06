@@ -1,7 +1,5 @@
 #include "SpaceshipModel.h"
 
-#include "util/filenames.h"
-
 SpaceshipModel::SpaceshipModel(SpaceshipMesh mesh)
     : mesh(std::move(mesh)), position(), transform(1.0f) {}
 
@@ -13,8 +11,8 @@ glm::vec3 SpaceshipModel::Size() const {
   return mesh.Size();
 }
 
-void SpaceshipModel::WriteTexture(TextureRegistry& resourceStore) const {
-  mesh.WriteTexture(resourceStore);
+const Mesh& SpaceshipModel::GetMesh() const {
+  return mesh;
 }
 
 void SpaceshipModel::Move(const glm::vec3 movement, const float deltaTime) {

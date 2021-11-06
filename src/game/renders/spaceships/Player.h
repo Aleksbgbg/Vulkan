@@ -13,7 +13,8 @@ class Player : public Actor {
 
   void UpdateModel(const UpdateContext& context) override;
 
-  void WriteTexture(TextureRegistry& textureRegistry) const override;
+  const Mesh& GetMesh() const override;
+
   void Render(const MeshRenderer& renderer) const override;
 
  private:

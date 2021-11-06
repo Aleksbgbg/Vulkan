@@ -13,7 +13,7 @@ class SpaceshipModel {
   glm::vec3* Position();
   glm::vec3 Size() const;
 
-  void WriteTexture(TextureRegistry& textureRegistry) const;
+  const Mesh& GetMesh() const;
 
   void Move(const glm::vec3 movement, const float deltaTime);
   void Render(const MeshRenderer& renderer) const;

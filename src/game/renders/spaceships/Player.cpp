@@ -64,8 +64,8 @@ void Player::UpdateModel(const UpdateContext& context) {
        .lookAt = *modelPosition});
 }
 
-void Player::WriteTexture(TextureRegistry& textureRegistry) const {
-  spaceshipModel.WriteTexture(textureRegistry);
+const Mesh& Player::GetMesh() const {
+  return spaceshipModel.GetMesh();
 }
 
 void Player::Render(const MeshRenderer& renderer) const {

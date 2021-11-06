@@ -23,8 +23,8 @@ TexturedMesh LoadSkyboxMesh(const ResourceLoader& resourceLoader) {
 Skybox::Skybox(const ResourceLoader& resourceLoader)
     : mesh(LoadSkyboxMesh(resourceLoader)) {}
 
-void Skybox::WriteTexture(TextureRegistry& textureRegistry) const {
-  mesh.WriteTexture(textureRegistry);
+const Mesh& Skybox::GetMesh() const {
+  return mesh;
 }
 
 void Skybox::UpdateModel(const UpdateContext& context) {}

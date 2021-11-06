@@ -119,7 +119,8 @@ Scene::Scene(const VulkanContext& vulkanContext,
 
         TextureRegistry textureRegistry(descriptorSet, *vulkanContext.sampler,
                                         descriptorSetWrites);
-        actor->WriteTexture(textureRegistry);
+
+        actor->GetMesh().WriteTexture(textureRegistry);
       }
 
       descriptorBinder =

@@ -8,10 +8,10 @@
 
 class Mesh {
  public:
-  Mesh() = default;
   virtual ~Mesh() = default;
 
   virtual void WriteTexture(TextureRegistry& textureRegistry) const = 0;
+
   virtual void Render(const CommandBuffer& commandBuffer,
                       const PipelineLayout& pipelineLayout,
                       const glm::mat4& transform) const = 0;

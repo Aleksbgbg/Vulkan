@@ -10,9 +10,10 @@ class Skybox : public Actor {
   Skybox() = default;
   Skybox(const ResourceLoader& resourceLoader);
 
-  void WriteTexture(TextureRegistry& textureRegistry) const;
-
   void UpdateModel(const UpdateContext& context) override;
+
+  const Mesh& GetMesh() const override;
+
   void Render(const MeshRenderer& renderer) const override;
 
  private:

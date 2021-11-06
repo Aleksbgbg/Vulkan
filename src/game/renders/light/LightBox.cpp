@@ -23,14 +23,14 @@ TexturedMesh LoadLightMesh(const ResourceLoader& resourceLoader) {
 }
 
 LightBox::LightBox(const ResourceLoader& resourceLoader)
-    : lightMesh(LoadLightMesh(resourceLoader)) {}
+    : mesh(LoadLightMesh(resourceLoader)) {}
 
 void LightBox::UpdateModel(const UpdateContext& context) {}
 
-void LightBox::WriteTexture(TextureRegistry& textureRegistry) const {
-  lightMesh.WriteTexture(textureRegistry);
+const Mesh& LightBox::GetMesh() const {
+  return mesh;
 }
 
 void LightBox::Render(const MeshRenderer& renderer) const {
-  renderer.Render(lightMesh, glm::mat4(1.0f));
+  renderer.Render(mesh, glm::mat4(1.0f));
 }

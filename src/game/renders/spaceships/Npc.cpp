@@ -10,8 +10,8 @@ void Npc::UpdateModel(const UpdateContext& context) {
       context.deltaTime);
 }
 
-void Npc::WriteTexture(TextureRegistry& textureRegistry) const {
-  spaceshipModel.WriteTexture(textureRegistry);
+const Mesh& Npc::GetMesh() const {
+  return spaceshipModel.GetMesh();
 }
 
 void Npc::Render(const MeshRenderer& renderer) const {
