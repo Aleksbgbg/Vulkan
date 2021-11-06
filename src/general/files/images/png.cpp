@@ -437,31 +437,52 @@ void DecompressZlib(ByteStreamReader& streamReader,
 
 class UnboundedScanlineReadWriter {
  public:
-  UnboundedScanlineReadWriter(Image& image) : image(image) {}
-
-  void Copy(const u32 scanline, const u8* const data) const {
-    std::memcpy(ScanlineData(scanline), data, image.scanlineSize);
+  UnboundedScanlineReadWriter(Image& image)
+      : image(image),
+        writeScanline(image.data.data()),
+        virtualScanlineSize(image.scanlineSize + image.bytesPerPixel),
+        virtualScanlineBuffer(new u8[virtualScanlineSize * 2]),
+        previousScanline(virtualScanlineBuffer.get()),
+        currentScanline(virtualScanlineBuffer.get() + virtualScanlineSize) {
+    // Set scanline -1 as well as the first byte on scanline 0 to 0
+    std::memset(previousScanline, 0, virtualScanlineSize + image.bytesPerPixel);
   }
 
-  void WriteByte(const u32 scanline, const i32 byte, const u8 value) const {
-    ScanlineData(scanline)[byte] = value;
+  void MoveToNextScanline() {
+    std::memcpy(writeScanline, currentScanline + image.bytesPerPixel,
+                image.scanlineSize);
+
+    std::swap(previousScanline, currentScanline);
+
+    writeScanline += image.scanlineSize;
   }
 
-  u8 ReadByte(const u32 scanline, const i32 byte) const {
-    if (byte < 0) {
-      return 0;
-    }
-
-    return ScanlineData(scanline)[byte];
+  void Copy(const u8* const data) const {
+    std::memcpy(currentScanline + image.bytesPerPixel, data,
+                image.scanlineSize);
   }
 
- private:
-  u8* ScanlineData(const u32 scanline) const {
-    return image.data.data() + (scanline * image.scanlineSize);
+  void WriteByte(const u32 byte, const u8 value) const {
+    currentScanline[byte + image.bytesPerPixel] = value;
+  }
+
+  u8 ReadBytePreviousScanline(const i32 byte) const {
+    return previousScanline[byte + image.bytesPerPixel];
+  }
+
+  u8 ReadByteCurrentScanline(const i32 byte) const {
+    return currentScanline[byte + image.bytesPerPixel];
   }
 
  private:
   Image& image;
+  u8* writeScanline;
+
+  u32 virtualScanlineSize;
+
+  std::unique_ptr<u8> virtualScanlineBuffer;
+  u8* previousScanline;
+  u8* currentScanline;
 };
 
 class PngDefilter {
@@ -479,23 +500,23 @@ class PngDefilter {
 
       switch (filterType) {
         case 0:
-          DecodeNoneFilter(scanline);
+          DecodeNoneFilter();
           break;
 
         case 1:
-          DecodeSubFilter(scanline);
+          DecodeSubFilter();
           break;
 
         case 2:
-          DecodeUpFilter(scanline);
+          DecodeUpFilter();
           break;
 
         case 3:
-          DecodeAverageFilter(scanline);
+          DecodeAverageFilter();
           break;
 
         case 4:
-          DecodePaethFilter(scanline);
+          DecodePaethFilter();
           break;
 
         default:
@@ -503,64 +524,67 @@ class PngDefilter {
                                    std::to_string(filterType) + ")");
       }
 
+      scanlineReadWriter.MoveToNextScanline();
+
       source += image.scanlineSize;
     }
   }
 
  private:
-  void DecodeNoneFilter(const u32 scanline) const {
-    scanlineReadWriter.Copy(scanline, source);
+  void DecodeNoneFilter() const {
+    scanlineReadWriter.Copy(source);
   }
 
-  void DecodeSubFilter(const u32 scanline) const {
+  void DecodeSubFilter() const {
     for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
-      const u8 outputByte = source[byte] + ReadPixelA(scanline, byte);
-      scanlineReadWriter.WriteByte(scanline, byte, outputByte);
+      const u8 outputByte = source[byte] + ReadPixelA(byte);
+      scanlineReadWriter.WriteByte(byte, outputByte);
     }
   }
 
-  void DecodeUpFilter(const u32 scanline) const {
+  void DecodeUpFilter() const {
     for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
-      const u8 outputByte = source[byte] + ReadPixelB(scanline, byte);
-      scanlineReadWriter.WriteByte(scanline, byte, outputByte);
+      const u8 outputByte = source[byte] + ReadPixelB(byte);
+      scanlineReadWriter.WriteByte(byte, outputByte);
     }
   }
 
-  void DecodeAverageFilter(const u32 scanline) const {
+  void DecodeAverageFilter() const {
     for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
-      const u8 a = ReadPixelA(scanline, byte);
-      const u8 b = ReadPixelB(scanline, byte);
+      const u8 a = ReadPixelA(byte);
+      const u8 b = ReadPixelB(byte);
 
       const u16 sum = a + b;
       const u8 outputByte = source[byte] + static_cast<u8>(sum / 2.0f);
 
-      scanlineReadWriter.WriteByte(scanline, byte, outputByte);
+      scanlineReadWriter.WriteByte(byte, outputByte);
     }
   }
 
-  void DecodePaethFilter(const u32 scanline) const {
+  void DecodePaethFilter() const {
     for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
-      const u8 a = ReadPixelA(scanline, byte);
-      const u8 b = ReadPixelB(scanline, byte);
-      const u8 c = ReadPixelC(scanline, byte);
+      const u8 a = ReadPixelA(byte);
+      const u8 b = ReadPixelB(byte);
+      const u8 c = ReadPixelC(byte);
 
       const u8 outputByte = source[byte] + PaethPredictor(a, b, c);
 
-      scanlineReadWriter.WriteByte(scanline, byte, outputByte);
+      scanlineReadWriter.WriteByte(byte, outputByte);
     }
   }
 
-  u8 ReadPixelA(const u32 scanline, const u32 byte) const {
-    return scanlineReadWriter.ReadByte(scanline, byte - image.bytesPerPixel);
+  u8 ReadPixelA(const u32 byte) const {
+    return scanlineReadWriter.ReadByteCurrentScanline(byte -
+                                                      image.bytesPerPixel);
   }
 
-  u8 ReadPixelB(const u32 scanline, const u32 byte) const {
-    return scanlineReadWriter.ReadByte(scanline - 1, byte);
+  u8 ReadPixelB(const u32 byte) const {
+    return scanlineReadWriter.ReadBytePreviousScanline(byte);
   }
 
-  u8 ReadPixelC(const u32 scanline, const u32 byte) const {
-    return scanlineReadWriter.ReadByte(scanline - 1,
-                                       byte - image.bytesPerPixel);
+  u8 ReadPixelC(const u32 byte) const {
+    return scanlineReadWriter.ReadBytePreviousScanline(byte -
+                                                       image.bytesPerPixel);
   }
 
   static u8 PaethPredictor(const u8 a, const u8 b, const u8 c) {
