@@ -27,8 +27,7 @@ class SpaceshipMesh : public Mesh {
 
   void WriteTexture(TextureRegistry& textureRegistry) const override;
   void Render(const CommandBuffer& commandBuffer,
-              const PipelineLayout& pipelineLayout,
-              const glm::mat4& transform) const override;
+              const PipelineLayout& pipelineLayout) const override;
 
   glm::vec3 Size() const;
   void LoadFrame(const u32 frame);

@@ -13,8 +13,7 @@ class Mesh {
   virtual void WriteTexture(TextureRegistry& textureRegistry) const = 0;
 
   virtual void Render(const CommandBuffer& commandBuffer,
-                      const PipelineLayout& pipelineLayout,
-                      const glm::mat4& transform) const = 0;
+                      const PipelineLayout& pipelineLayout) const = 0;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERING_RESOURCES_MESH_H

@@ -45,5 +45,5 @@ void SpaceshipModel::Render(const MeshRenderer& renderer) const {
   transform = glm::rotate(transform, rotation.y, glm::vec3(1.0f, 0.0f, 0.0f));
   transform = glm::rotate(transform, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-  renderer.Render(mesh, transform);
+  renderer.RenderTransformed(mesh, transform);
 }

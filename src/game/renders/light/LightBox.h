@@ -11,14 +11,14 @@ class LightBox : public Actor {
   LightBox() = default;
   LightBox(const ResourceLoader& resourceLoader);
 
-  void UpdateModel(const UpdateContext& context) override;
-
   const Mesh& GetMesh() const override;
 
+  void UpdateModel(const UpdateContext& context) override;
   void Render(const MeshRenderer& renderer) const override;
 
  private:
   TexturedMesh mesh;
+  glm::vec3 rotation;
 };
 
 #endif  // VULKAN_SRC_GAME_LIGHTBOX_H

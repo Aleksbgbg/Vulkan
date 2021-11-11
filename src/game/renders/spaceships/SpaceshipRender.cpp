@@ -117,10 +117,10 @@ struct ModelTransform {
 class SpaceshipPipelineStateFactory : public PipelineStateFactory {
  public:
   SpaceshipPipelineStateFactory()
-      : pushConstantsRanges({PushConstantRangeBuilder()
-                                 .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
-                                 .SetOffset(0)
-                                 .SetSize(sizeof(ModelTransform))}),
+      : pushConstantsRange(PushConstantRangeBuilder()
+                               .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
+                               .SetOffset(0)
+                               .SetSize(sizeof(ModelTransform))),
         vertexBindingDescriptions({
             VertexInputBindingDescriptionBuilder()
                 .SetBinding(0)
@@ -158,8 +158,8 @@ class SpaceshipPipelineStateFactory : public PipelineStateFactory {
 
   PipelineLayoutCreateInfoBuilder CreatePipelineLayout() const override {
     return PipelineLayoutCreateInfoBuilder()
-        .SetPushConstantRangeCount(pushConstantsRanges.size())
-        .SetPPushConstantRanges(pushConstantsRanges.data());
+        .SetPushConstantRangeCount(1)
+        .SetPPushConstantRanges(&pushConstantsRange);
   }
 
   PipelineVertexInputStateCreateInfoBuilder CreateVertexInputState()
@@ -172,7 +172,7 @@ class SpaceshipPipelineStateFactory : public PipelineStateFactory {
   }
 
  private:
-  const std::array<VkPushConstantRange, 1> pushConstantsRanges;
+  const VkPushConstantRange pushConstantsRange;
   const std::array<VkVertexInputBindingDescription, 1>
       vertexBindingDescriptions;
   const std::array<VkVertexInputAttributeDescription, 3>

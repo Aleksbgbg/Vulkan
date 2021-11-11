@@ -30,5 +30,5 @@ const Mesh& Skybox::GetMesh() const {
 void Skybox::UpdateModel(const UpdateContext& context) {}
 
 void Skybox::Render(const MeshRenderer& renderer) const {
-  renderer.Render(mesh, glm::mat4(1.0f));
+  renderer.Render(mesh);
 }

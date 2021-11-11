@@ -11,7 +11,8 @@ class MeshRenderer {
   MeshRenderer(const CommandBuffer& commandBuffer,
                const PipelineLayout& pipelineLayout);
 
-  void Render(const Mesh& mesh, const glm::mat4& transform) const;
+  void Render(const Mesh& mesh) const;
+  void RenderTransformed(const Mesh& mesh, const glm::mat4& transform) const;
 
  private:
   const CommandBuffer* commandBuffer;

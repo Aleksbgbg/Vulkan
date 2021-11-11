@@ -8,7 +8,11 @@
 class LightPipelineStateFactory : public PipelineStateFactory {
  public:
   LightPipelineStateFactory()
-      : vertexBindingDescriptions({
+      : pushConstantsRange(PushConstantRangeBuilder()
+                               .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
+                               .SetOffset(0)
+                               .SetSize(sizeof(glm::mat4))),
+        vertexBindingDescriptions({
             VertexInputBindingDescriptionBuilder()
                 .SetBinding(0)
                 .SetStride(sizeof(PositionTextureVertex))
@@ -38,7 +42,9 @@ class LightPipelineStateFactory : public PipelineStateFactory {
   }
 
   PipelineLayoutCreateInfoBuilder CreatePipelineLayout() const override {
-    return PipelineLayoutCreateInfoBuilder();
+    return PipelineLayoutCreateInfoBuilder()
+        .SetPushConstantRangeCount(1)
+        .SetPPushConstantRanges(&pushConstantsRange);
   }
 
   PipelineVertexInputStateCreateInfoBuilder CreateVertexInputState()
@@ -51,6 +57,7 @@ class LightPipelineStateFactory : public PipelineStateFactory {
   }
 
  private:
+  const VkPushConstantRange pushConstantsRange;
   const std::array<VkVertexInputBindingDescription, 1>
       vertexBindingDescriptions;
   const std::array<VkVertexInputAttributeDescription, 2>

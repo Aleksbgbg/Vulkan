@@ -19,12 +19,9 @@ void SpaceshipMesh::WriteTexture(TextureRegistry& textureRegistry) const {
 }
 
 void SpaceshipMesh::Render(const CommandBuffer& commandBuffer,
-                           const PipelineLayout& pipelineLayout,
-                           const glm::mat4& transform) const {
+                           const PipelineLayout& pipelineLayout) const {
   commandBuffer.CmdBindVertexBuffers(vertexBuffer.buffer, 0);
   commandBuffer.CmdBindIndexBuffer(indexBuffer.buffer, VK_INDEX_TYPE_UINT16);
-  commandBuffer.CmdPushConstants(pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                                 sizeof(transform), &transform);
   commandBuffer.CmdDrawIndexed(meshFrames[selectedFrame].indexCount,
                                /* instanceCount= */ 1);
 }
