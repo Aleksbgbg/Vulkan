@@ -26,8 +26,6 @@ class Scene {
   Scene& operator=(const Scene&) = delete;
   Scene& operator=(Scene&&) = delete;
 
-  const Camera& GetCamera() const;
-
   void UpdateAspect(const float aspect);
 
   void UpdateModel(const UpdateContext& context);

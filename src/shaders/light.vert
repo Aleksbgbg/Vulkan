@@ -13,7 +13,7 @@ layout(location = 1) in vec2 in_textureCoordinate;
 layout(location = 0) out vec2 out_fragTextureCoordinate;
 
 void main() {
-    vec4 framedView = frame.view * vec4(in_position, 0.0);
+    vec4 framedView = frame.view * vec4(in_position, 1.0);
     framedView.w = 1.0;
     gl_Position = frame.projection * framedView;
 

@@ -147,10 +147,6 @@ Scene::Scene(const VulkanContext& vulkanContext,
                                                     writeDescriptorSets.data());
 }
 
-const Camera& Scene::GetCamera() const {
-  return camera;
-}
-
 void Scene::UpdateAspect(const float aspect) {
   sceneDescriptor.UpdateAspect(aspect);
 }
@@ -160,12 +156,9 @@ void Scene::UpdateModel(const UpdateContext& context) {
     renderer.UpdateModel(context);
   }
 
-  const Camera::View cameraView = camera.GetView();
-
   PerFrameData& frame = sceneDescriptor.FrameData();
-  frame.view = glm::lookAt(cameraView.position, cameraView.lookAt,
-                           glm::vec3(0.0f, 1.0f, 0.0f));
-  frame.cameraPosition = cameraView.position;
+  frame.view = camera.GetViewMatrix();
+  frame.cameraPosition = camera.GetPosition();
   frame.lightingPosition = glm::vec3(0.0f, 0.0f, 100000.0f);
   frame.material = {.ambient = glm::vec3(1.0f),
                     .diffuse = glm::vec3(1.0f),

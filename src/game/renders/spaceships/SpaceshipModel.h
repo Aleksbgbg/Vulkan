@@ -15,13 +15,15 @@ class SpaceshipModel {
 
   const Mesh& GetMesh() const;
 
+  void Rotate(const glm::vec3 rotation);
   void Move(const glm::vec3 movement, const float deltaTime);
+
   void Render(const MeshRenderer& renderer) const;
 
  private:
   SpaceshipMesh mesh;
   glm::vec3 position;
-  glm::mat4 transform;
+  glm::vec3 rotation;
 };
 
 #endif  // VULKAN_SRC_GAME_SPACESHIPMODEL_H

@@ -8,11 +8,17 @@ class Camera {
   struct View {
     glm::vec3 position;
     glm::vec3 lookAt;
+    glm::vec3 rotation;
+    bool reverse;
   };
 
-  View GetView() const;
+  glm::mat4 GetViewMatrix() const;
+  glm::vec3 GetPosition() const;
 
   void SetView(const View& value);
+
+ private:
+  glm::vec3 Up() const;
 
  private:
   View view;

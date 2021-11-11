@@ -142,7 +142,8 @@ class SpaceshipPipelineStateFactory : public PipelineStateFactory {
                 .SetBinding(0)
                 .SetLocation(2)
                 .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-                .SetOffset(offsetof(PositionNormalTextureVertex, textureCoordinate)),
+                .SetOffset(
+                    offsetof(PositionNormalTextureVertex, textureCoordinate)),
         }) {}
 
   std::vector<ShaderModule> LoadShaders(

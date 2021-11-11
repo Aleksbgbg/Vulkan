@@ -25,3 +25,7 @@ glm::vec2 Mouse::GetPositionDeltaFromRightClick() const {
 
   return position - lastRightClickPosition.value();
 }
+
+glm::vec2 Mouse::GetPosition() const {
+  return position;
+}

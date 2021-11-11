@@ -9,7 +9,7 @@ class TexturedMesh : public Mesh {
  public:
   TexturedMesh() = default;
   TexturedMesh(BufferWithMemory vertexBuffer, BufferWithMemory indexBuffer,
-             const u32 indexCount, Texture texture);
+               const u32 indexCount, Texture texture);
 
   void WriteTexture(TextureRegistry& textureRegistry) const override;
   void Render(const CommandBuffer& commandBuffer,

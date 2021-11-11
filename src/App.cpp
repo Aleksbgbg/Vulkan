@@ -488,22 +488,10 @@ void App::UpdateModel(const float deltaTime) {
   uiRenderer->BeginFrame();
   uiRenderer->ShowVulkanDebugInfo(VulkanDebugInfo{
       .gpuName = physicalDeviceProperties.deviceName, .frametime = deltaTime});
-  uiRenderer->ShowKeyboardLayout(window);
 
   const UpdateContext updateContext{.deltaTime = deltaTime,
                                     .keyboard = window.GetKeyboard()};
   scene->UpdateModel(updateContext);
-
-  const Camera& camera = scene->GetCamera();
-
-  glm::vec3 modelPosition(0.0f);
-  Camera::View cameraView = camera.GetView();
-
-  uiRenderer->ShowObjectsInScene(
-      ObjectsInSceneInfo{.cameraRotation = glm::vec2(0.0f, 0.0f),
-                         .cameraLookAt = cameraView.lookAt,
-                         .cameraPosition = cameraView.position,
-                         .modelPosition = &modelPosition});
 
   uiRenderer->EndFrame();
   window.EndFrame();

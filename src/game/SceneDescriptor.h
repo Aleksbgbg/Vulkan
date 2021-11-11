@@ -21,8 +21,8 @@ class SceneDescriptor : public SceneDescriptorBinder {
 
   void WriteDescriptorSets(
 
-      std::vector<DescriptorSet::WriteDescriptorSet>&
-          descriptorSetWrites) const;
+      std::vector<DescriptorSet::WriteDescriptorSet>& descriptorSetWrites)
+      const;
 
   PerFrameData& FrameData();
   void FlushFrameData() const;

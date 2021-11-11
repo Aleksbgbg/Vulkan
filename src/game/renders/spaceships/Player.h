@@ -21,6 +21,9 @@ class Player : public Actor {
   SpaceshipModel spaceshipModel;
   Camera& camera;
   const Window& window;
+
+  glm::vec3 velocity;
+  glm::vec3 rotation;
 };
 
 #endif  // VULKAN_SRC_GAME_PLAYER_H

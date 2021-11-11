@@ -15,6 +15,8 @@ class Mouse {
 
   glm::vec2 GetPositionDeltaFromRightClick() const;
 
+  glm::vec2 GetPosition() const;
+
  private:
   glm::vec2 position;
   std::optional<glm::vec2> lastRightClickPosition;
