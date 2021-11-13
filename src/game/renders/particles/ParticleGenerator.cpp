@@ -79,10 +79,10 @@ void ParticleGenerator::UpdateModel(const UpdateContext& context) {
 
     particle.timeToLive -= context.deltaTime;
 
-    if (particle.timeToLive < 1.0f) {
-      particle.lifespan = randomNumberGenerator.RandomFloat(0.0f, 2.0f);
+    if (particle.timeToLive < 0.0f) {
+      particle.lifespan = randomNumberGenerator.RandomFloat(0.0f, 1.0f);
       particle.timeToLive = particle.lifespan;
-      particle.velocity.z = -randomNumberGenerator.RandomFloat(0.0f, 1.0f);
+      particle.velocity.z = -randomNumberGenerator.RandomFloat(0.0f, 0.5f);
       particle.position = glm::vec3(
           randomNumberGenerator.RandomFloat(spawnArea.X1(), spawnArea.X2()),
           randomNumberGenerator.RandomFloat(spawnArea.Y1(), spawnArea.Y2()),

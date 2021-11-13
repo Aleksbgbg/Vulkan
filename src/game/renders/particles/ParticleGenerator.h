@@ -9,7 +9,7 @@
 #include "game/renders/ParticleController.h"
 #include "general/algorithms/RandomNumberGenerator.h"
 
-inline constexpr u32 InstanceCount = 256;
+inline constexpr u32 InstanceCount = 1024;
 
 class ParticleGenerator : public Actor, public ParticleController {
  public:
