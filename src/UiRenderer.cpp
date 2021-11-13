@@ -4,21 +4,7 @@
 
 #include <string>
 
-#include "util/build_definition.h"
-
 static constexpr float Margin = 1.0f;
-
-float Average(const float* const values, const u32 size) {
-  float sum = 0.0f;
-
-  for (u32 index = 0; index < size; ++index) {
-    sum += values[index];
-  }
-
-  return sum / size;
-}
-
-static constexpr float ButtonSize = 50.0f;
 
 UiRenderer::UiRenderer(Rectf windowSize, ImGuiInstance imGuiInstance)
     : windowSize(windowSize),
@@ -59,15 +45,15 @@ void UiRenderer::ShowVulkanDebugInfo(const VulkanDebugInfo& info) {
     frametimeHistoryIndex =
         (frametimeHistoryIndex + 1) % frametimeHistory.size();
     timeSum = 0.0f;
+
+    sampleFrametime = frametimeMs;
   }
 
-  const float averageFrametime = Average(frametimeHistory.data(), valuesFilled);
-
-  ImGui::Text("Frametime: %.3fms", averageFrametime);
+  ImGui::Text("Frametime: %.3fms", sampleFrametime);
   ImGui::PlotLines("frametimes",
                    &UiRenderer::GetFrametimeHistoryValueFromRenderer, this,
                    frametimeHistory.size());
-  ImGui::Text("FPS: %.0f", 1000.0f / averageFrametime);
+  ImGui::Text("FPS: %.0f", 1000.0f / sampleFrametime);
   ImGui::End();
 }
 

@@ -36,6 +36,7 @@ class UiRenderer {
   u32 frametimeHistoryIndex;
   std::array<float, 10> frametimeHistory;
   float timeSum;
+  float sampleFrametime;
 };
 
 #endif  // VULKAN_SRC_UIRENDERER_H

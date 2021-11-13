@@ -60,10 +60,6 @@ void Player::UpdateModel(const UpdateContext& context) {
   const Rectf windowRect = window.GetRect();
   const glm::vec2 mouseMovement =
       CalculateMouseMovement(window.GetMouse(), windowRect);
-  glm::vec3* const modelPosition = spaceshipModel.Position();
-
-  glm::mat4 cameraTransform(1.0f);
-  cameraTransform = glm::translate(cameraTransform, *modelPosition);
 
   const bool reverseView = context.keyboard.IsKeyDown(SDLK_c);
 
@@ -82,6 +78,9 @@ void Player::UpdateModel(const UpdateContext& context) {
           glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(0.0f, 1.0f, 0.0f)),
           rotation.y, glm::vec3(1.0f, 0.0f, 0.0f)) *
       glm::vec4(velocity, 0.0f);
+
+  spaceshipModel.Rotate(rotation);
+  const bool moved = spaceshipModel.Move(frameVelocity, context.deltaTime);
 
   constexpr glm::vec3 ExhaustPositionTopLeft = glm::vec3(13.0f, 6.0f, 46.0f);
   constexpr glm::vec3 ExhaustPositionBottomRight =
@@ -108,10 +107,12 @@ void Player::UpdateModel(const UpdateContext& context) {
       glm::translate(glm::mat4(1.0f),
                      glm::vec3(0.0f, 0.0f, -exhaustPositionTopLeft.z)));
 
-  spaceshipModel.Rotate(rotation);
-  const bool moved = spaceshipModel.Move(frameVelocity, context.deltaTime);
-
   particleController.SetEnabled(moved);
+
+  glm::vec3* const modelPosition = spaceshipModel.Position();
+
+  glm::mat4 cameraTransform(1.0f);
+  cameraTransform = glm::translate(cameraTransform, *modelPosition);
 
   cameraTransform = glm::rotate(
       glm::rotate(cameraTransform, rotation.x, glm::vec3(0.0f, 1.0f, 0.0f)),
