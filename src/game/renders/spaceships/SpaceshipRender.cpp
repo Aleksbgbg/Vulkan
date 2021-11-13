@@ -210,8 +210,9 @@ class SpaceshipDescriptorConfiguration : public DescriptorConfiguration {
   }
 };
 
-SpaceshipRender::SpaceshipRender(Camera& camera, const Window& window)
-    : camera(camera), window(window) {}
+SpaceshipRender::SpaceshipRender(Camera& camera, const Window& window,
+                                 ParticleController& particleController)
+    : camera(camera), window(window), particleController(particleController) {}
 
 std::unique_ptr<PipelineStateFactory> SpaceshipRender::ConfigurePipeline()
     const {
@@ -224,7 +225,7 @@ std::unique_ptr<DescriptorConfiguration> SpaceshipRender::ConfigureDescriptors()
 }
 
 std::vector<std::unique_ptr<Actor>> SpaceshipRender::LoadActors(
-    const ResourceLoader& resourceLoader) const {
+    const ResourceLoader& resourceLoader) {
   std::vector<std::unique_ptr<Actor>> actors(2);
   actors[0] = std::make_unique<Player>(
       LoadSpaceshipMesh(
@@ -236,7 +237,7 @@ std::vector<std::unique_ptr<Actor>> SpaceshipRender::LoadActors(
                              .model = SPACESHIP_MOVING_MODEL_FILENAME}},
               .texture = SPACESHIP_TEXTURE_FILENAME,
               .emissive = SPACESHIP_EMISSIVE_FILENAME}),
-      camera, window);
+      camera, window, particleController);
   actors[1] = std::make_unique<Npc>(LoadSpaceshipMesh(
       resourceLoader,
       MeshLoadParams{.frames = {MeshFrameLoadParams{

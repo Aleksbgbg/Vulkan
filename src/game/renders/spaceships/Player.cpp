@@ -1,9 +1,11 @@
 #include "Player.h"
 
-Player::Player(SpaceshipMesh mesh, Camera& camera, const Window& window)
+Player::Player(SpaceshipMesh mesh, Camera& camera, const Window& window,
+               ParticleController& particleController)
     : spaceshipModel(std::move(mesh)),
       camera(camera),
       window(window),
+      particleController(particleController),
       velocity(0.0f),
       rotation(0.0f) {}
 
@@ -20,8 +22,9 @@ float OffsetValueByDeadzone(const float value, const float deadzone) {
 }
 
 glm::vec2 CalculateMouseMovement(const Mouse& mouse, const Rectf& windowRect) {
-  glm::vec2 movement = mouse.GetPosition() -
-                       (glm::vec2(windowRect.width, windowRect.height) / 2.0f);
+  glm::vec2 movement =
+      mouse.GetPosition() -
+      (glm::vec2(windowRect.Width(), windowRect.Height()) / 2.0f);
   movement.x = -movement.x;
 
   constexpr float Deadzone = 20.0f;
@@ -66,9 +69,9 @@ void Player::UpdateModel(const UpdateContext& context) {
 
   const glm::vec2 rotationDelta =
       glm::vec2(CalculateRotationFromDistanceAsFraction(mouseMovement.x,
-                                                        windowRect.width),
+                                                        windowRect.Width()),
                 CalculateRotationFromDistanceAsFraction(mouseMovement.y,
-                                                        windowRect.height)) *
+                                                        windowRect.Height())) *
       context.deltaTime;
 
   rotation.x += rotationDelta.x;
@@ -80,8 +83,35 @@ void Player::UpdateModel(const UpdateContext& context) {
           rotation.y, glm::vec3(1.0f, 0.0f, 0.0f)) *
       glm::vec4(velocity, 0.0f);
 
+  constexpr glm::vec3 ExhaustPositionTopLeft = glm::vec3(13.0f, 6.0f, 46.0f);
+  constexpr glm::vec3 ExhaustPositionBottomRight =
+      glm::vec3(21.0f, 7.0f, 46.0f);
+  constexpr glm::vec3 ShipDimensions = glm::vec3(34.0f, 16.0f, 56.0f);
+  constexpr glm::vec3 ExhaustPositionTopLeftNormalized =
+      ExhaustPositionTopLeft / ShipDimensions;
+  constexpr glm::vec3 ExhaustPositionBottomRightNormalized =
+      ExhaustPositionBottomRight / ShipDimensions;
+
+  const glm::vec3 halfSpaceshipSize = spaceshipModel.Size() / 2.0f;
+  const glm::vec3 exhaustPositionTopLeft =
+      (ExhaustPositionTopLeftNormalized * spaceshipModel.Size()) -
+      halfSpaceshipSize;
+  const glm::vec3 exhaustPositionBottomRight =
+      (ExhaustPositionBottomRightNormalized * spaceshipModel.Size()) -
+      halfSpaceshipSize;
+
+  particleController.SetSpawnArea(
+      Rectf::FromPoints(exhaustPositionTopLeft, exhaustPositionBottomRight));
+  particleController.SetTransform(
+      glm::translate(glm::mat4(1.0f), *spaceshipModel.Position()) *
+      glm::toMat4(glm::quat(glm::vec3(rotation.y, rotation.x, 0.0f))) *
+      glm::translate(glm::mat4(1.0f),
+                     glm::vec3(0.0f, 0.0f, -exhaustPositionTopLeft.z)));
+
   spaceshipModel.Rotate(rotation);
-  spaceshipModel.Move(frameVelocity, context.deltaTime);
+  const bool moved = spaceshipModel.Move(frameVelocity, context.deltaTime);
+
+  particleController.SetEnabled(moved);
 
   cameraTransform = glm::rotate(
       glm::rotate(cameraTransform, rotation.x, glm::vec3(0.0f, 1.0f, 0.0f)),

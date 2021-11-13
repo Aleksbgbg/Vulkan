@@ -4,12 +4,14 @@
 #include "game/Actor.h"
 #include "game/Camera.h"
 #include "game/rendering/meshes/Mesh.h"
+#include "game/renders/ParticleController.h"
 #include "game/renders/spaceships/SpaceshipModel.h"
 #include "general/windowing/Window.h"
 
 class Player : public Actor {
  public:
-  Player(SpaceshipMesh mesh, Camera& camera, const Window& window);
+  Player(SpaceshipMesh mesh, Camera& camera, const Window& window,
+         ParticleController& particleController);
 
   void UpdateModel(const UpdateContext& context) override;
 
@@ -21,6 +23,7 @@ class Player : public Actor {
   SpaceshipModel spaceshipModel;
   Camera& camera;
   const Window& window;
+  ParticleController& particleController;
 
   glm::vec3 velocity;
   glm::vec3 rotation;

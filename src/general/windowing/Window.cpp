@@ -5,10 +5,11 @@
 Window::WindowInfo Window::InitSdl(const u32 width, const u32 height) {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
-  Recti windowRect(50, 50, width, height);
+  Recti windowRect = Recti::FromRegion(50, 50, width, height);
 
   SDL_Window* window = SDL_CreateWindow(
-      "Vulkan", windowRect.x, windowRect.y, windowRect.width, windowRect.height,
+      "Vulkan", windowRect.X(), windowRect.Y(), windowRect.Width(),
+      windowRect.Height(),
       SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
   SDL_SysWMinfo sysWmInfo;
@@ -63,8 +64,9 @@ Window::Event Window::WaitAndProcessEvent() {
           return Event::Restored;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED:
-          windowInfo.rect.width = event.window.data1;
-          windowInfo.rect.height = event.window.data2;
+          windowInfo.rect =
+              Rectf::FromRegion(windowInfo.rect.X(), windowInfo.rect.Y(),
+                                event.window.data1, event.window.data2);
           return Event::SizeChanged;
       }
       break;

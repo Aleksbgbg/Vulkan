@@ -1,15 +1,14 @@
 #ifndef VULKAN_SRC_GAME_SKYBOXVERTEX_H
 #define VULKAN_SRC_GAME_SKYBOXVERTEX_H
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
+#include <string_view>
 
 #include "general/files/DrawVertices.h"
 #include "util/include/glm.h"
 
 struct PositionTextureVertex {
   static DrawVertices<PositionTextureVertex> LoadVertices(
-      const std::string filename);
+      const std::string_view filename);
 
   bool operator==(const PositionTextureVertex& other) const;
 
@@ -22,10 +21,7 @@ namespace std {
 template <>
 class hash<PositionTextureVertex> {
  public:
-  size_t operator()(const PositionTextureVertex& vertex) const {
-    return std::hash<glm::vec3>()(vertex.position) ^
-           std::hash<glm::vec2>()(vertex.textureCoordinate);
-  }
+  size_t operator()(const PositionTextureVertex& vertex) const;
 };
 
 }  // namespace std

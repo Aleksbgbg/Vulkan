@@ -15,3 +15,10 @@ void TextureRegistry::WriteTexture(const ImageView& textureView,
           textureView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
           binding)));
 }
+
+void TextureRegistry::BindBuffer(const Buffer& buffer, const VkDeviceSize range,
+                                 const VkDescriptorType descriptorType,
+                                 const u32 binding) {
+  writeDescriptorSets.push_back(textureSamplerDescriptorSet.CreateBufferWrite(
+      buffer, range, descriptorType, binding));
+}

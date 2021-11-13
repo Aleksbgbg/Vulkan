@@ -9,6 +9,7 @@ class Renderable {
   virtual ~Renderable() = default;
 
   virtual const Mesh& GetMesh() const = 0;
+  virtual void BindBuffers(TextureRegistry& resourceBinder) const {}
 
   virtual void Render(const MeshRenderer& renderer) const = 0;
 };

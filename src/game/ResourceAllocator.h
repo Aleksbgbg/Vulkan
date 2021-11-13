@@ -16,6 +16,8 @@ class ResourceAllocator : public ResourceLoader {
 
   Texture LoadTexture(const std::string_view filename) const override;
 
+  BufferWithMemory AllocateLocalBuffer(
+      const std::size_t size, const VkBufferUsageFlags usage) const override;
   BufferWithMemory AllocateDeviceBuffer(
       const void* const data, const std::size_t size,
       const VkBufferUsageFlags usage) const override;

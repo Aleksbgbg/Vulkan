@@ -78,12 +78,12 @@ void RenderPipeline::Bind(const CommandBuffer& commandBuffer,
 
   commandBuffer.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
   commandBuffer.CmdSetViewport(ViewportBuilder(VIEWPORT_BASE)
-                                   .SetWidth(windowRectf.width)
-                                   .SetHeight(windowRectf.height));
+                                   .SetWidth(windowRectf.Width())
+                                   .SetHeight(windowRectf.Height()));
   commandBuffer.CmdSetScissor(
       Rect2DBuilder()
           .SetOffset(OFFSET2D_ZERO)
           .SetExtent(Extent2DBuilder()
-                         .SetWidth(windowRecti.width)
-                         .SetHeight(windowRecti.height)));
+                         .SetWidth(windowRecti.Width())
+                         .SetHeight(windowRecti.Height())));
 }

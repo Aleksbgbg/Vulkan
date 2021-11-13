@@ -75,6 +75,17 @@ Texture ResourceAllocator::LoadTexture(const std::string_view filename) const {
                  .view = std::move(textureView)};
 }
 
+BufferWithMemory ResourceAllocator::AllocateLocalBuffer(
+    const std::size_t size, const VkBufferUsageFlags usage) const {
+  BufferWithMemory bufferWithMemory;
+  bufferWithMemory.buffer = virtualDevice->CreateBuffer(
+      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE).SetSize(size).SetUsage(usage));
+  bufferWithMemory.memory = deviceAllocator->BindMemory(
+      bufferWithMemory.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  return bufferWithMemory;
+}
+
 BufferWithMemory ResourceAllocator::AllocateDeviceBuffer(
     const void* const data, const std::size_t size,
     const VkBufferUsageFlags usage) const {

@@ -21,7 +21,7 @@ void SpaceshipModel::Rotate(const glm::vec3 rotation) {
   this->rotation = rotation;
 }
 
-void SpaceshipModel::Move(const glm::vec3 movement, const float deltaTime) {
+bool SpaceshipModel::Move(const glm::vec3 movement, const float deltaTime) {
   constexpr float movementSpeed = 10.0f;
 
   if ((std::abs(movement.x) + std::abs(movement.y) + std::abs(movement.z)) >
@@ -30,9 +30,11 @@ void SpaceshipModel::Move(const glm::vec3 movement, const float deltaTime) {
         glm::normalize(movement) * movementSpeed * deltaTime;
     position += normalizedMovement;
 
-    mesh.LoadFrame(1);
+    // mesh.LoadFrame(1);
+    return true;
   } else {
     mesh.LoadFrame(0);
+    return false;
   }
 }
 

@@ -1,34 +1,54 @@
 #ifndef VULKAN_SRC_RECT_H
 #define VULKAN_SRC_RECT_H
 
+#include "util/include/glm.h"
 #include "util/types.h"
 
-template <typename T>
-struct Rect;
+template <typename T, typename TVec>
+class Rect;
 
-typedef Rect<float> Rectf;
-typedef Rect<i32> Recti;
+typedef Rect<float, glm::vec2> Rectf;
+typedef Rect<i32, glm::ivec2> Recti;
 
-template <typename T>
-struct Rect {
+template <typename T, typename TVec>
+class Rect {
+ public:
   Rect() = default;
-  Rect(T x, T y, T width, T height)
-      : x(x), y(y), width(width), height(height) {}
 
-  operator Rectf() const {
-    return Rectf(static_cast<float>(x), static_cast<float>(y),
-                 static_cast<float>(width), static_cast<float>(height));
-  }
+  static Rect<T, TVec> FromPoints(T x1, T y1, T x2, T y2);
+  static Rect<T, TVec> FromPoints(const TVec point1, const TVec point2);
 
-  operator Recti() const {
-    return Recti(static_cast<i32>(x), static_cast<i32>(y),
-                 static_cast<i32>(width), static_cast<i32>(height));
-  }
+  static Rect<T, TVec> FromRegion(const T x, const T y, const T width,
+                                  const T height);
+  static Rect<T, TVec> FromRegion(const TVec point, const TVec size);
 
-  T x;
-  T y;
-  T width;
-  T height;
+  T X() const;
+  T Y() const;
+  T Width() const;
+  T Height() const;
+
+  T X1() const;
+  T Y1() const;
+  T X2() const;
+  T Y2() const;
+
+  TVec Point() const;
+  TVec Size() const;
+
+  TVec Point1() const;
+  TVec Point2() const;
+
+  operator Rectf() const;
+  operator Recti() const;
+
+ private:
+  Rect(const T x1, const T y1, const T x2, const T y2);
+
+ private:
+  T x1;
+  T y1;
+  T x2;
+  T y2;
 };
 
 #endif  // VULKAN_SRC_RECT_H

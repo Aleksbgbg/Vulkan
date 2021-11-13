@@ -19,7 +19,7 @@ class SceneRender {
   virtual std::unique_ptr<DescriptorConfiguration> ConfigureDescriptors()
       const = 0;
   virtual std::vector<std::unique_ptr<Actor>> LoadActors(
-      const ResourceLoader& resourceLoader) const = 0;
+      const ResourceLoader& resourceLoader) = 0;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERS_SCENERENDER_H

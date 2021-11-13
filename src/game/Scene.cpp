@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "game/renders/light/LightRender.h"
+#include "game/renders/particles/ParticleRender.h"
 #include "game/renders/sky/SkyboxRender.h"
 #include "game/renders/spaceships/SpaceshipRender.h"
 
@@ -30,17 +31,22 @@ class ArrayDescriptorBinder : public ActorDescriptorBinder {
   std::vector<DescriptorSet> descriptorSets;
 };
 
-static constexpr const u32 RenderCount = 3;
+static constexpr const u32 RenderCount = 4;
 
 Scene::Scene(const VulkanContext& vulkanContext,
              const ResourceLoader& resourceLoader, const Window& window,
              const u32& imageIndex,
              const DynamicUniformBufferInitializer& uniformBufferInitializer)
     : renderers(RenderCount), window(&window), camera() {
+  std::unique_ptr<ParticleRender> particleRender =
+      std::make_unique<ParticleRender>();
+
   std::vector<std::unique_ptr<SceneRender>> sceneRenders(RenderCount);
   sceneRenders[0] = std::make_unique<LightRender>();
   sceneRenders[1] = std::make_unique<SkyboxRender>();
-  sceneRenders[2] = std::make_unique<SpaceshipRender>(camera, window);
+  sceneRenders[2] = std::make_unique<SpaceshipRender>(
+      camera, window, particleRender->ParticleController());
+  sceneRenders[3] = std::move(particleRender);
 
   std::vector<VkDescriptorPoolSize> descriptorPoolSizes;
   SceneDescriptor::ConfigureDescriptorPoolSizes(descriptorPoolSizes);
@@ -121,6 +127,7 @@ Scene::Scene(const VulkanContext& vulkanContext,
                                         descriptorSetWrites);
 
         actor->GetMesh().WriteTexture(textureRegistry);
+        actor->BindBuffers(textureRegistry);
       }
 
       descriptorBinder =

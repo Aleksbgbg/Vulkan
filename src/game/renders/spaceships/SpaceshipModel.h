@@ -16,7 +16,7 @@ class SpaceshipModel {
   const Mesh& GetMesh() const;
 
   void Rotate(const glm::vec3 rotation);
-  void Move(const glm::vec3 movement, const float deltaTime);
+  bool Move(const glm::vec3 movement, const float deltaTime);
 
   void Render(const MeshRenderer& renderer) const;
 

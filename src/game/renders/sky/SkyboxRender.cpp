@@ -91,7 +91,7 @@ std::unique_ptr<DescriptorConfiguration> SkyboxRender::ConfigureDescriptors()
 }
 
 std::vector<std::unique_ptr<Actor>> SkyboxRender::LoadActors(
-    const ResourceLoader& resourceLoader) const {
+    const ResourceLoader& resourceLoader) {
   std::vector<std::unique_ptr<Actor>> actors(1);
   actors[0] = std::make_unique<Skybox>(resourceLoader);
   return actors;
