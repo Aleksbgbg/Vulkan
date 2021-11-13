@@ -42,6 +42,7 @@ class ParticleGenerator : public Actor, public ParticleController {
   struct ParticleInfo {
     float lifespan;
     float timeToLive;
+    glm::mat4 baseTransform;
     glm::vec3 velocity;
     glm::vec3 position;
     glm::vec3 rotation;

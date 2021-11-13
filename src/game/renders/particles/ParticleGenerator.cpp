@@ -53,10 +53,6 @@ void ParticleGenerator::SetTransform(const glm::mat4& transform) {
 
 void ParticleGenerator::SetEnabled(const bool enabled) {
   this->enabled = enabled;
-
-  if (!enabled) {
-    KillAllParticles();
-  }
 }
 
 float RandomRotation(RandomNumberGenerator& randomNumberGenerator) {
@@ -65,10 +61,6 @@ float RandomRotation(RandomNumberGenerator& randomNumberGenerator) {
 }
 
 void ParticleGenerator::UpdateModel(const UpdateContext& context) {
-  if (!enabled) {
-    return;
-  }
-
   void* const instanceParametersMemory =
       instanceParameters.memory.Map(0, sizeof(ParticleRenderData));
   ParticleRenderData& particleRenderData =
@@ -80,24 +72,30 @@ void ParticleGenerator::UpdateModel(const UpdateContext& context) {
     particle.timeToLive -= context.deltaTime;
 
     if (particle.timeToLive < 0.0f) {
-      particle.lifespan = randomNumberGenerator.RandomFloat(0.0f, 1.0f);
-      particle.timeToLive = particle.lifespan;
-      particle.velocity.z = -randomNumberGenerator.RandomFloat(0.0f, 0.5f);
-      particle.position = glm::vec3(
-          randomNumberGenerator.RandomFloat(spawnArea.X1(), spawnArea.X2()),
-          randomNumberGenerator.RandomFloat(spawnArea.Y1(), spawnArea.Y2()),
-          0.0f);
-      particle.rotation = glm::vec3(RandomRotation(randomNumberGenerator),
-                                    RandomRotation(randomNumberGenerator),
-                                    RandomRotation(randomNumberGenerator));
+      if (enabled) {
+        particle.lifespan = randomNumberGenerator.RandomFloat(0.0f, 1.0f);
+        particle.timeToLive = particle.lifespan;
+        particle.baseTransform = transform;
+        particle.velocity.z = -randomNumberGenerator.RandomFloat(0.0f, 0.5f);
+        particle.position = glm::vec3(
+            randomNumberGenerator.RandomFloat(spawnArea.X1(), spawnArea.X2()),
+            randomNumberGenerator.RandomFloat(spawnArea.Y1(), spawnArea.Y2()),
+            0.0f);
+        particle.rotation = glm::vec3(RandomRotation(randomNumberGenerator),
+                                      RandomRotation(randomNumberGenerator),
+                                      RandomRotation(randomNumberGenerator));
+      } else {
+        particle.position = glm::vec3(-99999.0f);
+      }
     } else {
       particle.position.z += particle.velocity.z;
     }
 
     ParticleRender& particleRender = particleRenderData.particleRender[index];
 
-    particleRender.model = glm::translate(transform, particle.position) *
-                           glm::toMat4(glm::quat(particle.rotation));
+    particleRender.model =
+        glm::translate(particle.baseTransform, particle.position) *
+        glm::toMat4(glm::quat(particle.rotation));
     particleRender.fractionOfLife = particle.timeToLive / particle.lifespan;
   }
 
@@ -105,10 +103,6 @@ void ParticleGenerator::UpdateModel(const UpdateContext& context) {
 }
 
 void ParticleGenerator::Render(const MeshRenderer& renderer) const {
-  if (!enabled) {
-    return;
-  }
-
   renderer.Render(mesh);
 }
 
