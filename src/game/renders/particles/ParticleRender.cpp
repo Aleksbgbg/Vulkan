@@ -97,6 +97,6 @@ std::vector<std::unique_ptr<Actor>> ParticleRender::LoadActors(
   return actors;
 }
 
-ParticleController& ParticleRender::ParticleController() const {
+ParticleController& ParticleRender::GetParticleController() const {
   return *particleGenerator;
 }

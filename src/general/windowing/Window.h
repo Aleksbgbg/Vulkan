@@ -1,26 +1,26 @@
 #ifndef VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H
 #define VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H
 
+#include "VulkanWindow.h"
 #include "general/geometry/Rect.h"
 #include "general/windowing/ImGuiWindow.h"
 #include "general/windowing/input/Keyboard.h"
 #include "general/windowing/input/Mouse.h"
 #include "util/include/sdl.h"
-#include "util/types.h"
-#include "vulkan/Surface.h"
-#include "vulkan/VulkanInstance.h"
 
-class Window : public ImGuiWindow {
+namespace wnd {
+
+class Window : public ImGuiWindow, public VulkanWindow {
  public:
-  Window(const u32 width, const u32 height);
+  Window(const Recti windowRect, SDL_Window* window);
 
   Window(const Window&) = delete;
-  Window(Window&&) = delete;
+  Window(Window&& other) noexcept;
 
-  ~Window();
+  virtual ~Window();
 
   Window& operator=(const Window&) = delete;
-  Window& operator=(Window&&) = delete;
+  Window& operator=(Window&& other) noexcept;
 
  public:
   enum class Event {
@@ -40,32 +40,20 @@ class Window : public ImGuiWindow {
 
   Event WaitAndProcessEvent();
 
+  void ShutdownImGui() const override;
   void EndFrame();
-
-  Surface CreateWindowSurface(const VulkanInstance& instance) const;
 
  private:
   void InitImGui() const override;
   void NewFrame() const override;
 
- public:
-  void ShutdownImGui() const override;
-
  private:
-  struct WindowInfo {
-    SDL_Window* window;
-    HINSTANCE hinstance;
-    HWND hwnd;
-    Recti rect;
-  };
-
-  static WindowInfo InitSdl(const u32 width, const u32 height);
-
- private:
-  WindowInfo windowInfo;
-
+  Recti windowRect;
+  SDL_Window* window;
   Keyboard keyboard;
   Mouse mouse;
 };
+
+}  // namespace wnd
 
 #endif  // VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H

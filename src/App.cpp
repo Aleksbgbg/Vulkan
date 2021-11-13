@@ -26,23 +26,30 @@
 
 static constexpr const u32 SWAPCHAIN_IMAGES = 3;
 
-App::App()
-    : window(1920, 1080),
-      keyboard(window.GetKeyboard()),
-      mouse(window.GetMouse()),
+App::App(std::unique_ptr<wnd::Window> appWindow)
+    : window(std::move(appWindow)),
+      keyboard(window->GetKeyboard()),
+      mouse(window->GetMouse()),
       hasSwapchain(false),
       hasOldSwapchain(false),
-      previousTime(std::chrono::high_resolution_clock::now()),
+      previousTime(std::chrono::high_resolution_clock::time_point::min()),
       threadMessenger(),
       imageIndex(0) {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
 
   const std::vector<const char*> requiredExtensions = {
-      VK_KHR_SURFACE_EXTENSION_NAME,
-      VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-#ifdef VALIDATION
-      VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+    VK_KHR_SURFACE_EXTENSION_NAME,
+  // Hardcoded to prevent leaking platform details - may need to be fetched from
+  // platform layer using the macros in the future if they start changing
+#if defined(WINDOWS)
+    "VK_KHR_win32_surface",
+#endif
+#if defined(LINUX)
+    "VK_KHR_xlib_surface",
+#endif
+#if defined(VALIDATION)
+    VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
 #endif
   };
 
@@ -90,7 +97,7 @@ App::App()
           .SetPfnUserCallback(DebugCallback));
 #endif
 
-  windowSurface = window.CreateWindowSurface(instance);
+  windowSurface = instance.CreateSurface(*window);
 
   std::vector<PhysicalDevice> physicalDevices = instance.GetPhysicalDevices();
 
@@ -113,7 +120,7 @@ App::App()
       windowSurface.GetCapabilities(targetPhysicalDevice);
   minSwapchainImages = std::min(surfaceCapabilities.minImageCount + 1,
                                 surfaceCapabilities.maxImageCount);
-  framesInFlight = minSwapchainImages;
+  framesInFlight = SWAPCHAIN_IMAGES;
 
   const std::optional<u32> queueFamilyIndex =
       targetPhysicalDevice.FindAppropriateQueueFamily(
@@ -264,7 +271,7 @@ App::App()
   const DynamicUniformBufferInitializer uniformBufferInitializer(
       SWAPCHAIN_IMAGES, physicalDeviceProperties.limits, virtualDevice,
       deviceAllocator);
-  scene = std::make_unique<Scene>(vulkanContext, resourceAllocator, window,
+  scene = std::make_unique<Scene>(vulkanContext, resourceAllocator, *window,
                                   imageIndex, uniformBufferInitializer);
 
   InitializeSwapchain();
@@ -370,8 +377,8 @@ void App::InitializeSwapchain() {
 
   uiRenderer = nullptr;
   uiRenderer = std::make_unique<UiRenderer>(
-      window.GetRect(),
-      ImGuiInstance(window, instance, targetPhysicalDevice, virtualDevice,
+      window->GetRect(),
+      ImGuiInstance(*window, instance, targetPhysicalDevice, virtualDevice,
                     queue, renderPass, shortExecutionCommandBuffer, fence,
                     samples));
 
@@ -385,6 +392,8 @@ void App::InitializeSwapchain() {
         .renderCompleteSemaphore = virtualDevice.CreateSemaphore(),
         .submitCompleteFence =
             virtualDevice.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
+    imagesInFlightSynchronisation.emplace_back(InFlightImage{
+        .acquireImageSemaphore = virtualDevice.CreateSemaphore()});
   }
 }
 
@@ -417,21 +426,21 @@ int App::Run() {
 
 void App::MainThread() {
   while (true) {
-    switch (window.WaitAndProcessEvent()) {
-      case Window::Event::Exit:
+    switch (window->WaitAndProcessEvent()) {
+      case wnd::Window::Event::Exit:
         threadMessenger.PostMessage(EventNotification::Unpaused);
         threadMessenger.PostMessage(EventNotification::Exited);
         return;
 
-      case Window::Event::Minimized:
+      case wnd::Window::Event::Minimized:
         threadMessenger.PostMessage(EventNotification::Paused);
         break;
 
-      case Window::Event::Restored:
+      case wnd::Window::Event::Restored:
         threadMessenger.PostMessage(EventNotification::Unpaused);
         break;
 
-      case Window::Event::SizeChanged:
+      case wnd::Window::Event::SizeChanged:
         threadMessenger.PostMessage(EventNotification::Resized);
         break;
     }
@@ -458,6 +467,7 @@ void App::RenderThread() {
             // TODO: Allow continuous render during recreation
             virtualDevice.WaitIdle();
             swapchainRenderData.clear();
+            imagesInFlightSynchronisation.clear();
             BufferedLog("Recreating swapchain.");
             InitializeSwapchain();
             ImmediateLog("Swapchain recreated.");
@@ -472,6 +482,10 @@ void App::RenderThread() {
 }
 
 void App::MainLoop() {
+  if (previousTime == std::chrono::high_resolution_clock::time_point::min()) {
+    previousTime = std::chrono::high_resolution_clock::now();
+  }
+
   const auto timeNow = std::chrono::high_resolution_clock::now();
   const float deltaTime =
       std::chrono::duration<float, std::chrono::seconds::period>(timeNow -
@@ -490,11 +504,11 @@ void App::UpdateModel(const float deltaTime) {
       .gpuName = physicalDeviceProperties.deviceName, .frametime = deltaTime});
 
   const UpdateContext updateContext{.deltaTime = deltaTime,
-                                    .keyboard = window.GetKeyboard()};
+                                    .keyboard = window->GetKeyboard()};
   scene->UpdateModel(updateContext);
 
   uiRenderer->EndFrame();
-  window.EndFrame();
+  window->EndFrame();
 }
 
 void App::Render() {
@@ -504,6 +518,11 @@ void App::Render() {
   const Swapchain::AcquireNextImageResult nextImageResult =
       swapchain.AcquireNextImage(SynchronisationPack().SetSignalSemaphore(
           &synchronisation.acquireImageSemaphore));
+
+  if (nextImageResult.status == VK_ERROR_OUT_OF_DATE_KHR) {
+    return;
+  }
+
   imageIndex = nextImageResult.imageIndex;
 
   SwapchainRenderPass& swapchainRender = swapchainRenderData[imageIndex];

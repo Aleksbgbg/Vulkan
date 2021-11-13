@@ -34,7 +34,7 @@ class ArrayDescriptorBinder : public ActorDescriptorBinder {
 static constexpr const u32 RenderCount = 4;
 
 Scene::Scene(const VulkanContext& vulkanContext,
-             const ResourceLoader& resourceLoader, const Window& window,
+             const ResourceLoader& resourceLoader, const wnd::Window& window,
              const u32& imageIndex,
              const DynamicUniformBufferInitializer& uniformBufferInitializer)
     : renderers(RenderCount), window(&window), camera() {
@@ -45,7 +45,7 @@ Scene::Scene(const VulkanContext& vulkanContext,
   sceneRenders[0] = std::make_unique<LightRender>();
   sceneRenders[1] = std::make_unique<SkyboxRender>();
   sceneRenders[2] = std::make_unique<SpaceshipRender>(
-      camera, window, particleRender->ParticleController());
+      camera, window, particleRender->GetParticleController());
   sceneRenders[3] = std::move(particleRender);
 
   std::vector<VkDescriptorPoolSize> descriptorPoolSizes;

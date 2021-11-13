@@ -15,7 +15,7 @@ class ParticleRender : public SceneRender {
   std::vector<std::unique_ptr<Actor>> LoadActors(
       const ResourceLoader& resourceLoader) override;
 
-  ParticleController& ParticleController() const;
+  ParticleController& GetParticleController() const;
 
  private:
   std::unique_ptr<ParticleGenerator> particleGenerator;

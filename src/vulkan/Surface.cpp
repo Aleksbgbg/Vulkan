@@ -1,13 +1,7 @@
 #include "Surface.h"
 
-#include "error.h"
-
-Surface::Surface(VkInstance instance,
-                 Win32SurfaceCreateInfoBuilder& infoBuilder)
-    : instance(instance) {
-  PROCEED_ON_VALID_RESULT(vkCreateWin32SurfaceKHR(instance, infoBuilder.Build(),
-                                                  nullptr, &surface));
-}
+Surface::Surface(VkInstance instance, VkSurfaceKHR surface)
+    : instance(instance), surface(surface) {}
 
 Surface::~Surface() {
   if (surface != nullptr) {

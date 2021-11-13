@@ -8,5 +8,7 @@
 #undef PostMessage
 #undef min
 #undef max
+#undef CreateWindowA
+#undef CreateWindowExA
 
 #endif  // VULKAN_SRC_INCLUDE_WINDOWS_H

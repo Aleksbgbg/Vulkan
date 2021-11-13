@@ -58,8 +58,7 @@ Swapchain::AcquireNextImageResult Swapchain::AcquireNextImage(
       device, swapchain, UINT64_MAX,
       synchronisation.GetSignalSemaphore()->Raw(), VK_NULL_HANDLE, &imageIndex);
 
-  if (!((status == VK_ERROR_OUT_OF_DATE_KHR) ||
-        (status == VK_SUBOPTIMAL_KHR))) {
+  if ((status != VK_ERROR_OUT_OF_DATE_KHR) && (status != VK_SUBOPTIMAL_KHR)) {
     PROCEED_ON_VALID_RESULT(status)
   }
 

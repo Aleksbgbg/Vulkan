@@ -72,7 +72,7 @@ const PipelineLayout& RenderPipeline::GetLayout() const {
 }
 
 void RenderPipeline::Bind(const CommandBuffer& commandBuffer,
-                          const Window& window) const {
+                          const wnd::Window& window) const {
   const Recti windowRecti = window.GetRect();
   const Rectf windowRectf = windowRecti;
 

@@ -1,6 +1,7 @@
 #include "png.h"
 
 #include <array>
+#include <cstring>
 #include <stdexcept>
 #include <string>
 

@@ -1,6 +1,7 @@
 #ifndef VULKAN_SRC_KEYBOARD_H
 #define VULKAN_SRC_KEYBOARD_H
 
+#include <SDL.h>
 #include <SDL_keycode.h>
 
 #include <unordered_set>

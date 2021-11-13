@@ -19,7 +19,7 @@ class VulkanResultException : public std::exception {
                 invocation + ": VkResult was not success. Was: " +
                 std::to_string(result) + " but expected VK_SUCCESS (0).") {}
 
-  const char* what() const override {
+  const char* what() const noexcept override {
     return message.c_str();
   }
 };

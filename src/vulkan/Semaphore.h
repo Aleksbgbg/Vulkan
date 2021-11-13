@@ -19,8 +19,6 @@ class Semaphore {
 
   Semaphore& operator=(const Semaphore&) = delete;
 
-  void Wait();
-
   VkSemaphore* Pointer();
   VkSemaphore Raw();
 

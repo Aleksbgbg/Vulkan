@@ -16,7 +16,7 @@ class Scene {
  public:
   Scene() = default;
   Scene(const VulkanContext& vulkanContext,
-        const ResourceLoader& resourceLoader, const Window& window,
+        const ResourceLoader& resourceLoader, const wnd::Window& window,
         const u32& imageIndex,
         const DynamicUniformBufferInitializer& uniformBufferInitializer);
 
@@ -34,7 +34,7 @@ class Scene {
  private:
   std::vector<SceneRenderer> renderers;
 
-  const Window* window;
+  const wnd::Window* window;
   Camera camera;
 
   DescriptorPool descriptorPool;

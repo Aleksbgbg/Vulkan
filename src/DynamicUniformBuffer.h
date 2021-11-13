@@ -1,6 +1,8 @@
 #ifndef VULKAN_SRC_DYNAMICUNIFORMBUFFER_H
 #define VULKAN_SRC_DYNAMICUNIFORMBUFFER_H
 
+#include <cstring>
+
 #include "DynamicUniformBufferInitializer.h"
 #include "game/rendering/BufferWithMemory.h"
 #include "util/types.h"

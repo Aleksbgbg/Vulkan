@@ -5,7 +5,6 @@
 
 #include "PhysicalDevice.h"
 #include "lifetime_semantics.h"
-#include "vulkan/structures/Win32SurfaceCreateInfo.h"
 
 class Surface {
   friend class VirtualDevice;
@@ -14,8 +13,7 @@ class Surface {
   VULKAN_OBJECT_MOVABLE_ROOT(Surface, instance, surface)
 
   Surface() = default;
-  explicit Surface(VkInstance instance,
-                   Win32SurfaceCreateInfoBuilder& infoBuilder);
+  Surface(VkInstance instance, VkSurfaceKHR surface);
 
   Surface(const Surface&) = delete;
 

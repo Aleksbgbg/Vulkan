@@ -2,35 +2,36 @@
 
 #include <backends/imgui_impl_sdl.h>
 
-Window::WindowInfo Window::InitSdl(const u32 width, const u32 height) {
-  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+namespace wnd {
 
-  Recti windowRect = Recti::FromRegion(50, 50, width, height);
+Window::Window(const Recti windowRect, SDL_Window* window)
+    : windowRect(windowRect), window(window), keyboard(), mouse() {}
 
-  SDL_Window* window = SDL_CreateWindow(
-      "Vulkan", windowRect.X(), windowRect.Y(), windowRect.Width(),
-      windowRect.Height(),
-      SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
-
-  SDL_SysWMinfo sysWmInfo;
-  SDL_VERSION(&sysWmInfo.version)
-  SDL_GetWindowWMInfo(window, &sysWmInfo);
-
-  return WindowInfo{.window = window,
-                    .hinstance = sysWmInfo.info.win.hinstance,
-                    .hwnd = sysWmInfo.info.win.window,
-                    .rect = windowRect};
+Window::Window(Window&& other) noexcept
+    : windowRect(other.windowRect),
+      window(other.window),
+      keyboard(std::move(other.keyboard)),
+      mouse(std::move(other.mouse)) {
+  other.window = nullptr;
 }
 
-Window::Window(const u32 width, const u32 height)
-    : windowInfo(InitSdl(width, height)), keyboard(), mouse() {}
+Window& Window::operator=(Window&& other) noexcept {
+  windowRect = other.windowRect;
+  std::swap(window, other.window);
+  keyboard = std::move(other.keyboard);
+  mouse = std::move(other.mouse);
+
+  return *this;
+}
 
 Window::~Window() {
-  SDL_Quit();
+  if (window != nullptr) {
+    SDL_Quit();
+  }
 }
 
 Recti Window::GetRect() const {
-  return windowInfo.rect;
+  return windowRect;
 }
 
 Keyboard& Window::GetKeyboard() {
@@ -64,8 +65,8 @@ Window::Event Window::WaitAndProcessEvent() {
           return Event::Restored;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED:
-          windowInfo.rect =
-              Rectf::FromRegion(windowInfo.rect.X(), windowInfo.rect.Y(),
+          windowRect =
+              Rectf::FromRegion(windowRect.X(), windowRect.Y(),
                                 event.window.data1, event.window.data2);
           return Event::SizeChanged;
       }
@@ -98,20 +99,16 @@ void Window::EndFrame() {
   keyboard.ClearPressedKeys();
 }
 
-Surface Window::CreateWindowSurface(const VulkanInstance& instance) const {
-  return instance.CreateSurface(Win32SurfaceCreateInfoBuilder()
-                                    .SetHinstance(windowInfo.hinstance)
-                                    .SetHwnd(windowInfo.hwnd));
-}
-
 void Window::InitImGui() const {
-  ImGui_ImplSDL2_InitForVulkan(windowInfo.window);
+  ImGui_ImplSDL2_InitForVulkan(window);
 }
 
 void Window::NewFrame() const {
-  ImGui_ImplSDL2_NewFrame(windowInfo.window);
+  ImGui_ImplSDL2_NewFrame(window);
 }
 
 void Window::ShutdownImGui() const {
   ImGui_ImplSDL2_Shutdown();
 }
+
+}  // namespace wnd

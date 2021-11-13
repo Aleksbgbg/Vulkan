@@ -5,7 +5,6 @@
 
 #include <functional>
 #include <optional>
-#include <string_view>
 
 #include "Queue.h"
 #include "VirtualDevice.h"

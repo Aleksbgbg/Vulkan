@@ -19,7 +19,7 @@ class SceneRenderer {
   void UpdateModel(const UpdateContext& updateContext);
   void Render(const CommandBuffer& commandBuffer,
               const SceneDescriptorBinder& sceneDescriptorBinder,
-              const Window& window) const;
+              const wnd::Window& window) const;
 
  private:
   RenderPipeline renderPipeline;

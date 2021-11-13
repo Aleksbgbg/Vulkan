@@ -1,5 +1,7 @@
 #include "DeviceMemory.h"
 
+#include <cstring>
+
 #include "error.h"
 #include "vulkan/structures/MappedMemoryRange.h"
 

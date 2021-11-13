@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "Alignment.h"
+#include "ReservedBlock.h"
 
 constexpr float DefaultEnlargementFactor = 1.5f;
 constexpr u32 PaddingAbsorbtionThreshold = 128;

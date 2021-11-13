@@ -5,8 +5,10 @@
 #include "MemoryBlock.h"
 #include "MemoryObject.h"
 
+class DeviceHeap;
+
 class ReservedBlock {
-  friend class DeviceHeap;
+  friend DeviceHeap;
 
  public:
   MemoryBlock GetMemoryBlock() const;

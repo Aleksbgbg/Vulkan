@@ -21,8 +21,3 @@ VkSemaphore* Semaphore::Pointer() {
 VkSemaphore Semaphore::Raw() {
   return semaphore;
 }
-
-void Semaphore::Wait() {
-  // vkWaitSemaphores(device, VkSemaphore,)
-  // PROCEED_ON_VALID_RESULT()
-}

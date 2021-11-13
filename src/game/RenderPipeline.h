@@ -35,7 +35,8 @@ class RenderPipeline {
   RenderPipeline& operator=(RenderPipeline&&) = default;
 
   const PipelineLayout& GetLayout() const;
-  void Bind(const CommandBuffer& commandBuffer, const Window& window) const;
+  void Bind(const CommandBuffer& commandBuffer,
+            const wnd::Window& window) const;
 
  private:
   Pipeline pipeline;

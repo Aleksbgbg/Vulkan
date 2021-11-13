@@ -10,7 +10,7 @@
 
 class Player : public Actor {
  public:
-  Player(SpaceshipMesh mesh, Camera& camera, const Window& window,
+  Player(SpaceshipMesh mesh, Camera& camera, const wnd::Window& window,
          ParticleController& particleController);
 
   void UpdateModel(const UpdateContext& context) override;
@@ -22,7 +22,7 @@ class Player : public Actor {
  private:
   SpaceshipModel spaceshipModel;
   Camera& camera;
-  const Window& window;
+  const wnd::Window& window;
   ParticleController& particleController;
 
   glm::vec3 velocity;

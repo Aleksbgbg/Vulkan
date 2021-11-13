@@ -23,7 +23,7 @@
 
 class App {
  public:
-  App();
+  App(std::unique_ptr<wnd::Window> appWindow);
   ~App();
 
   int Run();
@@ -58,7 +58,7 @@ class App {
                 const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                 void* pUserData);
 
-  Window window;
+  std::unique_ptr<wnd::Window> window;
   const Keyboard& keyboard;
   const Mouse& mouse;
 
@@ -129,7 +129,7 @@ class App {
   enum class EventNotification { Exited, Paused, Unpaused, Resized };
   MultithreadedMessageQueue<EventNotification> threadMessenger;
 
-  std::chrono::time_point<std::chrono::steady_clock> previousTime;
+  std::chrono::time_point<std::chrono::high_resolution_clock> previousTime;
 };
 
 #endif  // VULKAN_SRC_APP_H

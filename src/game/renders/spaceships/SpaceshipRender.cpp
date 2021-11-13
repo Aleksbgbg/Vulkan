@@ -210,7 +210,7 @@ class SpaceshipDescriptorConfiguration : public DescriptorConfiguration {
   }
 };
 
-SpaceshipRender::SpaceshipRender(Camera& camera, const Window& window,
+SpaceshipRender::SpaceshipRender(Camera& camera, const wnd::Window& window,
                                  ParticleController& particleController)
     : camera(camera), window(window), particleController(particleController) {}
 

@@ -9,8 +9,9 @@
 #include "lifetime_semantics.h"
 #include "structures/DebugUtilsMessengerCreateInfo.h"
 #include "structures/InstanceCreateInfo.h"
-#include "structures/Win32SurfaceCreateInfo.h"
 #include "util/types.h"
+
+class VulkanWindow;
 
 class VulkanInstance {
   friend class ImGuiInstance;
@@ -29,7 +30,7 @@ class VulkanInstance {
 
   DebugUtilsMessenger CreateDebugUtilsMessenger(
       DebugUtilsMessengerCreateInfoExtBuilder& infoBuilder) const;
-  Surface CreateSurface(Win32SurfaceCreateInfoBuilder& infoBuilder) const;
+  Surface CreateSurface(const VulkanWindow& vulkanWindow) const;
 
   std::vector<PhysicalDevice> GetPhysicalDevices() const;
 

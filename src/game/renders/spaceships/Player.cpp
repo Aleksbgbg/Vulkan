@@ -1,6 +1,6 @@
 #include "Player.h"
 
-Player::Player(SpaceshipMesh mesh, Camera& camera, const Window& window,
+Player::Player(SpaceshipMesh mesh, Camera& camera, const wnd::Window& window,
                ParticleController& particleController)
     : spaceshipModel(std::move(mesh)),
       camera(camera),

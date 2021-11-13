@@ -27,7 +27,6 @@
 #include "structures/RenderPassCreateInfo.h"
 #include "structures/SwapchainCreateInfo.h"
 #include "structures/WriteDescriptorSet.h"
-#include "util/include/windows.h"
 
 class Surface;
 
