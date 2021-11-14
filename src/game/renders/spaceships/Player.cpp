@@ -1,5 +1,10 @@
 #include "Player.h"
 
+static constexpr float HalfTurn = glm::pi<float>();
+static constexpr float QuarterTurn = 0.5f * HalfTurn;
+static constexpr float ThreeQuarterTurn = 1.5f * HalfTurn;
+static constexpr float FullTurn = 2.0f * HalfTurn;
+
 Player::Player(SpaceshipMesh mesh, Camera& camera, const wnd::Window& window,
                ParticleController& particleController)
     : spaceshipModel(std::move(mesh)),
@@ -27,10 +32,6 @@ glm::vec2 CalculateMouseMovement(const Mouse& mouse, const Rectf& windowRect) {
       (glm::vec2(windowRect.Width(), windowRect.Height()) / 2.0f);
   movement.x = -movement.x;
 
-  constexpr float Deadzone = 20.0f;
-  movement.x = OffsetValueByDeadzone(movement.x, Deadzone);
-  movement.y = OffsetValueByDeadzone(movement.y, Deadzone);
-
   return movement;
 }
 
@@ -43,6 +44,10 @@ float CalculateRotationFromDistanceAsFraction(const float distance,
   constexpr float MaxRotation = 0.25f;
   return glm::pi<float>() *
          CoerceToRange(distance / max, -MaxRotation, MaxRotation);
+}
+
+bool Xor(const bool a, const bool b) {
+  return (!a) != (!b);
 }
 
 void Player::UpdateModel(const UpdateContext& context) {
@@ -58,20 +63,36 @@ void Player::UpdateModel(const UpdateContext& context) {
   velocity.z = CoerceToRange(velocity.z, 0.0f, 1.0f);
 
   const Rectf windowRect = window.GetRect();
-  const glm::vec2 mouseMovement =
+  const glm::vec2 mouseMovementWithoutDeadzone =
       CalculateMouseMovement(window.GetMouse(), windowRect);
+  constexpr float Deadzone = 20.0f;
+  const glm::vec2 mouseMovement = glm::vec2(
+      OffsetValueByDeadzone(mouseMovementWithoutDeadzone.x, Deadzone),
+      OffsetValueByDeadzone(mouseMovementWithoutDeadzone.y, Deadzone));
 
   const bool reverseView = context.keyboard.IsKeyDown(SDLK_c);
+  const bool freeView = context.keyboard.IsKeyDown(SDLK_LALT);
 
-  const glm::vec2 rotationDelta =
-      glm::vec2(CalculateRotationFromDistanceAsFraction(mouseMovement.x,
-                                                        windowRect.Width()),
-                CalculateRotationFromDistanceAsFraction(mouseMovement.y,
-                                                        windowRect.Height())) *
-      context.deltaTime;
+  glm::vec3 cameraViewAroundRotation(0.0f);
 
-  rotation.x += rotationDelta.x;
-  rotation.y += rotationDelta.y;
+  if (freeView) {
+    const glm::vec2 rotationForFrame =
+        glm::vec2(mouseMovementWithoutDeadzone.x * 0.005f,
+                  mouseMovementWithoutDeadzone.y * 0.005f);
+    cameraViewAroundRotation.x +=
+        CoerceToRange(rotationForFrame.y * 2.0f, -QuarterTurn, QuarterTurn);
+    cameraViewAroundRotation.y += rotationForFrame.x * 2.0f;
+  } else {
+    const glm::vec2 rotationForFrame =
+        glm::vec2(CalculateRotationFromDistanceAsFraction(mouseMovement.x,
+                                                          windowRect.Width()),
+                  CalculateRotationFromDistanceAsFraction(mouseMovement.y,
+                                                          windowRect.Height()));
+    const glm::vec2 rotationDelta = rotationForFrame * context.deltaTime;
+
+    rotation.x += rotationDelta.x;
+    rotation.y += rotationDelta.y;
+  }
 
   const glm::vec3 frameVelocity =
       glm::rotate(
@@ -117,6 +138,10 @@ void Player::UpdateModel(const UpdateContext& context) {
   cameraTransform = glm::rotate(
       glm::rotate(cameraTransform, rotation.x, glm::vec3(0.0f, 1.0f, 0.0f)),
       rotation.y, glm::vec3(1.0f, 0.0f, 0.0f));
+  cameraTransform *= glm::toMat4(glm::quat(cameraViewAroundRotation));
+
+  const float horizontalRotationAbsoluteAngle =
+      std::fmod(std::abs(cameraViewAroundRotation.y), FullTurn);
 
   camera.SetView(
       {.position =
@@ -126,7 +151,9 @@ void Player::UpdateModel(const UpdateContext& context) {
                                        1.0f),
        .lookAt = glm::vec4(*modelPosition + glm::vec3(0.0f, 0.5f, 0.0f), 1.0f),
        .rotation = rotation,
-       .reverse = reverseView});
+       .reverse = Xor(reverseView,
+                      (ThreeQuarterTurn > horizontalRotationAbsoluteAngle) &&
+                          (horizontalRotationAbsoluteAngle > QuarterTurn))});
 }
 
 const Mesh& Player::GetMesh() const {

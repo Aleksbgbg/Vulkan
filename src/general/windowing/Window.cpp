@@ -50,7 +50,7 @@ Window::Event Window::WaitAndProcessEvent() {
   SDL_Event event;
   SDL_WaitEvent(&event);
 
-  ImGui_ImplSDL2_ProcessEvent(&event);
+  // ImGui_ImplSDL2_ProcessEvent(&event);
 
   switch (event.type) {
     case SDL_QUIT:
