@@ -11,41 +11,24 @@
 #include "RenderPass.h"
 #include "Semaphore.h"
 #include "SynchronisationPack.h"
-#include "lifetime_semantics.h"
 #include "structures/SwapchainCreateInfo.h"
 
 class Swapchain {
   friend class Queue;
 
  public:
-  Swapchain() = default;
+  Swapchain();
   Swapchain(VkDevice device, const Swapchain& oldSwapchain,
             SwapchainCreateInfoBuilder& infoBuilder);
   Swapchain(VkDevice device, SwapchainCreateInfoBuilder& infoBuilder);
 
   Swapchain(const Swapchain&) = delete;
-  Swapchain(Swapchain&& other) noexcept
-      : device(other.device),
-        swapchain(other.swapchain),
-        images(std::move(other.images)),
-        imageViews(std::move(other.imageViews)),
-        imageFormat(other.imageFormat),
-        imageExtent(other.imageExtent) {
-    other.swapchain = nullptr;
-  }
+  Swapchain(Swapchain&& other) noexcept;
 
   ~Swapchain();
 
   Swapchain& operator=(const Swapchain&) = delete;
-  Swapchain& operator=(Swapchain&& other) noexcept {
-    device = other.device;
-    std::swap(swapchain, other.swapchain);
-    images = std::move(other.images);
-    imageViews = std::move(other.imageViews);
-    imageFormat = other.imageFormat;
-    imageExtent = other.imageExtent;
-    return *this;
-  }
+  Swapchain& operator=(Swapchain&& other) noexcept;
 
   VkFormat GetImageFormat() const;
   VkExtent2D GetImageExtent() const;
@@ -66,7 +49,7 @@ class Swapchain {
 
  private:
   VkDevice device;
-  VkSwapchainKHR swapchain = nullptr;
+  VkSwapchainKHR swapchain;
   std::vector<VkImage> images;
   std::vector<ImageView> imageViews;
   VkFormat imageFormat;

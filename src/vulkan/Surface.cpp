@@ -1,12 +1,25 @@
 #include "Surface.h"
 
+Surface::Surface() : surface(nullptr) {}
+
 Surface::Surface(VkInstance instance, VkSurfaceKHR surface)
     : instance(instance), surface(surface) {}
+
+Surface::Surface(Surface&& other) noexcept
+    : instance(other.instance), surface(other.surface) {
+  other.surface = nullptr;
+}
 
 Surface::~Surface() {
   if (surface != nullptr) {
     vkDestroySurfaceKHR(instance, surface, nullptr);
   }
+}
+
+Surface& Surface::operator=(Surface&& other) noexcept {
+  std::swap(instance, other.instance);
+  std::swap(surface, other.surface);
+  return *this;
 }
 
 bool Surface::IsSupportedByPhysicalDevice(const PhysicalDevice& physicalDevice,

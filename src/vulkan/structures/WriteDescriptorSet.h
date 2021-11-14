@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_WRITEDESCRIPTORSET_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_WRITEDESCRIPTORSET_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "DescriptorBufferInfo.h"
 #include "DescriptorImageInfo.h"

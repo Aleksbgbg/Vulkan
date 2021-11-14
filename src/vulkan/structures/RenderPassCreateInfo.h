@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_RENDERPASSCREATEINFO_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_RENDERPASSCREATEINFO_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "AttachmentDescription.h"
 #include "SubpassDependency.h"

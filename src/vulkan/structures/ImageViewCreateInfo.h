@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_IMAGEVIEWCREATEINFO_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_IMAGEVIEWCREATEINFO_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "ImageSubresourceRange.h"
 #include "define_structure.h"

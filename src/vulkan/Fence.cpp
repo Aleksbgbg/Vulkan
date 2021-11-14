@@ -2,6 +2,8 @@
 
 #include "error.h"
 
+Fence::Fence() : fence(nullptr) {}
+
 Fence::Fence(const VkDevice device) : Fence(device, 0) {}
 
 Fence::Fence(const VkDevice device, const VkFenceCreateFlags createFlags)
@@ -11,10 +13,20 @@ Fence::Fence(const VkDevice device, const VkFenceCreateFlags createFlags)
       &fence));
 }
 
+Fence::Fence(Fence&& other) noexcept : device(other.device), fence(other.fence) {
+  other.fence = nullptr;
+}
+
 Fence::~Fence() {
   if (fence != nullptr) {
     vkDestroyFence(device, fence, nullptr);
   }
+}
+
+Fence& Fence::operator=(Fence&& other) noexcept {
+  std::swap(device, other.device);
+  std::swap(fence, other.fence);
+  return *this;
 }
 
 VkFence Fence::Raw() const {

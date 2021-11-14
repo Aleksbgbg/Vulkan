@@ -4,22 +4,21 @@
 #include <vulkan/vulkan.h>
 
 #include "PhysicalDevice.h"
-#include "lifetime_semantics.h"
 
 class Surface {
   friend class VirtualDevice;
 
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(Surface, instance, surface)
-
-  Surface() = default;
+  Surface();
   Surface(VkInstance instance, VkSurfaceKHR surface);
 
   Surface(const Surface&) = delete;
+  Surface(Surface&& other) noexcept;
 
   ~Surface();
 
   Surface& operator=(const Surface&) = delete;
+  Surface& operator=(Surface&& other) noexcept;
 
   bool IsSupportedByPhysicalDevice(const PhysicalDevice& physicalDevice,
                                    const u32 queueFamilyIndex) const;
@@ -32,7 +31,7 @@ class Surface {
 
  private:
   VkInstance instance;
-  VkSurfaceKHR surface = nullptr;
+  VkSurfaceKHR surface;
 };
 
 #endif  // VULKAN_SRC_VULKAN_SURFACE_H

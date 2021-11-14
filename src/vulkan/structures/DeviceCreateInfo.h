@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_DEVICECREATEINFO_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_DEVICECREATEINFO_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "PhysicalDeviceFeatures.h"
 #include "define_structure.h"

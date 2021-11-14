@@ -3,22 +3,22 @@
 
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
 #include "structures/DebugUtilsMessengerCreateInfo.h"
 
 class DebugUtilsMessenger {
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(DebugUtilsMessenger, instance, messenger)
-
-  DebugUtilsMessenger() = default;
-  DebugUtilsMessenger(VkInstance instance,
-                      DebugUtilsMessengerCreateInfoExtBuilder& infoBuilder);
+  DebugUtilsMessenger();
+  DebugUtilsMessenger(
+      VkInstance instance,
+      const DebugUtilsMessengerCreateInfoExtBuilder& infoBuilder);
 
   DebugUtilsMessenger(const DebugUtilsMessenger&) = delete;
+  DebugUtilsMessenger(DebugUtilsMessenger&& other) noexcept;
 
   ~DebugUtilsMessenger();
 
   DebugUtilsMessenger& operator=(const DebugUtilsMessenger&) = delete;
+  DebugUtilsMessenger& operator=(DebugUtilsMessenger&& other) noexcept;
 
  private:
   static VkResult vkCreateDebugUtilsMessengerEXT(
@@ -32,7 +32,7 @@ class DebugUtilsMessenger {
 
  private:
   VkInstance instance;
-  VkDebugUtilsMessengerEXT messenger = nullptr;
+  VkDebugUtilsMessengerEXT messenger;
 };
 
 #endif  // VULKAN_SRC_VULKAN_DEBUGUTILSMESSENGER_H

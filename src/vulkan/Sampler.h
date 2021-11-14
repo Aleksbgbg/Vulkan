@@ -3,27 +3,26 @@
 
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
 #include "structures/SamplerCreateInfo.h"
 
 class Sampler {
   friend class DescriptorSet;
 
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(Sampler, device, sampler)
-
-  Sampler() = default;
+  Sampler();
   Sampler(VkDevice device, SamplerCreateInfoBuilder& infoBuilder);
 
   Sampler(const Sampler&) = delete;
+  Sampler(Sampler&& other) noexcept;
 
   ~Sampler();
 
   Sampler& operator=(const Sampler&) = delete;
+  Sampler& operator=(Sampler&& other) noexcept;
 
  private:
   VkDevice device;
-  VkSampler sampler = nullptr;
+  VkSampler sampler;
 };
 
 #endif  // VULKAN_SRC_VULKAN_SAMPLER_H

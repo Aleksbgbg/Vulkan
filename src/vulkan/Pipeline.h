@@ -14,7 +14,7 @@ class Pipeline {
   friend class CommandBuffer;
 
  public:
-  Pipeline() = default;
+  Pipeline();
   Pipeline(VkDevice shaderModule, const PipelineCache& pipelineCache,
            const std::vector<ShaderModule>& shaderModules,
            PipelineLayout pipelineLayout,
@@ -22,28 +22,18 @@ class Pipeline {
            GraphicsPipelineCreateInfoBuilder& infoBuilder);
 
   Pipeline(const Pipeline&) = delete;
-  Pipeline(Pipeline&& other) noexcept
-      : device(other.device),
-        pipeline(other.pipeline),
-        pipelineLayout(std::move(other.pipelineLayout)) {
-    other.pipeline = nullptr;
-  }
+  Pipeline(Pipeline&& other) noexcept;
 
   ~Pipeline();
 
   Pipeline& operator=(const Pipeline&) = delete;
-  Pipeline& operator=(Pipeline&& other) noexcept {
-    device = other.device;
-    std::swap(pipeline, other.pipeline);
-    pipelineLayout = std::move(other.pipelineLayout);
-    return *this;
-  }
+  Pipeline& operator=(Pipeline&& other) noexcept;
 
   const PipelineLayout& GetLayout() const;
 
  private:
   VkDevice device;
-  VkPipeline pipeline = nullptr;
+  VkPipeline pipeline;
   PipelineLayout pipelineLayout;
 };
 

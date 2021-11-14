@@ -1,8 +1,7 @@
 #include "Queue.h"
 
-#include <vulkan/structures/PresentInfoKHR.h>
-
 #include "error.h"
+#include "vulkan/structures/PresentInfoKHR.h"
 
 Queue::Queue(VkDevice device, VkQueue queue, const u32 familyIndex)
     : device(device), queue(queue), familyIndex(familyIndex) {}

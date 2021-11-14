@@ -1,55 +1,40 @@
 #ifndef VULKAN_SRC_STRUCTURES_DEFINE_STRUCTURE_H
 #define VULKAN_SRC_STRUCTURES_DEFINE_STRUCTURE_H
 
-#define STRUCTURE_BUILDER(name, structure, structureType)      \
+#define __STRUCTURE_BUILDER(name, structure, initializer)      \
   class name {                                                 \
    private:                                                    \
     structure value;                                           \
                                                                \
    public:                                                     \
-    constexpr name() : value({.sType = (structureType)}) {}    \
+    constexpr name() : value(initializer) {}                   \
     explicit constexpr name(structure value) : value(value) {} \
                                                                \
     constexpr operator structure() const {                     \
       return value;                                            \
     }                                                          \
                                                                \
-    constexpr name& Reference() {                              \
-      return *this;                                            \
-    }                                                          \
-                                                               \
     constexpr structure BuildObject() const {                  \
       return value;                                            \
     }                                                          \
                                                                \
+    constexpr const structure* Build() const {                 \
+      return &value;                                           \
+    }                                                          \
+                                                               \
     constexpr structure* Build() {                             \
       return &value;                                           \
+    }                                                          \
+                                                               \
+    constexpr name& Reference() {                              \
+      return *this;                                            \
     }
 
-#define STRUCTURE_BUILDER_NO_STYPE(name, structure)            \
-  class name {                                                 \
-   private:                                                    \
-    structure value;                                           \
-                                                               \
-   public:                                                     \
-    constexpr name() : value() {}                              \
-    explicit constexpr name(structure value) : value(value) {} \
-                                                               \
-    constexpr operator structure() const {                     \
-      return value;                                            \
-    }                                                          \
-                                                               \
-    constexpr name& Reference() {                              \
-      return *this;                                            \
-    }                                                          \
-                                                               \
-    constexpr structure BuildObject() const {                  \
-      return value;                                            \
-    }                                                          \
-                                                               \
-    constexpr structure* Build() {                             \
-      return &value;                                           \
-    }
+#define STRUCTURE_BUILDER(name, structure, structureType) \
+  __STRUCTURE_BUILDER(name, structure, {.sType = structureType})
+
+#define STRUCTURE_BUILDER_NO_STYPE(name, structure) \
+  __STRUCTURE_BUILDER(name, structure, )
 
 #define STRUCTURE_SETTER(methodName, argumentType, argumentName) \
   constexpr auto& Set##methodName(argumentType argumentName) {   \

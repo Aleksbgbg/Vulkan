@@ -5,6 +5,8 @@
 #include "error.h"
 #include "structures/CommandBufferBeginInfo.h"
 
+CommandBuffer::CommandBuffer() : commandBuffer(nullptr) {}
+
 CommandBuffer::CommandBuffer(VkDevice device, VkQueue queue,
                              VkCommandPool commandPool,
                              CommandBufferAllocateInfoBuilder& infoBuilder)
@@ -13,10 +15,26 @@ CommandBuffer::CommandBuffer(VkDevice device, VkQueue queue,
       device, infoBuilder.SetCommandBufferCount(1).Build(), &commandBuffer));
 }
 
+CommandBuffer::CommandBuffer(CommandBuffer&& other) noexcept
+    : device(other.device),
+      queue(other.queue),
+      commandPool(other.commandPool),
+      commandBuffer(other.commandBuffer) {
+  other.commandBuffer = nullptr;
+}
+
 CommandBuffer::~CommandBuffer() {
   if (commandBuffer != nullptr) {
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
   }
+}
+
+CommandBuffer& CommandBuffer::operator=(CommandBuffer&& other) noexcept {
+  std::swap(device, other.device);
+  queue = other.queue;
+  std::swap(commandPool, other.commandPool);
+  std::swap(commandBuffer, other.commandBuffer);
+  return *this;
 }
 
 void CommandBuffer::Begin() const {
@@ -176,30 +194,12 @@ void CommandBuffer::CmdBindDescriptorSet(const VkPipelineBindPoint bindPoint,
                           &descriptorSet.descriptorSet, 1, &dynamicOffset);
 }
 
-void CommandBuffer::CmdBindDescriptorSets(
-    const VkPipelineBindPoint bindPoint, const PipelineLayout& pipelineLayout,
-    const u32 firstSet, const u32 descriptorSetCount,
-    const DescriptorSet& descriptorSet) const {
-  vkCmdBindDescriptorSets(commandBuffer, bindPoint,
-                          pipelineLayout.pipelineLayout, firstSet,
-                          descriptorSetCount, &descriptorSet.descriptorSet,
-                          /* dynamicOffsetCount= */ 0,
-                          /* pDynamicOffsets= */ nullptr);
+void CommandBuffer::CmdDrawIndexed(const u32 indexCount) const {
+  CmdDrawIndexedInstanced(indexCount, 1);
 }
 
-void CommandBuffer::CmdBindDescriptorSets(
-    const VkPipelineBindPoint bindPoint, const PipelineLayout& pipelineLayout,
-    const u32 firstSet, const u32 descriptorSetCount,
-    const DescriptorSet& descriptorSet, const u32 dynamicOffsetCount,
-    const u32* const dynamicOffsets) const {
-  vkCmdBindDescriptorSets(commandBuffer, bindPoint,
-                          pipelineLayout.pipelineLayout, firstSet,
-                          descriptorSetCount, &descriptorSet.descriptorSet,
-                          dynamicOffsetCount, dynamicOffsets);
-}
-
-void CommandBuffer::CmdDrawIndexed(const u32 indexCount,
-                                   const u32 instanceCount) const {
+void CommandBuffer::CmdDrawIndexedInstanced(const u32 indexCount,
+                                            const u32 instanceCount) const {
   vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, 0, 0, 0);
 }
 

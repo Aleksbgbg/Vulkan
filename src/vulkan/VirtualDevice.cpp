@@ -3,20 +3,29 @@
 #include "Surface.h"
 #include "error.h"
 #include "general/files/file.h"
-#include "util.h"
+
+VirtualDevice::VirtualDevice() : device(nullptr) {}
 
 VirtualDevice::VirtualDevice(VkPhysicalDevice physicalDevice,
-                             VkPhysicalDeviceMemoryProperties* memoryProperties,
-                             DeviceCreateInfoBuilder& infoBuilder)
-    : memoryProperties(memoryProperties) {
+                             const DeviceCreateInfoBuilder& infoBuilder) {
   PROCEED_ON_VALID_RESULT(
       vkCreateDevice(physicalDevice, infoBuilder.Build(), nullptr, &device));
+}
+
+VirtualDevice::VirtualDevice(VirtualDevice&& other) noexcept
+    : device(other.device) {
+  other.device = nullptr;
 }
 
 VirtualDevice::~VirtualDevice() {
   if (device != nullptr) {
     vkDestroyDevice(device, nullptr);
   }
+}
+
+VirtualDevice& VirtualDevice::operator=(VirtualDevice&& other) noexcept {
+  std::swap(device, other.device);
+  return *this;
 }
 
 Queue VirtualDevice::GetQueue(const u32 familyIndex,
@@ -27,11 +36,11 @@ Queue VirtualDevice::GetQueue(const u32 familyIndex,
 }
 
 Buffer VirtualDevice::CreateBuffer(BufferCreateInfoBuilder& infoBuilder) const {
-  return Buffer(device, memoryProperties, infoBuilder);
+  return Buffer(device, infoBuilder);
 }
 
 Image VirtualDevice::CreateImage(ImageCreateInfoBuilder& infoBuilder) const {
-  return Image(device, memoryProperties, infoBuilder);
+  return Image(device, infoBuilder);
 }
 
 Swapchain VirtualDevice::CreateSwapchain(
@@ -70,25 +79,9 @@ DescriptorSetLayout VirtualDevice::CreateDescriptorSetLayout(
 }
 
 PipelineLayout VirtualDevice::CreatePipelineLayout(
-    const DescriptorSetLayout& descriptorSetLayout) const {
-  return CreatePipelineLayout({&descriptorSetLayout});
-}
-
-PipelineLayout VirtualDevice::CreatePipelineLayout(
-    const DescriptorSetLayout& descriptorSetLayout,
-    PipelineLayoutCreateInfoBuilder& infoBuilder) const {
-  return PipelineLayout(device, infoBuilder, {&descriptorSetLayout});
-}
-
-PipelineLayout VirtualDevice::CreatePipelineLayout(
     const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
     PipelineLayoutCreateInfoBuilder& infoBuilder) const {
   return PipelineLayout(device, infoBuilder, descriptorSetLayouts);
-}
-
-PipelineLayout VirtualDevice::CreatePipelineLayout(
-    const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts) const {
-  return PipelineLayout(device, descriptorSetLayouts);
 }
 
 RenderPass VirtualDevice::CreateRenderPass(

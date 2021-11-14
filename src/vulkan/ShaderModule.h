@@ -3,38 +3,27 @@
 
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
 #include "structures/ShaderModuleCreateInfo.h"
 
 class ShaderModule {
   friend class Pipeline;
 
  public:
-  ShaderModule() = default;
+  ShaderModule();
   ShaderModule(VkDevice device, const VkShaderStageFlagBits stage,
-               ShaderModuleCreateInfoBuilder& infoBuilder);
+               const ShaderModuleCreateInfoBuilder& infoBuilder);
 
   ShaderModule(const ShaderModule&) = delete;
-  ShaderModule(ShaderModule&& other) noexcept
-      : device(other.device),
-        shaderModule(other.shaderModule),
-        stage(other.stage) {
-    other.shaderModule = nullptr;
-  }
+  ShaderModule(ShaderModule&& other) noexcept;
 
   ~ShaderModule();
 
   ShaderModule& operator=(const ShaderModule&) = delete;
-  ShaderModule& operator=(ShaderModule&& other) noexcept {
-    device = other.device;
-    std::swap(shaderModule, other.shaderModule);
-    stage = other.stage;
-    return *this;
-  }
+  ShaderModule& operator=(ShaderModule&& other) noexcept;
 
  private:
   VkDevice device;
-  VkShaderModule shaderModule = nullptr;
+  VkShaderModule shaderModule;
   VkShaderStageFlagBits stage;
 };
 

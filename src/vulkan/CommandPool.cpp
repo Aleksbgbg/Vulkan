@@ -2,17 +2,31 @@
 
 #include "error.h"
 
+CommandPool::CommandPool() : commandPool(nullptr) {}
+
 CommandPool::CommandPool(VkDevice device, VkQueue queue,
-                         CommandPoolCreateInfoBuilder& infoBuilder)
+                         const CommandPoolCreateInfoBuilder& infoBuilder)
     : device(device), queue(queue) {
   PROCEED_ON_VALID_RESULT(
       vkCreateCommandPool(device, infoBuilder.Build(), nullptr, &commandPool));
+}
+
+CommandPool::CommandPool(CommandPool&& other) noexcept
+    : device(other.device), queue(other.queue), commandPool(other.commandPool) {
+  other.commandPool = nullptr;
 }
 
 CommandPool::~CommandPool() {
   if (commandPool != nullptr) {
     vkDestroyCommandPool(device, commandPool, nullptr);
   }
+}
+
+CommandPool& CommandPool::operator=(CommandPool&& other) noexcept {
+  std::swap(device, other.device);
+  queue = other.queue;
+  std::swap(commandPool, other.commandPool);
+  return *this;
 }
 
 CommandBuffer CommandPool::AllocatePrimaryCommandBuffer() {

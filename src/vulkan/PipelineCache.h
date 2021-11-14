@@ -5,29 +5,29 @@
 
 #include <vector>
 
-#include "lifetime_semantics.h"
 #include "structures/PipelineCacheCreateInfo.h"
 
 class PipelineCache {
   friend class Pipeline;
 
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(PipelineCache, device, pipelineCache)
-
-  PipelineCache() = default;
-  PipelineCache(VkDevice device, PipelineCacheCreateInfoBuilder& infoBuilder);
+  PipelineCache();
+  PipelineCache(VkDevice device,
+                const PipelineCacheCreateInfoBuilder& infoBuilder);
 
   PipelineCache(const PipelineCache&) = delete;
+  PipelineCache(PipelineCache&& other) noexcept;
 
   ~PipelineCache();
 
   PipelineCache& operator=(const PipelineCache&) = delete;
+  PipelineCache& operator=(PipelineCache&& other) noexcept;
 
   std::vector<u8> GetPipelineCacheData() const;
 
  private:
   VkDevice device;
-  VkPipelineCache pipelineCache = nullptr;
+  VkPipelineCache pipelineCache;
 };
 
 #endif  // VULKAN_SRC_VULKAN_PIPELINECACHE_H

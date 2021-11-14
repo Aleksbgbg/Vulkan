@@ -19,7 +19,6 @@
 #include "Sampler.h"
 #include "ShaderModule.h"
 #include "Swapchain.h"
-#include "lifetime_semantics.h"
 #include "structures/BufferCreateInfo.h"
 #include "structures/DescriptorSetLayoutCreateInfo.h"
 #include "structures/DeviceCreateInfo.h"
@@ -34,25 +33,17 @@ class VirtualDevice {
   friend class ImGuiInstance;
 
  public:
-  VirtualDevice() = default;
-  explicit VirtualDevice(VkPhysicalDevice physicalDevice,
-                         VkPhysicalDeviceMemoryProperties* memoryProperties,
-                         DeviceCreateInfoBuilder& infoBuilder);
+  VirtualDevice();
+  VirtualDevice(VkPhysicalDevice physicalDevice,
+                const DeviceCreateInfoBuilder& infoBuilder);
 
   VirtualDevice(const VirtualDevice&) = delete;
-  VirtualDevice(VirtualDevice&& other) noexcept
-      : device(other.device), memoryProperties(other.memoryProperties) {
-    device = nullptr;
-  }
+  VirtualDevice(VirtualDevice&& other) noexcept;
 
   ~VirtualDevice();
 
   VirtualDevice& operator=(const VirtualDevice&) = delete;
-  VirtualDevice& operator=(VirtualDevice&& other) noexcept {
-    std::swap(device, other.device);
-    memoryProperties = other.memoryProperties;
-    return *this;
-  }
+  VirtualDevice& operator=(VirtualDevice&& other) noexcept;
 
   void WaitIdle() const;
 
@@ -77,14 +68,6 @@ class VirtualDevice {
   DescriptorSetLayout CreateDescriptorSetLayout(
       DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const;
   PipelineLayout CreatePipelineLayout(
-      const DescriptorSetLayout& descriptorSetLayout) const;
-  PipelineLayout CreatePipelineLayout(
-      const DescriptorSetLayout& descriptorSetLayout,
-      PipelineLayoutCreateInfoBuilder& infoBuilder) const;
-  PipelineLayout CreatePipelineLayout(
-      const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts)
-      const;
-  PipelineLayout CreatePipelineLayout(
       const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
       PipelineLayoutCreateInfoBuilder& infoBuilder) const;
   RenderPass CreateRenderPass(RenderPassCreateInfoBuilder& infoBuilder) const;
@@ -103,8 +86,7 @@ class VirtualDevice {
                             VkWriteDescriptorSet* writes) const;
 
  private:
-  VkDevice device = nullptr;
-  VkPhysicalDeviceMemoryProperties* memoryProperties;
+  VkDevice device;
 };
 
 #endif  // VULKAN_SRC_VULKAN_VIRTUALDEVICE_H

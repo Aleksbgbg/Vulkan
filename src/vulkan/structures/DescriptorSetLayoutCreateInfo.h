@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_DESCRIPTORSETLAYOUTCREATEINFO_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_DESCRIPTORSETLAYOUTCREATEINFO_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "DescriptorSetLayoutBinding.h"
 #include "define_structure.h"

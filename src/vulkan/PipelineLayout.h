@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "DescriptorSetLayout.h"
-#include "lifetime_semantics.h"
 #include "structures/PipelineLayoutCreateInfo.h"
 
 class PipelineLayout {
@@ -14,7 +13,7 @@ class PipelineLayout {
   friend class CommandBuffer;
 
  public:
-  PipelineLayout() = default;
+  PipelineLayout();
   PipelineLayout(
       VkDevice device,
       const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts);
@@ -23,23 +22,16 @@ class PipelineLayout {
       const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts);
 
   PipelineLayout(const PipelineLayout&) = delete;
-  PipelineLayout(PipelineLayout&& other) noexcept
-      : device(other.device), pipelineLayout(other.pipelineLayout) {
-    other.pipelineLayout = nullptr;
-  }
+  PipelineLayout(PipelineLayout&& other) noexcept;
 
   ~PipelineLayout();
 
   PipelineLayout& operator=(const PipelineLayout&) = delete;
-  PipelineLayout& operator=(PipelineLayout&& other) noexcept {
-    device = other.device;
-    std::swap(pipelineLayout, other.pipelineLayout);
-    return *this;
-  }
+  PipelineLayout& operator=(PipelineLayout&& other) noexcept;
 
  private:
   VkDevice device;
-  VkPipelineLayout pipelineLayout = nullptr;
+  VkPipelineLayout pipelineLayout;
 };
 
 #endif  // VULKAN_SRC_VULKAN_PIPELINELAYOUT_H

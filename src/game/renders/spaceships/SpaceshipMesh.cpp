@@ -22,8 +22,7 @@ void SpaceshipMesh::Render(const CommandBuffer& commandBuffer,
                            const PipelineLayout& pipelineLayout) const {
   commandBuffer.CmdBindVertexBuffers(vertexBuffer.buffer, 0);
   commandBuffer.CmdBindIndexBuffer(indexBuffer.buffer, VK_INDEX_TYPE_UINT16);
-  commandBuffer.CmdDrawIndexed(meshFrames[selectedFrame].indexCount,
-                               /* instanceCount= */ 1);
+  commandBuffer.CmdDrawIndexed(meshFrames[selectedFrame].indexCount);
 }
 
 glm::vec3 SpaceshipMesh::Size() const {

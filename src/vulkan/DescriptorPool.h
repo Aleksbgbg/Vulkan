@@ -8,24 +8,23 @@
 #include "DescriptorSet.h"
 #include "DescriptorSetLayout.h"
 #include "Pipeline.h"
-#include "lifetime_semantics.h"
 #include "structures/DescriptorPoolCreateInfo.h"
-#include "structures/DescriptorSetAllocateInfo.h"
 
 class DescriptorPool {
   friend class ImGuiInstance;
 
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(DescriptorPool, device, descriptorPool)
-
-  DescriptorPool() = default;
-  DescriptorPool(VkDevice device, DescriptorPoolCreateInfoBuilder& infoBuilder);
+  DescriptorPool();
+  DescriptorPool(VkDevice device,
+                 const DescriptorPoolCreateInfoBuilder& infoBuilder);
 
   DescriptorPool(const DescriptorPool&) = delete;
+  DescriptorPool(DescriptorPool&& other) noexcept;
 
   ~DescriptorPool();
 
   DescriptorPool& operator=(const DescriptorPool&) = delete;
+  DescriptorPool& operator=(DescriptorPool&& other) noexcept;
 
   DescriptorSet AllocateDescriptorSet(
       const DescriptorSetLayout& descriptorSetLayout) const;
@@ -34,7 +33,7 @@ class DescriptorPool {
 
  private:
   VkDevice device;
-  VkDescriptorPool descriptorPool = nullptr;
+  VkDescriptorPool descriptorPool;
 };
 
 #endif  // VULKAN_SRC_VULKAN_DESCRIPTORPOOL_H

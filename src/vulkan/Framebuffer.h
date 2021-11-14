@@ -3,27 +3,26 @@
 
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
 #include "structures/FramebufferCreateInfo.h"
 
 class Framebuffer {
   friend class CommandBuffer;
 
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(Framebuffer, device, framebuffer)
-
-  Framebuffer() = default;
-  Framebuffer(VkDevice device, FramebufferCreateInfoBuilder& infoBuilder);
+  Framebuffer();
+  Framebuffer(VkDevice device, const FramebufferCreateInfoBuilder& infoBuilder);
 
   Framebuffer(const Framebuffer&) = delete;
+  Framebuffer(Framebuffer&& other) noexcept;
 
   ~Framebuffer();
 
   Framebuffer& operator=(const Framebuffer&) = delete;
+  Framebuffer& operator=(Framebuffer&& other) noexcept;
 
  private:
   VkDevice device;
-  VkFramebuffer framebuffer = nullptr;
+  VkFramebuffer framebuffer;
 };
 
 #endif  // VULKAN_SRC_VULKAN_FRAMEBUFFER_H

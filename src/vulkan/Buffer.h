@@ -1,43 +1,26 @@
 #ifndef VULKAN_SRC_VULKAN_BUFFER_H
 #define VULKAN_SRC_VULKAN_BUFFER_H
 
-#include <optional>
+#include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
 #include "structures/BufferCreateInfo.h"
 
-class CommandBuffer;
-
 class Buffer {
-  friend class DeviceMemory;
   friend class CommandBuffer;
   friend class DescriptorSet;
+  friend class DeviceMemory;
 
  public:
-  Buffer() = default;
-  explicit Buffer(VkDevice device,
-                  VkPhysicalDeviceMemoryProperties* memoryProperties,
-                  BufferCreateInfoBuilder& infoBuilder);
+  Buffer();
+  Buffer(VkDevice device, const BufferCreateInfoBuilder& infoBuilder);
 
   Buffer(const Buffer&) = delete;
-  Buffer(Buffer&& other) noexcept
-      : device(other.device),
-        memoryProperties(other.memoryProperties),
-        buffer(other.buffer),
-        size(other.size) {
-    other.buffer = nullptr;
-  }
+  Buffer(Buffer&& other) noexcept;
 
   ~Buffer();
 
   Buffer& operator=(const Buffer&) = delete;
-  Buffer& operator=(Buffer&& other) noexcept {
-    device = other.device;
-    memoryProperties = other.memoryProperties;
-    std::swap(buffer, other.buffer);
-    size = other.size;
-    return *this;
-  }
+  Buffer& operator=(Buffer&& other) noexcept;
 
   VkDeviceSize Size() const;
 
@@ -45,8 +28,7 @@ class Buffer {
 
  private:
   VkDevice device;
-  VkPhysicalDeviceMemoryProperties* memoryProperties;
-  VkBuffer buffer = nullptr;
+  VkBuffer buffer;
   VkDeviceSize size;
 };
 

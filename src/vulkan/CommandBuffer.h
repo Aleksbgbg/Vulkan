@@ -1,8 +1,6 @@
 #ifndef VULKAN_SRC_VULKAN_COMMANDBUFFER_H
 #define VULKAN_SRC_VULKAN_COMMANDBUFFER_H
 
-#include <vulkan/structures/BufferMemoryBarrier.h>
-#include <vulkan/structures/MemoryBarrier.h>
 #include <vulkan/vulkan.h>
 
 #include "Buffer.h"
@@ -13,40 +11,28 @@
 #include "Pipeline.h"
 #include "Semaphore.h"
 #include "SynchronisationPack.h"
-#include "lifetime_semantics.h"
 #include "structures/BufferImageCopy.h"
 #include "structures/CommandBufferAllocateInfo.h"
 #include "structures/ImageMemoryBarrier.h"
 #include "structures/RenderPassBeginInfo.h"
+#include "vulkan/structures/BufferMemoryBarrier.h"
+#include "vulkan/structures/MemoryBarrier.h"
 
 class CommandBuffer {
   friend class ImGuiInstance;
 
  public:
-  CommandBuffer() = default;
-  explicit CommandBuffer(VkDevice device, VkQueue queue,
-                         VkCommandPool commandPool,
-                         CommandBufferAllocateInfoBuilder& infoBuilder);
+  CommandBuffer();
+  CommandBuffer(VkDevice device, VkQueue queue, VkCommandPool commandPool,
+                CommandBufferAllocateInfoBuilder& infoBuilder);
 
   CommandBuffer(const CommandBuffer&) = delete;
-  CommandBuffer(CommandBuffer&& other) noexcept
-      : device(other.device),
-        queue(other.queue),
-        commandPool(other.commandPool),
-        commandBuffer(other.commandBuffer) {
-    other.commandBuffer = nullptr;
-  }
+  CommandBuffer(CommandBuffer&& other) noexcept;
 
   ~CommandBuffer();
 
   CommandBuffer& operator=(const CommandBuffer&) = delete;
-  CommandBuffer& operator=(CommandBuffer&& other) noexcept {
-    device = other.device;
-    queue = other.queue;
-    commandPool = other.commandPool;
-    std::swap(commandBuffer, other.commandBuffer);
-    return *this;
-  }
+  CommandBuffer& operator=(CommandBuffer&& other) noexcept;
 
   void Begin() const;
   void BeginOneTimeSubmit() const;
@@ -101,18 +87,11 @@ class CommandBuffer {
                             const u32 setIndex,
                             const DescriptorSet& descriptorSet,
                             const u32 dynamicOffset) const;
-  void CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint,
-                             const PipelineLayout& pipelineLayout,
-                             const u32 firstSet, const u32 descriptorSetCount,
-                             const DescriptorSet& descriptorSet) const;
-  void CmdBindDescriptorSets(const VkPipelineBindPoint bindPoint,
-                             const PipelineLayout& pipelineLayout,
-                             const u32 firstSet, const u32 descriptorSetCount,
-                             const DescriptorSet& descriptorSet,
-                             const u32 dynamicOffsetCount,
-                             const u32* const dynamicOffsets) const;
 
-  void CmdDrawIndexed(const u32 indexCount, const u32 instanceCount) const;
+  void CmdDrawIndexed(const u32 indexCount) const;
+  void CmdDrawIndexedInstanced(const u32 indexCount,
+                               const u32 instanceCount) const;
+
   void CmdNextSubpass(const VkSubpassContents contents) const;
   void CmdEndRenderPass() const;
 
@@ -120,7 +99,7 @@ class CommandBuffer {
   VkDevice device;
   VkQueue queue;
   VkCommandPool commandPool;
-  VkCommandBuffer commandBuffer = nullptr;
+  VkCommandBuffer commandBuffer;
 };
 
 #endif  // VULKAN_SRC_VULKAN_COMMANDBUFFER_H

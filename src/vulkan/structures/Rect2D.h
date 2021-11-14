@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_RECT2D_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_RECT2D_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "Extent2D.h"
 #include "Offset2D.h"

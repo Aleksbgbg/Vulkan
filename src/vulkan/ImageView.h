@@ -3,7 +3,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
 #include "structures/ImageViewCreateInfo.h"
 
 class ImageView {
@@ -11,20 +10,20 @@ class ImageView {
   friend class DescriptorSet;
 
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(ImageView, device, imageView)
-
-  ImageView() = default;
-  ImageView(VkDevice device, ImageViewCreateInfoBuilder& infoBuilder);
+  ImageView();
+  ImageView(VkDevice device, const ImageViewCreateInfoBuilder& infoBuilder);
 
   ImageView(const ImageView&) = delete;
+  ImageView(ImageView&& other) noexcept;
 
   ~ImageView();
 
   ImageView& operator=(const ImageView&) = delete;
+  ImageView& operator=(ImageView&& other) noexcept;
 
  private:
   VkDevice device;
-  VkImageView imageView = nullptr;
+  VkImageView imageView;
 };
 
 #endif  // VULKAN_SRC_VULKAN_IMAGEVIEW_H

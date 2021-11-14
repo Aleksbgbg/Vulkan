@@ -5,17 +5,30 @@
 #include "error.h"
 #include "vulkan/structures/MappedMemoryRange.h"
 
+DeviceMemory::DeviceMemory() : memory(nullptr) {}
+
 DeviceMemory::DeviceMemory(VkDevice device,
-                           MemoryAllocateInfoBuilder& infoBuilder)
+                           const MemoryAllocateInfoBuilder& infoBuilder)
     : device(device) {
   PROCEED_ON_VALID_RESULT(
       vkAllocateMemory(device, infoBuilder.Build(), nullptr, &memory));
+}
+
+DeviceMemory::DeviceMemory(DeviceMemory&& other) noexcept
+    : device(other.device), memory(other.memory) {
+  other.memory = nullptr;
 }
 
 DeviceMemory::~DeviceMemory() {
   if (memory != nullptr) {
     vkFreeMemory(device, memory, nullptr);
   }
+}
+
+DeviceMemory& DeviceMemory::operator=(DeviceMemory&& other) noexcept {
+  std::swap(device, other.device);
+  std::swap(memory, other.memory);
+  return *this;
 }
 
 void* DeviceMemory::Map(const VkDeviceSize offset,

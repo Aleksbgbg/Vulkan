@@ -4,37 +4,23 @@
 #include <vulkan/vulkan.h>
 
 #include "ImageView.h"
-#include "lifetime_semantics.h"
 #include "structures/ImageCreateInfo.h"
 
 class Image {
-  friend class DeviceMemory;
   friend class CommandBuffer;
+  friend class DeviceMemory;
 
  public:
-  Image() = default;
-  Image(VkDevice device, VkPhysicalDeviceMemoryProperties* memoryProperties,
-        ImageCreateInfoBuilder& infoBuilder);
+  Image();
+  Image(VkDevice device, const ImageCreateInfoBuilder& infoBuilder);
 
   Image(const Image&) = delete;
-  Image(Image&& other) noexcept
-      : device(other.device),
-        memoryProperties(other.memoryProperties),
-        image(other.image),
-        createInfo(other.createInfo) {
-    other.image = nullptr;
-  }
+  Image(Image&& other) noexcept;
 
   ~Image();
 
   Image& operator=(const Image&) = delete;
-  Image& operator=(Image&& other) noexcept {
-    device = other.device;
-    memoryProperties = other.memoryProperties;
-    std::swap(image, other.image);
-    createInfo = other.createInfo;
-    return *this;
-  }
+  Image& operator=(Image&& other) noexcept;
 
   VkMemoryRequirements GetMemoryRequirements() const;
 
@@ -42,8 +28,7 @@ class Image {
 
  private:
   VkDevice device;
-  VkPhysicalDeviceMemoryProperties* memoryProperties;
-  VkImage image = nullptr;
+  VkImage image;
   VkImageCreateInfo createInfo;
 };
 

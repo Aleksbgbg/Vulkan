@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+PipelineLayout::PipelineLayout() : pipelineLayout(nullptr) {}
+
 PipelineLayout::PipelineLayout(
     VkDevice device,
     const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts)
@@ -29,8 +31,19 @@ PipelineLayout::PipelineLayout(
       nullptr, &pipelineLayout));
 }
 
+PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept
+    : device(other.device), pipelineLayout(other.pipelineLayout) {
+  other.pipelineLayout = nullptr;
+}
+
 PipelineLayout::~PipelineLayout() {
   if (pipelineLayout != nullptr) {
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
   }
+}
+
+PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept {
+  std::swap(device, other.device);
+  std::swap(pipelineLayout, other.pipelineLayout);
+  return *this;
 }

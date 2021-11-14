@@ -28,8 +28,6 @@ class PhysicalDevice {
   std::vector<VkSurfaceFormatKHR> GetFormats(VkSurfaceKHR surface) const;
   std::vector<VkPresentModeKHR> GetPresentModes(VkSurfaceKHR surface) const;
   VkFormatProperties GetFormatProperties(const VkFormat format) const;
-  VkImageFormatProperties GetSurfaceImageFormatProperties(
-      const VkSurfaceFormatKHR& surfaceFormat) const;
 
  private:
   VkPhysicalDevice physicalDevice;

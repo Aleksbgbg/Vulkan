@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_RENDERPASSBEGININFO_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_RENDERPASSBEGININFO_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "Rect2D.h"
 #include "define_structure.h"

@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_BUFFERIMAGECOPY_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_BUFFERIMAGECOPY_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "Extent3D.h"
 #include "ImageSubresourceLayers.h"

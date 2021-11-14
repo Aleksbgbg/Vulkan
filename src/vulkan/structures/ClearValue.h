@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_CLEARVALUE_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_CLEARVALUE_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "ClearColorValue.h"
 #include "ClearDepthStencilValue.h"

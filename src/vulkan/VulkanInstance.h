@@ -6,7 +6,6 @@
 #include "DebugUtilsMessenger.h"
 #include "PhysicalDevice.h"
 #include "Surface.h"
-#include "lifetime_semantics.h"
 #include "structures/DebugUtilsMessengerCreateInfo.h"
 #include "structures/InstanceCreateInfo.h"
 #include "util/types.h"
@@ -17,16 +16,16 @@ class VulkanInstance {
   friend class ImGuiInstance;
 
  public:
-  VULKAN_OBJECT_MOVABLE(VulkanInstance, instance)
-
-  VulkanInstance() = default;
-  explicit VulkanInstance(InstanceCreateInfoBuilder& infoBuilder);
+  VulkanInstance();
+  explicit VulkanInstance(const InstanceCreateInfoBuilder& infoBuilder);
 
   VulkanInstance(const VulkanInstance&) = delete;
+  VulkanInstance(VulkanInstance&& other) noexcept;
 
   ~VulkanInstance();
 
   VulkanInstance& operator=(const VulkanInstance&) = delete;
+  VulkanInstance& operator=(VulkanInstance&& other) noexcept;
 
   DebugUtilsMessenger CreateDebugUtilsMessenger(
       DebugUtilsMessengerCreateInfoExtBuilder& infoBuilder) const;
@@ -40,7 +39,7 @@ class VulkanInstance {
                                           VkLayerProperties* properties);
 
  private:
-  VkInstance instance = nullptr;
+  VkInstance instance;
 };
 
 #endif  // VULKAN_SRC_VULKAN_VULKANINSTANCE_H

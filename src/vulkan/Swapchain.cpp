@@ -7,6 +7,8 @@
 #include "error.h"
 #include "util.h"
 
+Swapchain::Swapchain() : swapchain(nullptr) {}
+
 Swapchain::Swapchain(VkDevice device, const Swapchain& oldSwapchain,
                      SwapchainCreateInfoBuilder& infoBuilder)
     : Swapchain(device, infoBuilder.SetOldSwapchain(oldSwapchain.swapchain)) {}
@@ -37,10 +39,30 @@ Swapchain::Swapchain(VkDevice device, SwapchainCreateInfoBuilder& infoBuilder)
                  });
 }
 
+Swapchain::Swapchain(Swapchain&& other) noexcept
+    : device(other.device),
+      swapchain(other.swapchain),
+      images(std::move(other.images)),
+      imageViews(std::move(other.imageViews)),
+      imageFormat(other.imageFormat),
+      imageExtent(other.imageExtent) {
+  other.swapchain = nullptr;
+}
+
 Swapchain::~Swapchain() {
   if (swapchain != nullptr) {
     vkDestroySwapchainKHR(device, swapchain, nullptr);
   }
+}
+
+Swapchain& Swapchain::operator=(Swapchain&& other) noexcept {
+  std::swap(device, other.device);
+  std::swap(swapchain, other.swapchain);
+  images = std::move(other.images);
+  imageViews = std::move(other.imageViews);
+  imageFormat = other.imageFormat;
+  imageExtent = other.imageExtent;
+  return *this;
 }
 
 VkFormat Swapchain::GetImageFormat() const {

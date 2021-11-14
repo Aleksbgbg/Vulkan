@@ -3,28 +3,27 @@
 
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
 #include "structures/SemaphoreCreateInfo.h"
 
 class Semaphore {
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(Semaphore, device, semaphore)
-
-  Semaphore() = default;
-  Semaphore(VkDevice device, SemaphoreCreateInfoBuilder& infoBuilder);
+  Semaphore();
+  Semaphore(VkDevice device, const SemaphoreCreateInfoBuilder& infoBuilder);
 
   Semaphore(const Semaphore&) = delete;
+  Semaphore(Semaphore&& other) noexcept;
 
   ~Semaphore();
 
   Semaphore& operator=(const Semaphore&) = delete;
+  Semaphore& operator=(Semaphore&& other) noexcept;
 
   VkSemaphore* Pointer();
   VkSemaphore Raw();
 
  private:
   VkDevice device;
-  VkSemaphore semaphore = nullptr;
+  VkSemaphore semaphore;
 };
 
 #endif  // VULKAN_SRC_VULKAN_SEMAPHORE_H

@@ -61,7 +61,7 @@ class DescriptorSet {
       const VkImageLayout imageLayout, const u32 binding) const;
 
  private:
-  VkDescriptorSet descriptorSet = nullptr;
+  VkDescriptorSet descriptorSet;
 };
 
 #endif  // VULKAN_SRC_VULKAN_DESCRIPTORSET_H

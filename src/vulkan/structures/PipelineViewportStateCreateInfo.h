@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_PIPELINEVIEWPORTSTATECREATEINFO_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_PIPELINEVIEWPORTSTATECREATEINFO_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "Rect2D.h"
 #include "Viewport.h"

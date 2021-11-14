@@ -4,18 +4,32 @@
 #include <iterator>
 
 #include "error.h"
+#include "structures/DescriptorSetAllocateInfo.h"
 
-DescriptorPool::DescriptorPool(VkDevice device,
-                               DescriptorPoolCreateInfoBuilder& infoBuilder)
+DescriptorPool::DescriptorPool() : descriptorPool(nullptr) {}
+
+DescriptorPool::DescriptorPool(
+    VkDevice device, const DescriptorPoolCreateInfoBuilder& infoBuilder)
     : device(device) {
   PROCEED_ON_VALID_RESULT(vkCreateDescriptorPool(device, infoBuilder.Build(),
                                                  nullptr, &descriptorPool));
+}
+
+DescriptorPool::DescriptorPool(DescriptorPool&& other) noexcept
+    : device(other.device), descriptorPool(other.descriptorPool) {
+  other.descriptorPool = nullptr;
 }
 
 DescriptorPool::~DescriptorPool() {
   if (descriptorPool != nullptr) {
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
   }
+}
+
+DescriptorPool& DescriptorPool::operator=(DescriptorPool&& other) noexcept {
+  std::swap(device, other.device);
+  std::swap(descriptorPool, other.descriptorPool);
+  return *this;
 }
 
 DescriptorSet DescriptorPool::AllocateDescriptorSet(

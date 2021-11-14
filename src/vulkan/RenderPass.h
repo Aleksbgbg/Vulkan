@@ -3,7 +3,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
 #include "structures/RenderPassCreateInfo.h"
 
 class RenderPass {
@@ -13,21 +12,20 @@ class RenderPass {
   friend class ImGuiInstance;
 
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(RenderPass, device, renderPass)
-
-  RenderPass() = default;
-  RenderPass(VkDevice device, RenderPassCreateInfoBuilder& infoBuilder);
+  RenderPass();
+  RenderPass(VkDevice device, const RenderPassCreateInfoBuilder& infoBuilder);
 
   RenderPass(const RenderPass&) = delete;
+  RenderPass(RenderPass&& other) noexcept;
 
   ~RenderPass();
 
   RenderPass& operator=(const RenderPass&) = delete;
+  RenderPass& operator=(RenderPass&& other) noexcept;
 
  private:
   VkDevice device;
-  VkRenderPass renderPass = nullptr;
+  VkRenderPass renderPass;
 };
-;
 
 #endif  // VULKAN_SRC_VULKAN_RENDERPASS_H

@@ -16,7 +16,7 @@ VkPhysicalDeviceProperties PhysicalDevice::GetProperties() const {
 
 VirtualDevice PhysicalDevice::CreateVirtualDevice(
     DeviceCreateInfoBuilder& infoBuilder) {
-  return VirtualDevice(physicalDevice, &memoryProperties, infoBuilder);
+  return VirtualDevice(physicalDevice, infoBuilder);
 }
 
 std::optional<u32> PhysicalDevice::FindAppropriateQueueFamily(
@@ -82,16 +82,6 @@ VkFormatProperties PhysicalDevice::GetFormatProperties(
   vkGetPhysicalDeviceFormatProperties(physicalDevice, format,
                                       &formatProperties);
   return formatProperties;
-}
-
-VkImageFormatProperties PhysicalDevice::GetSurfaceImageFormatProperties(
-    const VkSurfaceFormatKHR& surfaceFormat) const {
-  VkImageFormatProperties properties;
-  PROCEED_ON_VALID_RESULT(vkGetPhysicalDeviceImageFormatProperties(
-      physicalDevice, surfaceFormat.format, VK_IMAGE_TYPE_2D,
-      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 0,
-      &properties))
-  return properties;
 }
 
 const VkPhysicalDeviceMemoryProperties* PhysicalDevice::GetMemoryProperties()

@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+Pipeline::Pipeline() : pipeline(nullptr) {}
+
 Pipeline::Pipeline(VkDevice device, const PipelineCache& pipelineCache,
                    const std::vector<ShaderModule>& shaderModules,
                    PipelineLayout pipelineLayout,
@@ -31,10 +33,24 @@ Pipeline::Pipeline(VkDevice device, const PipelineCache& pipelineCache,
       nullptr, &pipeline));
 }
 
+Pipeline::Pipeline(Pipeline&& other) noexcept
+    : device(other.device),
+      pipeline(other.pipeline),
+      pipelineLayout(std::move(other.pipelineLayout)) {
+  other.pipeline = nullptr;
+}
+
 Pipeline::~Pipeline() {
   if (pipeline != nullptr) {
     vkDestroyPipeline(device, pipeline, nullptr);
   }
+}
+
+Pipeline& Pipeline::operator=(Pipeline&& other) noexcept {
+  std::swap(device, other.device);
+  std::swap(pipeline, other.pipeline);
+  pipelineLayout = std::move(other.pipelineLayout);
+  return *this;
 }
 
 const PipelineLayout& Pipeline::GetLayout() const {

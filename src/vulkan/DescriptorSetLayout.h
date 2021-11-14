@@ -3,7 +3,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include "lifetime_semantics.h"
 #include "structures/DescriptorSetLayoutCreateInfo.h"
 
 class DescriptorSetLayout {
@@ -11,21 +10,21 @@ class DescriptorSetLayout {
   friend class DescriptorPool;
 
  public:
-  VULKAN_OBJECT_MOVABLE_ROOT(DescriptorSetLayout, device, descriptorSetLayout)
-
-  DescriptorSetLayout() = default;
+  DescriptorSetLayout();
   DescriptorSetLayout(VkDevice device,
-                      DescriptorSetLayoutCreateInfoBuilder& infoBuilder);
+                      const DescriptorSetLayoutCreateInfoBuilder& infoBuilder);
 
   DescriptorSetLayout(const DescriptorSetLayout&) = delete;
+  DescriptorSetLayout(DescriptorSetLayout&& other) noexcept;
 
   ~DescriptorSetLayout();
 
   DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
+  DescriptorSetLayout& operator=(DescriptorSetLayout&& other) noexcept;
 
  private:
   VkDevice device;
-  VkDescriptorSetLayout descriptorSetLayout = nullptr;
+  VkDescriptorSetLayout descriptorSetLayout;
 };
 
 #endif  // VULKAN_SRC_VULKAN_DESCRIPTORSETLAYOUT_H

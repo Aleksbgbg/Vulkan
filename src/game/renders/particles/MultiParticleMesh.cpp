@@ -15,5 +15,5 @@ void MultiParticleMesh::Render(const CommandBuffer& commandBuffer,
                                const PipelineLayout& pipelineLayout) const {
   commandBuffer.CmdBindVertexBuffers(vertexBuffer.buffer, 0);
   commandBuffer.CmdBindIndexBuffer(indexBuffer.buffer, VK_INDEX_TYPE_UINT16);
-  commandBuffer.CmdDrawIndexed(indexCount, instanceCount);
+  commandBuffer.CmdDrawIndexedInstanced(indexCount, instanceCount);
 }

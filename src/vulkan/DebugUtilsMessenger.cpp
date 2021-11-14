@@ -2,17 +2,32 @@
 
 #include "error.h"
 
+DebugUtilsMessenger::DebugUtilsMessenger() : messenger(nullptr) {}
+
 DebugUtilsMessenger::DebugUtilsMessenger(
-    VkInstance instance, DebugUtilsMessengerCreateInfoExtBuilder& infoBuilder)
+    VkInstance instance,
+    const DebugUtilsMessengerCreateInfoExtBuilder& infoBuilder)
     : instance(instance) {
   PROCEED_ON_VALID_RESULT(vkCreateDebugUtilsMessengerEXT(
       instance, infoBuilder.Build(), nullptr, &messenger));
+}
+
+DebugUtilsMessenger::DebugUtilsMessenger(DebugUtilsMessenger&& other) noexcept
+    : instance(other.instance), messenger(other.messenger) {
+  other.messenger = nullptr;
 }
 
 DebugUtilsMessenger::~DebugUtilsMessenger() {
   if (messenger != nullptr) {
     vkDeleteDebugUtilsMessengerEXT(instance, messenger, nullptr);
   }
+}
+
+DebugUtilsMessenger& DebugUtilsMessenger::operator=(
+    DebugUtilsMessenger&& other) noexcept {
+  std::swap(instance, other.instance);
+  std::swap(messenger, other.messenger);
+  return *this;
 }
 
 VkResult DebugUtilsMessenger::vkCreateDebugUtilsMessengerEXT(

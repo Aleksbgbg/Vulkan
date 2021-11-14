@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_VULKAN_STRUCTURES_PIPELINELAYOUTCREATEINFO_H
 #define VULKAN_SRC_VULKAN_STRUCTURES_PIPELINELAYOUTCREATEINFO_H
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "PushConstantRange.h"
 #include "define_structure.h"

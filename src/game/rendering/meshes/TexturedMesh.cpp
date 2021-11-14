@@ -16,6 +16,5 @@ void TexturedMesh::Render(const CommandBuffer& commandBuffer,
                           const PipelineLayout& pipelineLayout) const {
   commandBuffer.CmdBindVertexBuffers(vertexBuffer.buffer, 0);
   commandBuffer.CmdBindIndexBuffer(indexBuffer.buffer, VK_INDEX_TYPE_UINT16);
-  commandBuffer.CmdDrawIndexed(indexCount,
-                               /* instanceCount= */ 1);
+  commandBuffer.CmdDrawIndexed(indexCount);
 }

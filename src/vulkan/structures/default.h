@@ -25,9 +25,6 @@ inline constexpr const VkImageCreateInfo IMAGE_2D =
         .SetSharingMode(VK_SHARING_MODE_EXCLUSIVE)
         .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
 
-inline constexpr const VkSamplerCreateInfo SAMPLER_EMPTY =
-    SamplerCreateInfoBuilder();
-
 inline constexpr const VkViewport VIEWPORT_BASE =
     ViewportBuilder().SetMaxDepth(1.0f);
 
@@ -47,12 +44,6 @@ inline constexpr const VkImageSubresourceRange
             .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
             .SetLayerCount(1)
             .SetLevelCount(1);
-
-inline constexpr const VkBufferMemoryBarrier
-    BUFFER_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER =
-        BufferMemoryBarrierBuilder()
-            .SetSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-            .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
 
 inline constexpr const VkImageMemoryBarrier
     IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER =

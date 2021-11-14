@@ -4,15 +4,27 @@
 #include "general/windowing/VulkanWindow.h"
 #include "util.h"
 
-VulkanInstance::VulkanInstance(InstanceCreateInfoBuilder& infoBuilder) {
+VulkanInstance::VulkanInstance() : instance(nullptr) {}
+
+VulkanInstance::VulkanInstance(const InstanceCreateInfoBuilder& infoBuilder) {
   PROCEED_ON_VALID_RESULT(
       vkCreateInstance(infoBuilder.Build(), nullptr, &instance));
+}
+
+VulkanInstance::VulkanInstance(VulkanInstance&& other) noexcept
+    : instance(other.instance) {
+  other.instance = nullptr;
 }
 
 VulkanInstance::~VulkanInstance() {
   if (instance != nullptr) {
     vkDestroyInstance(instance, nullptr);
   }
+}
+
+VulkanInstance& VulkanInstance::operator=(VulkanInstance&& other) noexcept {
+  std::swap(instance, other.instance);
+  return *this;
 }
 
 DebugUtilsMessenger VulkanInstance::CreateDebugUtilsMessenger(
