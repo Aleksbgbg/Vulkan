@@ -1,5 +1,7 @@
 #include "DynamicUniformBufferInitializer.h"
 
+#include <cmath>
+
 DynamicUniformBufferInitializer::DynamicUniformBufferInitializer(
     const u32 objectCount, const VkPhysicalDeviceLimits& limits,
     const VirtualDevice& virtualDevice, DeviceMemoryAllocator& allocator)
@@ -9,7 +11,13 @@ DynamicUniformBufferInitializer::DynamicUniformBufferInitializer(
       allocator(allocator) {}
 
 u32 DynamicUniformBufferInitializer::PaddedSize(const u32 elementSize) const {
-  return Align(elementSize, limits.nonCoherentAtomSize);
+  const u32 minimumSize = limits.nonCoherentAtomSize;
+  const u32 alignment = limits.minUniformBufferOffsetAlignment;
+
+  const float ratio =
+      static_cast<float>(minimumSize) / static_cast<float>(alignment);
+  const u32 requiredAlignment = alignment * static_cast<u32>(std::ceil(ratio));
+  return Align(elementSize, requiredAlignment);
 }
 
 BufferWithMemory DynamicUniformBufferInitializer::CreateBuffer(
