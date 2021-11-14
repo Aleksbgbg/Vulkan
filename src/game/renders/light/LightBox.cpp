@@ -22,7 +22,7 @@ const Mesh& LightBox::GetMesh() const {
 }
 
 void LightBox::UpdateModel(const UpdateContext& context) {
-  rotation.x += context.deltaTime;
+  rotation.x += 0.1f * context.deltaTime;
 }
 
 void LightBox::Render(const MeshRenderer& renderer) const {
