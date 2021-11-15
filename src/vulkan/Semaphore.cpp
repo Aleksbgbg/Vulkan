@@ -28,10 +28,10 @@ Semaphore& Semaphore::operator=(Semaphore&& other) noexcept {
   return *this;
 }
 
-VkSemaphore* Semaphore::Pointer() {
+const VkSemaphore* Semaphore::Pointer() const {
   return &semaphore;
 }
 
-VkSemaphore Semaphore::Raw() {
+VkSemaphore Semaphore::Raw() const {
   return semaphore;
 }

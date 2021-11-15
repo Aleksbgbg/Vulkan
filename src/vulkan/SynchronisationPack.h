@@ -6,18 +6,18 @@
 
 class SynchronisationPack {
  public:
-  Semaphore* GetWaitSemaphore() const;
-  Semaphore* GetSignalSemaphore() const;
-  Fence* GetSignalFence() const;
+  const Semaphore* GetWaitSemaphore() const;
+  const Semaphore* GetSignalSemaphore() const;
+  const Fence* GetSignalFence() const;
 
-  SynchronisationPack& SetWaitSemaphore(Semaphore* const semaphore);
-  SynchronisationPack& SetSignalSemaphore(Semaphore* const semaphore);
-  SynchronisationPack& SetSignalFence(Fence* const fence);
+  SynchronisationPack& SetWaitSemaphore(const Semaphore* const semaphore);
+  SynchronisationPack& SetSignalSemaphore(const Semaphore* const semaphore);
+  SynchronisationPack& SetSignalFence(const Fence* const fence);
 
  private:
-  Semaphore* waitSemaphore;
-  Semaphore* signalSemaphore;
-  Fence* signalFence;
+  const Semaphore* waitSemaphore;
+  const Semaphore* signalSemaphore;
+  const Fence* signalFence;
 };
 
 #endif  // VULKAN_SRC_VULKAN_SYNCHRONISATIONPACK_H

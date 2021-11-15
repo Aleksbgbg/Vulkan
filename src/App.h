@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "DynamicUniformBuffer.h"
+#include "SwapchainWithResources.h"
 #include "UiRenderer.h"
 #include "game/ResourceAllocator.h"
 #include "game/Scene.h"
@@ -37,8 +38,6 @@ class App {
   void UpdateModel(const float deltaTime);
   void Render();
 
-  void InitializeSwapchain();
-
  private:
   VkFormat SelectDepthStencilFormat(
       const std::vector<VkFormat>& potentialFormats) const;
@@ -60,13 +59,11 @@ class App {
 
   std::unique_ptr<wnd::Window> window;
   const Keyboard& keyboard;
-  const Mouse& mouse;
 
   VulkanInstance instance;
   DebugUtilsMessenger debugMessenger;
   Surface windowSurface;
   u32 minSwapchainImages;
-  u32 framesInFlight;
 
   PhysicalDevice targetPhysicalDevice;
   VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -97,18 +94,8 @@ class App {
 
   CommandPool renderCommandPool;
 
-  bool hasSwapchain;
-  Swapchain swapchain;
-  bool hasOldSwapchain;
-  Swapchain oldSwapchain;
-
-  ImageWithMemory depthStencil;
-  ImageView depthStencilView;
-
-  ImageWithMemory multisamplingImage;
-  ImageView multisamplingImageView;
-
-  std::vector<Framebuffer> swapchainFramebuffers;
+  SwapchainWithResources swapchain;
+  SwapchainWithResources oldSwapchain;
 
   std::unique_ptr<UiRenderer> uiRenderer;
 
@@ -119,11 +106,7 @@ class App {
     Fence submitCompleteFence;
   };
   std::vector<SwapchainRenderPass> swapchainRenderData;
-  struct InFlightImage {
-    Semaphore acquireImageSemaphore;
-  };
-  std::vector<InFlightImage> imagesInFlightSynchronisation;
-  u32 currentInFlightImage = 0;
+
   u32 imageIndex;
 
   enum class EventNotification { Exited, Paused, Unpaused, Resized };

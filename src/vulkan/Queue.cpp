@@ -18,8 +18,8 @@ CommandPool Queue::CreateCommandPool(
                          .SetQueueFamilyIndex(familyIndex));
 }
 
-VkResult Queue::Present(Swapchain& swapchain, const u32 imageIndex,
-                        const SynchronisationPack& synchronisation) {
+VkResult Queue::Present(const Swapchain& swapchain, const u32 imageIndex,
+                        const SynchronisationPack& synchronisation) const {
   const VkResult status = vkQueuePresentKHR(
       queue,
       PresentInfoKhrBuilder()

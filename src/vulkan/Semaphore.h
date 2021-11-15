@@ -18,8 +18,8 @@ class Semaphore {
   Semaphore& operator=(const Semaphore&) = delete;
   Semaphore& operator=(Semaphore&& other) noexcept;
 
-  VkSemaphore* Pointer();
-  VkSemaphore Raw();
+  const VkSemaphore* Pointer() const;
+  VkSemaphore Raw() const;
 
  private:
   VkDevice device;

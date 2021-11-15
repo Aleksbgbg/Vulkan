@@ -44,7 +44,7 @@ Image VirtualDevice::CreateImage(ImageCreateInfoBuilder& infoBuilder) const {
 }
 
 Swapchain VirtualDevice::CreateSwapchain(
-    Surface& surface, SwapchainCreateInfoBuilder& infoBuilder) const {
+    const Surface& surface, SwapchainCreateInfoBuilder infoBuilder) const {
   return Swapchain(device, infoBuilder.SetSurface(surface.surface));
 }
 

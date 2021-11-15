@@ -60,8 +60,8 @@ class VirtualDevice {
                                     const VkDeviceSize size) const;
 
   Buffer CreateBuffer(BufferCreateInfoBuilder& infoBuilder) const;
-  Swapchain CreateSwapchain(Surface& surface,
-                            SwapchainCreateInfoBuilder& infoBuilder) const;
+  Swapchain CreateSwapchain(const Surface& surface,
+                            SwapchainCreateInfoBuilder infoBuilder) const;
   Swapchain CreateSwapchain(Surface& surface, const Swapchain& oldSwapchain,
                             SwapchainCreateInfoBuilder& infoBuilder) const;
   Image CreateImage(ImageCreateInfoBuilder& infoBuilder) const;

@@ -24,14 +24,11 @@
 #include "vulkan/structures/default.h"
 #include "vulkan/util.h"
 
-static constexpr const u32 SWAPCHAIN_IMAGES = 3;
+static constexpr u32 WANTED_SWAPCHAIN_IMAGES = 3u;
 
 App::App(std::unique_ptr<wnd::Window> appWindow)
     : window(std::move(appWindow)),
       keyboard(window->GetKeyboard()),
-      mouse(window->GetMouse()),
-      hasSwapchain(false),
-      hasOldSwapchain(false),
       previousTime(std::chrono::high_resolution_clock::time_point::min()),
       threadMessenger(),
       imageIndex(0) {
@@ -116,11 +113,10 @@ App::App(std::unique_ptr<wnd::Window> appWindow)
   targetPhysicalDevice = physicalDevices[0];
   physicalDeviceProperties = targetPhysicalDevice.GetProperties();
 
-  VkSurfaceCapabilitiesKHR surfaceCapabilities =
+  const VkSurfaceCapabilitiesKHR surfaceCapabilities =
       windowSurface.GetCapabilities(targetPhysicalDevice);
-  minSwapchainImages = std::min(surfaceCapabilities.minImageCount + 1,
+  minSwapchainImages = std::min(surfaceCapabilities.minImageCount,
                                 surfaceCapabilities.maxImageCount);
-  framesInFlight = SWAPCHAIN_IMAGES;
 
   const std::optional<u32> queueFamilyIndex =
       targetPhysicalDevice.FindAppropriateQueueFamily(
@@ -268,120 +264,33 @@ App::App(std::unique_ptr<wnd::Window> appWindow)
                                     .samples = samples};
   resourceAllocator = ResourceAllocator(virtualDevice, deviceAllocator,
                                         shortExecutionCommandBuffer, fence);
+
+  const u32 swapchainImages =
+      std::max(WANTED_SWAPCHAIN_IMAGES, minSwapchainImages);
+  swapchain = SwapchainWithResources(
+      virtualDevice, windowSurface, deviceAllocator,
+      SwapchainCreateInfoBuilder()
+          .SetMinImageCount(swapchainImages)
+          .SetImageFormat(surfaceFormat.format)
+          .SetImageColorSpace(surfaceFormat.colorSpace)
+          .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
+          .SetImageArrayLayers(1)
+          .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+          .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
+          .SetPreTransform(surfaceCapabilities.currentTransform)
+          .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+          .SetPresentMode(SelectSwapPresentMode(
+              windowSurface.GetPresentModes(targetPhysicalDevice)))
+          .SetClipped(VK_TRUE),
+      depthStencilFormat, samples, renderPass);
+
   const DynamicUniformBufferInitializer uniformBufferInitializer(
-      SWAPCHAIN_IMAGES, physicalDeviceProperties.limits, virtualDevice,
+      swapchain.GetImageCount(), physicalDeviceProperties.limits, virtualDevice,
       deviceAllocator);
   scene = std::make_unique<Scene>(vulkanContext, resourceAllocator, *window,
                                   imageIndex, uniformBufferInitializer);
 
-  InitializeSwapchain();
-
-  for (u32 inFlightImage = 0; inFlightImage < framesInFlight; ++inFlightImage) {
-    imagesInFlightSynchronisation.emplace_back(std::move<InFlightImage>(
-        {.acquireImageSemaphore = virtualDevice.CreateSemaphore()}));
-  }
-}
-
-void App::InitializeSwapchain() {
-  VkSurfaceCapabilitiesKHR surfaceCapabilities =
-      windowSurface.GetCapabilities(targetPhysicalDevice);
-
-  const u32 swapchainImages = std::max(SWAPCHAIN_IMAGES, minSwapchainImages);
-
-  if (hasSwapchain) {
-    oldSwapchain = std::move(swapchain);
-    hasOldSwapchain = true;
-
-    swapchain = virtualDevice.CreateSwapchain(
-        windowSurface, oldSwapchain,
-        SwapchainCreateInfoBuilder()
-            .SetMinImageCount(swapchainImages)
-            .SetImageFormat(surfaceFormat.format)
-            .SetImageColorSpace(surfaceFormat.colorSpace)
-            .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
-            .SetImageArrayLayers(1)
-            .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-            .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
-            .SetPreTransform(surfaceCapabilities.currentTransform)
-            .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
-            .SetPresentMode(SelectSwapPresentMode(
-                windowSurface.GetPresentModes(targetPhysicalDevice)))
-            .SetClipped(VK_TRUE));
-    hasSwapchain = true;
-  } else {
-    swapchain = virtualDevice.CreateSwapchain(
-        windowSurface,
-        SwapchainCreateInfoBuilder()
-            .SetMinImageCount(swapchainImages)
-            .SetImageFormat(surfaceFormat.format)
-            .SetImageColorSpace(surfaceFormat.colorSpace)
-            .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
-            .SetImageArrayLayers(1)
-            .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-            .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
-            .SetPreTransform(surfaceCapabilities.currentTransform)
-            .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
-            .SetPresentMode(SelectSwapPresentMode(
-                windowSurface.GetPresentModes(targetPhysicalDevice)))
-            .SetClipped(VK_TRUE));
-    hasSwapchain = true;
-  }
-
-  if (swapchain.GetImageCount() != SWAPCHAIN_IMAGES) {
-    // TODO: re-initialize the scene uniform if the number of images changes
-    throw std::runtime_error(
-        "Swapchain produced more images than the minimum.");
-  }
-
   const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
-
-  Image depthStencilImage = virtualDevice.CreateImage(
-      ImageCreateInfoBuilder(IMAGE_2D)
-          .SetFormat(depthStencilFormat)
-          .SetSamples(samples)
-          .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
-          .SetUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
-  DeviceMemorySubAllocation depthStencilMemory = deviceAllocator.BindMemory(
-      depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  depthStencilView = depthStencilImage.CreateView(
-      ImageViewCreateInfoBuilder()
-          .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
-          .SetSubresourceRange(ImageSubresourceRangeBuilder()
-                                   .SetAspectMask(VK_IMAGE_ASPECT_DEPTH_BIT)
-                                   .SetLevelCount(1)
-                                   .SetLayerCount(1)));
-
-  depthStencil = {.image = std::move(depthStencilImage),
-                  .memory = std::move(depthStencilMemory)};
-
-  Image multisampling = virtualDevice.CreateImage(
-      ImageCreateInfoBuilder(IMAGE_2D)
-          .SetFormat(swapchain.GetImageFormat())
-          .SetExtent(Extent3DBuilder(swapchainExtent).SetDepth(1))
-          .SetSamples(samples)
-          .SetUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT));
-  DeviceMemorySubAllocation multisamplingMemory = deviceAllocator.BindMemory(
-      multisampling, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  multisamplingImageView = multisampling.CreateView(
-      ImageViewCreateInfoBuilder()
-          .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
-          .SetSubresourceRange(ImageSubresourceRangeBuilder()
-                                   .SetAspectMask(VK_IMAGE_ASPECT_COLOR_BIT)
-                                   .SetLevelCount(1)
-                                   .SetLayerCount(1)));
-  multisamplingImage = {.image = std::move(multisampling),
-                        .memory = std::move(multisamplingMemory)};
-
-  swapchainFramebuffers = swapchain.GetFramebuffers(
-      renderPass, {&multisamplingImageView, &depthStencilView});
-
-  uiRenderer = nullptr;
-  uiRenderer = std::make_unique<UiRenderer>(
-      window->GetRect(),
-      ImGuiInstance(*window, instance, targetPhysicalDevice, virtualDevice,
-                    queue, renderPass, shortExecutionCommandBuffer, fence,
-                    samples));
-
   scene->UpdateAspect(static_cast<float>(swapchainExtent.width) /
                       static_cast<float>(swapchainExtent.height));
 
@@ -392,9 +301,13 @@ void App::InitializeSwapchain() {
         .renderCompleteSemaphore = virtualDevice.CreateSemaphore(),
         .submitCompleteFence =
             virtualDevice.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
-    imagesInFlightSynchronisation.emplace_back(InFlightImage{
-        .acquireImageSemaphore = virtualDevice.CreateSemaphore()});
   }
+
+  uiRenderer = std::make_unique<UiRenderer>(
+      window->GetRect(),
+      ImGuiInstance(*window, instance, targetPhysicalDevice, virtualDevice,
+                    queue, renderPass, shortExecutionCommandBuffer, fence,
+                    samples));
 }
 
 App::~App() {
@@ -464,13 +377,15 @@ void App::RenderThread() {
             break;
 
           case EventNotification::Resized:
-            // TODO: Allow continuous render during recreation
-            virtualDevice.WaitIdle();
-            swapchainRenderData.clear();
-            imagesInFlightSynchronisation.clear();
-            BufferedLog("Recreating swapchain.");
-            InitializeSwapchain();
-            ImmediateLog("Swapchain recreated.");
+            const VkSurfaceCapabilitiesKHR surfaceCapabilities =
+                windowSurface.GetCapabilities(targetPhysicalDevice);
+            oldSwapchain = std::move(swapchain);
+            swapchain = oldSwapchain.RecreateSwapchain(
+                virtualDevice, windowSurface, deviceAllocator, renderPass,
+                SelectSwapExtent(surfaceCapabilities));
+            const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
+            scene->UpdateAspect(static_cast<float>(swapchainExtent.width) /
+                                static_cast<float>(swapchainExtent.height));
             break;
         }
       }
@@ -512,12 +427,8 @@ void App::UpdateModel(const float deltaTime) {
 }
 
 void App::Render() {
-  InFlightImage& synchronisation =
-      imagesInFlightSynchronisation[currentInFlightImage];
-
-  const Swapchain::AcquireNextImageResult nextImageResult =
-      swapchain.AcquireNextImage(SynchronisationPack().SetSignalSemaphore(
-          &synchronisation.acquireImageSemaphore));
+  const SwapchainWithResources::AcquireNextImageResult nextImageResult =
+      swapchain.AcquireNextImage();
 
   if (nextImageResult.status == VK_ERROR_OUT_OF_DATE_KHR) {
     return;
@@ -549,22 +460,20 @@ void App::Render() {
           .SetRenderArea(Rect2DBuilder().SetExtent(swapchain.GetImageExtent()))
           .SetClearValueCount(clearValues.size())
           .SetPClearValues(clearValues.data()),
-      VK_SUBPASS_CONTENTS_INLINE, renderPass,
-      swapchainFramebuffers[imageIndex]);
+      VK_SUBPASS_CONTENTS_INLINE, renderPass, swapchain.CurrentFramebuffer());
   scene->Render(swapchainRender.commandBuffer);
   uiRenderer->Render(swapchainRender.commandBuffer);
   swapchainRender.commandBuffer.CmdEndRenderPass();
   swapchainRender.commandBuffer.End();
   swapchainRender.commandBuffer.Submit(
       SynchronisationPack()
-          .SetWaitSemaphore(&synchronisation.acquireImageSemaphore)
+          .SetWaitSemaphore(&nextImageResult.semaphore)
           .SetSignalSemaphore(&swapchainRender.renderCompleteSemaphore)
           .SetSignalFence(&swapchainRender.submitCompleteFence));
-  queue.Present(swapchain, imageIndex,
-                SynchronisationPack().SetWaitSemaphore(
-                    &swapchainRender.renderCompleteSemaphore));
+  swapchain.Present(queue, SynchronisationPack().SetWaitSemaphore(
+                               &swapchainRender.renderCompleteSemaphore));
 
-  currentInFlightImage = (currentInFlightImage + 1) % framesInFlight;
+  swapchain.MoveToNextFrame();
 }
 
 VkSurfaceFormatKHR App::SelectSwapSurfaceFormat(

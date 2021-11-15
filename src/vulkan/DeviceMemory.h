@@ -12,8 +12,7 @@
 class DeviceMemory {
  public:
   DeviceMemory();
-  DeviceMemory(VkDevice device,
-                        const MemoryAllocateInfoBuilder& infoBuilder);
+  DeviceMemory(VkDevice device, const MemoryAllocateInfoBuilder& infoBuilder);
 
   DeviceMemory(const DeviceMemory&) = delete;
   DeviceMemory(DeviceMemory&& other) noexcept;

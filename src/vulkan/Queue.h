@@ -19,8 +19,8 @@ class Queue {
   CommandPool CreateCommandPool(
       const VkCommandPoolCreateFlags createFlags) const;
 
-  VkResult Present(Swapchain& swapchain, const u32 imageIndex,
-                   const SynchronisationPack& synchronisation);
+  VkResult Present(const Swapchain& swapchain, const u32 imageIndex,
+                   const SynchronisationPack& synchronisation) const;
 
  private:
   VkDevice device;

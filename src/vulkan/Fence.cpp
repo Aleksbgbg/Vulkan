@@ -13,7 +13,8 @@ Fence::Fence(const VkDevice device, const VkFenceCreateFlags createFlags)
       &fence));
 }
 
-Fence::Fence(Fence&& other) noexcept : device(other.device), fence(other.fence) {
+Fence::Fence(Fence&& other) noexcept
+    : device(other.device), fence(other.fence) {
   other.fence = nullptr;
 }
 
