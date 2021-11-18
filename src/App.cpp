@@ -1,5 +1,6 @@
 #include "App.h"
 
+#include <array>
 #include <thread>
 
 #include "general/logging/log.h"
@@ -26,12 +27,6 @@ App::App(wnd::Window& window, std::unique_ptr<Vulkan> appVulkan)
         .submitCompleteFence =
             vulkan->CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
   }
-
-  //  uiRenderer = std::make_unique<UiRenderer>(
-  //      window->GetRect(),
-  //      ImGuiInstance(*window, instance, targetPhysicalDevice, virtualDevice,
-  //                    queue, renderPass, shortExecutionCommandBuffer, fence,
-  //                    samples));
 }
 
 App::~App() {
@@ -118,16 +113,10 @@ void App::MainLoop() {
 }
 
 void App::UpdateModel(const float deltaTime) {
-  //  uiRenderer->BeginFrame();
-  //  uiRenderer->ShowVulkanDebugInfo(VulkanDebugInfo{
-  //      .gpuName = physicalDeviceProperties.deviceName, .frametime =
-  //      deltaTime});
-
   const UpdateContext updateContext{.deltaTime = deltaTime,
                                     .keyboard = window.GetKeyboard()};
   scene->UpdateModel(updateContext);
 
-  // uiRenderer->EndFrame();
   window.EndFrame();
 }
 
@@ -168,7 +157,6 @@ void App::Render() {
           .SetPClearValues(clearValues.data()),
       swapchain.CurrentFramebuffer());
   scene->Render(swapchainRender.commandBuffer);
-  //  uiRenderer->Render(swapchainRender.commandBuffer);
   swapchainRender.commandBuffer.CmdEndRenderPass();
   swapchainRender.commandBuffer.End();
   swapchainRender.commandBuffer.Submit(

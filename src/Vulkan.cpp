@@ -1,5 +1,6 @@
 #include "Vulkan.h"
 
+#include <array>
 #include <filesystem>
 #include <stdexcept>
 

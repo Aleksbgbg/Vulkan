@@ -5,7 +5,6 @@
 
 #include "DynamicUniformBuffer.h"
 #include "SwapchainWithResources.h"
-#include "UiRenderer.h"
 #include "Vulkan.h"
 #include "game/Scene.h"
 #include "game/rendering/resources/ResourceLoader.h"
@@ -16,7 +15,6 @@
 #include "general/windowing/input/Keyboard.h"
 #include "general/windowing/input/Mouse.h"
 #include "memory/DeviceMemoryAllocator.h"
-#include "vulkan/ImGuiInstance.h"
 #include "vulkan/Swapchain.h"
 #include "vulkan/VulkanInstance.h"
 

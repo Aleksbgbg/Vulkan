@@ -1,7 +1,5 @@
 #include "Window.h"
 
-#include <backends/imgui_impl_sdl.h>
-
 namespace wnd {
 
 Window::Window(const Recti windowRect, SDL_Window* window)
@@ -50,8 +48,6 @@ Window::Event Window::WaitAndProcessEvent() {
   SDL_Event event;
   SDL_WaitEvent(&event);
 
-  // ImGui_ImplSDL2_ProcessEvent(&event);
-
   switch (event.type) {
     case SDL_QUIT:
       return Event::Exit;
@@ -97,18 +93,6 @@ Window::Event Window::WaitAndProcessEvent() {
 
 void Window::EndFrame() {
   keyboard.ClearPressedKeys();
-}
-
-void Window::InitImGui() const {
-  //  ImGui_ImplSDL2_InitForVulkan(window);
-}
-
-void Window::NewFrame() const {
-  //  ImGui_ImplSDL2_NewFrame(window);
-}
-
-void Window::ShutdownImGui() const {
-  //  ImGui_ImplSDL2_Shutdown();
 }
 
 }  // namespace wnd

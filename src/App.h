@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "SwapchainWithResources.h"
-#include "UiRenderer.h"
 #include "Vulkan.h"
 #include "game/Scene.h"
 #include "general/threading/MultithreadedMessageQueue.h"
@@ -41,8 +40,6 @@ class App {
 
   SwapchainWithResources swapchain;
   SwapchainWithResources oldSwapchain;
-
-  std::unique_ptr<UiRenderer> uiRenderer;
 
   u32 imageIndex;
 

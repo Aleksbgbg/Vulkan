@@ -3,14 +3,13 @@
 
 #include "VulkanWindow.h"
 #include "general/geometry/Rect.h"
-#include "general/windowing/ImGuiWindow.h"
 #include "general/windowing/input/Keyboard.h"
 #include "general/windowing/input/Mouse.h"
 #include "util/include/sdl.h"
 
 namespace wnd {
 
-class Window : public ImGuiWindow, public VulkanWindow {
+class Window : public VulkanWindow {
  public:
   Window(const Recti windowRect, SDL_Window* window);
 
@@ -40,12 +39,7 @@ class Window : public ImGuiWindow, public VulkanWindow {
 
   Event WaitAndProcessEvent();
 
-  void ShutdownImGui() const override;
   void EndFrame();
-
- private:
-  void InitImGui() const override;
-  void NewFrame() const override;
 
  private:
   Recti windowRect;
