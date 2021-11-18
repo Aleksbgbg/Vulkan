@@ -31,6 +31,6 @@ inline constexpr const char* const FONTAWESOME_FONT_FILENAME =
     "resources/fontawesome-webfont.ttf";
 inline constexpr const char* const KOREAN_FONT_FILENAME =
     "resources/IBMPlexSansKR-Regular.ttf";
-inline constexpr const char* const UI_FONT_FILENAME = "resources/SEGOEUI.TTF";
+inline constexpr const char* const UI_FONT_FILENAME = "resources/SegoeUI.ttf";
 
 #endif  // VULKAN_SRC_FILENAMES_H
