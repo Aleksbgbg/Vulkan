@@ -33,10 +33,14 @@ class ArrayDescriptorBinder : public ActorDescriptorBinder {
 
 static constexpr const u32 RenderCount = 4;
 
-Scene::Scene(const VulkanContext& vulkanContext,
-             const ResourceLoader& resourceLoader, const wnd::Window& window,
-             const u32& imageIndex,
-             const DynamicUniformBufferInitializer& uniformBufferInitializer)
+Scene::Scene(const Initializer& initializer,
+             DynamicUniformBufferInitializer& uniformBufferInitializer,
+             const DescriptorSetLayoutFactory& descriptorSetLayoutFactory,
+             const RenderPipeline::Initializer& renderPipelineInitializer,
+             const ShaderModuleFactory& shaderModuleFactory,
+             const ResourceBinder::ImageSamplerWriter& imageSamplerWriter,
+             ResourceLoader& resourceLoader, const wnd::Window& window,
+             const u32& imageIndex)
     : renderers(RenderCount), window(&window), camera() {
   std::unique_ptr<ParticleRender> particleRender =
       std::make_unique<ParticleRender>();
@@ -53,7 +57,7 @@ Scene::Scene(const VulkanContext& vulkanContext,
   u32 descriptorSetCount = 1;
 
   DescriptorSetLayout sceneDescriptorLayout =
-      SceneDescriptor::CreateLayout(*vulkanContext.virtualDevice);
+      SceneDescriptor::CreateSceneDescriptorLayout(descriptorSetLayoutFactory);
 
   struct RenderInit {
     RenderPipeline renderPipeline;
@@ -76,7 +80,7 @@ Scene::Scene(const VulkanContext& vulkanContext,
     descriptorConfiguration->ConfigureDescriptorPoolSizes(descriptorPoolSizes);
     std::optional<DescriptorSetLayout> actorDescriptorSetLayout =
         descriptorConfiguration->ConfigureActorDescriptorSet(
-            *vulkanContext.virtualDevice);
+            descriptorSetLayoutFactory);
 
     std::vector<const DescriptorSetLayout*> descriptorSetLayouts = {
         &sceneDescriptorLayout};
@@ -86,14 +90,13 @@ Scene::Scene(const VulkanContext& vulkanContext,
       descriptorSetCount += renderInit.actors.size();
     }
 
-    renderInit.renderPipeline = RenderPipeline(
-        *vulkanContext.virtualDevice, *vulkanContext.pipelineCache,
-        std::move(descriptorSetLayouts), *vulkanContext.subpassReference,
-        vulkanContext.samples, *pipelineStateFactory);
+    renderInit.renderPipeline =
+        RenderPipeline(renderPipelineInitializer, shaderModuleFactory,
+                       descriptorSetLayouts, *pipelineStateFactory);
     renderInit.actorDescriptorSetLayout = std::move(actorDescriptorSetLayout);
   }
 
-  descriptorPool = vulkanContext.virtualDevice->CreateDescriptorPool(
+  descriptorPool = initializer.CreateDescriptorPool(
       DescriptorPoolCreateInfoBuilder()
           .SetPPoolSizes(descriptorPoolSizes.data())
           .SetPoolSizeCount(descriptorPoolSizes.size())
@@ -102,9 +105,8 @@ Scene::Scene(const VulkanContext& vulkanContext,
   std::vector<DescriptorSet::WriteDescriptorSet> descriptorSetWrites;
 
   sceneDescriptor =
-      SceneDescriptor(*vulkanContext.virtualDevice, descriptorPool,
-                      std::move(sceneDescriptorLayout), resourceLoader,
-                      imageIndex, uniformBufferInitializer);
+      SceneDescriptor(std::move(sceneDescriptorLayout), descriptorPool,
+                      uniformBufferInitializer, imageIndex);
   sceneDescriptor.WriteDescriptorSets(descriptorSetWrites);
 
   for (u32 renderIndex = 0; renderIndex < sceneRenders.size(); ++renderIndex) {
@@ -123,10 +125,10 @@ Scene::Scene(const VulkanContext& vulkanContext,
         const std::unique_ptr<Actor>& actor = renderInit.actors[actorIndex];
         const DescriptorSet& descriptorSet = descriptorSets[actorIndex];
 
-        TextureRegistry textureRegistry(descriptorSet, *vulkanContext.sampler,
-                                        descriptorSetWrites);
+        ResourceBinder textureRegistry(imageSamplerWriter, descriptorSet,
+                                       descriptorSetWrites);
 
-        actor->GetMesh().WriteTexture(textureRegistry);
+        actor->GetMesh().BindTexture(textureRegistry);
         actor->BindBuffers(textureRegistry);
       }
 
@@ -150,8 +152,8 @@ Scene::Scene(const VulkanContext& vulkanContext,
       [](const DescriptorSet::WriteDescriptorSet& writeDescriptorSet) {
         return writeDescriptorSet.Build();
       });
-  vulkanContext.virtualDevice->UpdateDescriptorSets(writeDescriptorSets.size(),
-                                                    writeDescriptorSets.data());
+  initializer.UpdateDescriptorSets(writeDescriptorSets.size(),
+                                   writeDescriptorSets.data());
 }
 
 void Scene::UpdateAspect(const float aspect) {

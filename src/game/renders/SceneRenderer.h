@@ -4,7 +4,6 @@
 #include "ActorDescriptorBinder.h"
 #include "SceneDescriptorBinder.h"
 #include "SceneRender.h"
-#include "VulkanContext.h"
 #include "game/RenderPipeline.h"
 #include "game/model/UpdateContext.h"
 #include "game/rendering/meshes/MeshRenderer.h"

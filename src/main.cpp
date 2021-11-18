@@ -6,7 +6,8 @@
 #include "general/windowing/system_window.h"
 
 int RunVulkanApp() {
-  return App(InitializeSystemWindow(1920, 1080)).Run();
+  std::unique_ptr<wnd::Window> window = InitializeSystemWindow(1920, 1080);
+  return App(*window, std::make_unique<Vulkan>(*window)).Run();
 }
 
 int run() {

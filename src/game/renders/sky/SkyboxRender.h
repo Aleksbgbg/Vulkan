@@ -9,7 +9,7 @@ class SkyboxRender : public SceneRender {
   std::unique_ptr<DescriptorConfiguration> ConfigureDescriptors()
       const override;
   std::vector<std::unique_ptr<Actor>> LoadActors(
-      const ResourceLoader& resourceLoader) override;
+      ResourceLoader &resourceLoader) override;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERS_SKY_SKYBOXRENDER_H

@@ -23,11 +23,11 @@ class ParticlePipelineStateFactory : public PipelineStateFactory {
                 .SetOffset(offsetof(PositionVertex, position))) {}
 
   std::vector<ShaderModule> LoadShaders(
-      const VirtualDevice& virtualDevice) const override {
+      const ShaderModuleFactory& shaderModuleFactory) const override {
     std::vector<ShaderModule> shaders;
-    shaders.emplace_back(virtualDevice.LoadShader(
+    shaders.emplace_back(shaderModuleFactory.LoadShader(
         VK_SHADER_STAGE_VERTEX_BIT, "shaders/particles.vert.spv"));
-    shaders.emplace_back(virtualDevice.LoadShader(
+    shaders.emplace_back(shaderModuleFactory.LoadShader(
         VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/particles.frag.spv"));
     return shaders;
   }
@@ -62,14 +62,15 @@ class ParticleDescriptorConfiguration : public DescriptorConfiguration {
   }
 
   std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
-      const VirtualDevice& virtualDevice) const override {
+      const DescriptorSetLayoutFactory& descriptorSetLayoutFactory)
+      const override {
     constexpr const VkDescriptorSetLayoutBinding particleDescriptorSet =
         DescriptorSetLayoutBindingBuilder()
             .SetBinding(0)
             .SetDescriptorCount(1)
             .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT);
-    return virtualDevice.CreateDescriptorSetLayout(
+    return descriptorSetLayoutFactory.CreateDescriptorSetLayout(
         DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
             &particleDescriptorSet));
   }
@@ -89,7 +90,7 @@ std::unique_ptr<DescriptorConfiguration> ParticleRender::ConfigureDescriptors()
 }
 
 std::vector<std::unique_ptr<Actor>> ParticleRender::LoadActors(
-    const ResourceLoader& resourceLoader) {
+    ResourceLoader& resourceLoader) {
   *particleGenerator = std::move(ParticleGenerator(resourceLoader));
 
   std::vector<std::unique_ptr<Actor>> actors(1);

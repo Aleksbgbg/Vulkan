@@ -1,5 +1,7 @@
 #include "Player.h"
 
+#include "general/math/math.h"
+
 static constexpr float HalfTurn = glm::pi<float>();
 static constexpr float QuarterTurn = 0.5f * HalfTurn;
 static constexpr float ThreeQuarterTurn = 1.5f * HalfTurn;
@@ -33,10 +35,6 @@ glm::vec2 CalculateMouseMovement(const Mouse& mouse, const Rectf& windowRect) {
   movement.x = -movement.x;
 
   return movement;
-}
-
-float CoerceToRange(const float value, const float min, const float max) {
-  return std::min(max, std::max(min, value));
 }
 
 float CalculateRotationFromDistanceAsFraction(const float distance,

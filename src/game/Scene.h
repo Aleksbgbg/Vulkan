@@ -5,7 +5,6 @@
 
 #include "Camera.h"
 #include "DynamicUniformBuffer.h"
-#include "VulkanContext.h"
 #include "game/SceneDescriptor.h"
 #include "game/model/UpdateContext.h"
 #include "game/renders/SceneRenderer.h"
@@ -14,11 +13,26 @@
 
 class Scene {
  public:
+  class Initializer {
+   public:
+    virtual ~Initializer() = default;
+
+    virtual DescriptorPool CreateDescriptorPool(
+        const DescriptorPoolCreateInfoBuilder& infoBuilder) const = 0;
+    virtual void UpdateDescriptorSets(
+        const u32 descriptorSetCount,
+        const VkWriteDescriptorSet* const descriptorSetWrites) const = 0;
+  };
+
   Scene() = default;
-  Scene(const VulkanContext& vulkanContext,
-        const ResourceLoader& resourceLoader, const wnd::Window& window,
-        const u32& imageIndex,
-        const DynamicUniformBufferInitializer& uniformBufferInitializer);
+  Scene(const Initializer& initializer,
+        DynamicUniformBufferInitializer& uniformBufferInitializer,
+        const DescriptorSetLayoutFactory& descriptorSetLayoutFactory,
+        const RenderPipeline::Initializer& renderPipelineInitializer,
+        const ShaderModuleFactory& shaderModuleFactory,
+        const ResourceBinder::ImageSamplerWriter& imageSamplerWriter,
+        ResourceLoader& resourceLoader, const wnd::Window& window,
+        const u32& imageIndex);
 
   Scene(const Scene&) = delete;
   Scene(Scene&&) = delete;

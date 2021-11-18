@@ -7,12 +7,21 @@
 #include "vulkan/CommandBuffer.h"
 #include "vulkan/Pipeline.h"
 
+class ShaderModuleFactory {
+ public:
+  virtual ~ShaderModuleFactory() = default;
+
+  virtual ShaderModule LoadShader(
+      const VkShaderStageFlagBits stage,
+      const std::string_view shaderFilename) const = 0;
+};
+
 class PipelineStateFactory {
  public:
   virtual ~PipelineStateFactory() = default;
 
   virtual std::vector<ShaderModule> LoadShaders(
-      const VirtualDevice& virtualDevice) const = 0;
+      const ShaderModuleFactory& shaderModuleFactory) const = 0;
   virtual PipelineLayoutCreateInfoBuilder CreatePipelineLayout() const = 0;
   virtual PipelineVertexInputStateCreateInfoBuilder CreateVertexInputState()
       const = 0;
@@ -20,12 +29,24 @@ class PipelineStateFactory {
 
 class RenderPipeline {
  public:
+  class Initializer {
+   public:
+    virtual ~Initializer() = default;
+
+    virtual Pipeline CreateGraphicsPipeline(
+        const std::vector<ShaderModule>& shaders,
+        const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
+        const PipelineLayoutCreateInfoBuilder& pipelineLayout,
+        const GraphicsPipelineCreateInfoBuilder& infoBuilder) const = 0;
+    virtual PipelineMultisampleStateCreateInfoBuilder CreateMultisampleState()
+        const = 0;
+  };
+
   RenderPipeline() = default;
   RenderPipeline(
-      const VirtualDevice& virtualDevice, const PipelineCache& pipelineCache,
-      const std::vector<const DescriptorSetLayout*> descriptorSetLayouts,
-      const SubpassReference subpassReference,
-      const VkSampleCountFlagBits samples,
+      const Initializer& initializer,
+      const ShaderModuleFactory& shaderModuleFactory,
+      const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
       const PipelineStateFactory& pipelineStateFactory);
 
   RenderPipeline(const RenderPipeline&) = delete;

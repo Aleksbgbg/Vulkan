@@ -18,7 +18,7 @@ class PipelineLayout {
       VkDevice device,
       const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts);
   PipelineLayout(
-      VkDevice device, PipelineLayoutCreateInfoBuilder& infoBuilder,
+      VkDevice device, PipelineLayoutCreateInfoBuilder infoBuilder,
       const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts);
 
   PipelineLayout(const PipelineLayout&) = delete;

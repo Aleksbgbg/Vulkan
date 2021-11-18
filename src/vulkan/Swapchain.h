@@ -20,7 +20,7 @@ class Swapchain {
   Swapchain();
   Swapchain(VkDevice device, const Swapchain& oldSwapchain,
             SwapchainCreateInfoBuilder& infoBuilder);
-  Swapchain(VkDevice device, SwapchainCreateInfoBuilder& infoBuilder);
+  Swapchain(VkDevice device, const SwapchainCreateInfoBuilder& infoBuilder);
 
   Swapchain(const Swapchain&) = delete;
   Swapchain(Swapchain&& other) noexcept;

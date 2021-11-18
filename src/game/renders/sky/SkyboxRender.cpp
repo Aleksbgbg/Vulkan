@@ -29,12 +29,12 @@ class SkyboxPipelineStateFactory : public PipelineStateFactory {
         }) {}
 
   std::vector<ShaderModule> LoadShaders(
-      const VirtualDevice& virtualDevice) const override {
+      const ShaderModuleFactory& shaderModuleFactory) const override {
     std::vector<ShaderModule> shaders;
-    shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_VERTEX_BIT,
-                                                  "shaders/sky.vert.spv"));
-    shaders.emplace_back(virtualDevice.LoadShader(VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                  "shaders/sky.frag.spv"));
+    shaders.emplace_back(shaderModuleFactory.LoadShader(
+        VK_SHADER_STAGE_VERTEX_BIT, "shaders/sky.vert.spv"));
+    shaders.emplace_back(shaderModuleFactory.LoadShader(
+        VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/sky.frag.spv"));
     return shaders;
   }
 
@@ -68,14 +68,15 @@ class SkyboxDescriptorConfiguration : public DescriptorConfiguration {
   }
 
   std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
-      const VirtualDevice& virtualDevice) const override {
+      const DescriptorSetLayoutFactory& descriptorSetLayoutFactory)
+      const override {
     constexpr const VkDescriptorSetLayoutBinding skyboxTextureSampler =
         DescriptorSetLayoutBindingBuilder()
             .SetBinding(0)
             .SetDescriptorCount(1)
             .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
             .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
-    return virtualDevice.CreateDescriptorSetLayout(
+    return descriptorSetLayoutFactory.CreateDescriptorSetLayout(
         DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
             &skyboxTextureSampler));
   }
@@ -91,7 +92,7 @@ std::unique_ptr<DescriptorConfiguration> SkyboxRender::ConfigureDescriptors()
 }
 
 std::vector<std::unique_ptr<Actor>> SkyboxRender::LoadActors(
-    const ResourceLoader& resourceLoader) {
+    ResourceLoader& resourceLoader) {
   std::vector<std::unique_ptr<Actor>> actors(1);
   actors[0] = std::make_unique<Skybox>(resourceLoader);
   return actors;

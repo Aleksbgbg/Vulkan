@@ -10,7 +10,7 @@ Pipeline::Pipeline(VkDevice device, const PipelineCache& pipelineCache,
                    const std::vector<ShaderModule>& shaderModules,
                    PipelineLayout pipelineLayout,
                    const SubpassReference subpassReference,
-                   GraphicsPipelineCreateInfoBuilder& infoBuilder)
+                   GraphicsPipelineCreateInfoBuilder infoBuilder)
     : device(device), pipelineLayout(std::move(pipelineLayout)) {
   std::vector<VkPipelineShaderStageCreateInfo> shaderCreateInfos(
       shaderModules.size());
@@ -27,7 +27,7 @@ Pipeline::Pipeline(VkDevice device, const PipelineCache& pipelineCache,
       infoBuilder.SetStageCount(shaderCreateInfos.size())
           .SetPStages(shaderCreateInfos.data())
           .SetLayout(this->pipelineLayout.pipelineLayout)
-          .SetRenderPass(subpassReference.renderPass.renderPass)
+          .SetRenderPass(subpassReference.renderPass->renderPass)
           .SetSubpass(subpassReference.subpass)
           .Build(),
       nullptr, &pipeline));

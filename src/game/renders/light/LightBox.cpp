@@ -3,7 +3,7 @@
 #include "game/rendering/vertices/PositionTextureVertex.h"
 #include "util/filenames.h"
 
-TexturedMesh LoadLightMesh(const ResourceLoader& resourceLoader) {
+TexturedMesh LoadLightMesh(ResourceLoader& resourceLoader) {
   DrawVertices<PositionTextureVertex> drawVertices =
       PositionTextureVertex::LoadVertices(SPHERE_MODEL_FILENAME);
 
@@ -14,7 +14,7 @@ TexturedMesh LoadLightMesh(const ResourceLoader& resourceLoader) {
       resourceLoader.LoadTexture(SUN_TEXTURE_FILENAME));
 }
 
-LightBox::LightBox(const ResourceLoader& resourceLoader)
+LightBox::LightBox(ResourceLoader& resourceLoader)
     : mesh(LoadLightMesh(resourceLoader)), rotation(0.0f, 0.0f, -1.0f) {}
 
 const Mesh& LightBox::GetMesh() const {

@@ -8,8 +8,8 @@ TexturedMesh::TexturedMesh(BufferWithMemory vertexBuffer,
       indexCount(indexCount),
       texture(std::move(texture)) {}
 
-void TexturedMesh::WriteTexture(TextureRegistry& textureRegistry) const {
-  textureRegistry.WriteTexture(texture.view, 0);
+void TexturedMesh::BindTexture(ResourceBinder& textureRegistry) const {
+  textureRegistry.BindTexture(texture.view, 0);
 }
 
 void TexturedMesh::Render(const CommandBuffer& commandBuffer,

@@ -45,9 +45,9 @@ class CommandBuffer {
   void CmdCopyBufferFull(Buffer& source, Buffer& dest) const;
   void CmdCopyBuffer(Buffer& source, Buffer& dest,
                      const VkBufferCopy& copyRegion) const;
-  void CmdCopyBufferToImage(Buffer& source, Image& dest,
+  void CmdCopyBufferToImage(const Buffer& source, const Image& dest,
                             const VkImageLayout destLayout,
-                            BufferImageCopyBuilder& infoBuilder) const;
+                            const BufferImageCopyBuilder& infoBuilder) const;
 
   void CmdGlobalMemoryBarrier(const VkPipelineStageFlags srcStageMask,
                               const VkPipelineStageFlags dstStageMask,
@@ -64,7 +64,7 @@ class CommandBuffer {
   void CmdSetViewport(const VkViewport viewport) const;
   void CmdSetScissor(const VkRect2D scissor) const;
 
-  void CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder,
+  void CmdBeginRenderPass(RenderPassBeginInfoBuilder infoBuilder,
                           const VkSubpassContents subpassContents,
                           const RenderPass& renderPass,
                           const Framebuffer& framebuffer) const;

@@ -8,7 +8,7 @@
 class Skybox : public Actor {
  public:
   Skybox() = default;
-  Skybox(const ResourceLoader& resourceLoader);
+  Skybox(ResourceLoader& resourceLoader);
 
   void UpdateModel(const UpdateContext& context) override;
 

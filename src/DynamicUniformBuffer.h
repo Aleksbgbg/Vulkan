@@ -3,16 +3,25 @@
 
 #include <cstring>
 
-#include "DynamicUniformBufferInitializer.h"
-#include "game/rendering/BufferWithMemory.h"
+#include "BufferWithMemory.h"
 #include "util/types.h"
 #include "vulkan/DescriptorSet.h"
+
+class DynamicUniformBufferInitializer {
+ public:
+  virtual ~DynamicUniformBufferInitializer() = default;
+
+  virtual u32 PaddedSize(const u32 elementSize) const = 0;
+  virtual BufferWithMemory CreateBuffer(const u32 elementPaddedSize) = 0;
+};
 
 template <typename Element>
 class DynamicUniformBuffer {
  public:
+  class Just {};
+
   DynamicUniformBuffer() = default;
-  DynamicUniformBuffer(const DynamicUniformBufferInitializer& initializer,
+  DynamicUniformBuffer(DynamicUniformBufferInitializer& initializer,
                        const DescriptorSet& descriptorSet)
       : elementPaddedSize(initializer.PaddedSize(sizeof(Element))),
         descriptorSet(&descriptorSet),

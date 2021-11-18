@@ -1,23 +1,24 @@
 #ifndef VULKAN_SRC_SCENEDESCRIPTOR_H
 #define VULKAN_SRC_SCENEDESCRIPTOR_H
 
-#include "DynamicUniformBufferInitializer.h"
-#include "game/rendering/BufferWithMemory.h"
+#include "BufferWithMemory.h"
 #include "game/rendering/resources/ResourceLoader.h"
+#include "game/renders/DescriptorSetLayoutFactory.h"
 #include "game/renders/SceneDescriptorBinder.h"
+#include "vulkan/VirtualDevice.h"
 
 class SceneDescriptor : public SceneDescriptorBinder {
  public:
-  SceneDescriptor() = default;
-  SceneDescriptor(
-      const VirtualDevice& virtualDevice, const DescriptorPool& descriptorPool,
-      DescriptorSetLayout layout, const ResourceLoader& resourceLoader,
-      const u32& bufferObjectIndex,
-      const DynamicUniformBufferInitializer& viewTransformBufferInitializer);
-
   static void ConfigureDescriptorPoolSizes(
       std::vector<VkDescriptorPoolSize>& poolSizes);
-  static DescriptorSetLayout CreateLayout(const VirtualDevice& virtualDevice);
+  static DescriptorSetLayout CreateSceneDescriptorLayout(
+      const DescriptorSetLayoutFactory& descriptorSetLayoutFactory);
+
+  SceneDescriptor() = default;
+  SceneDescriptor(
+      DescriptorSetLayout layout, const DescriptorPool& descriptorPool,
+      DynamicUniformBufferInitializer& dynamicUniformBufferInitializer,
+      const u32& bufferObjectIndex);
 
   void WriteDescriptorSets(
 

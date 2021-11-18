@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_SWAPCHAINWITHRESOURCES_H
 #define VULKAN_SRC_SWAPCHAINWITHRESOURCES_H
 
-#include "game/rendering/ImageWithMemory.h"
+#include "ImageWithMemory.h"
 #include "memory/DeviceMemoryAllocator.h"
 #include "vulkan/Surface.h"
 #include "vulkan/Swapchain.h"
@@ -9,6 +9,25 @@
 
 class SwapchainWithResources {
  public:
+  class Initializer {
+   public:
+    virtual ~Initializer() = default;
+
+    virtual Swapchain CreateSwapchain() const = 0;
+    virtual Swapchain CreateSwapchain(const Swapchain& oldSwapchain) const = 0;
+
+    virtual ImageWithMemory CreateDepthStencilAttachment(
+        const Swapchain& swapchain) = 0;
+    virtual ImageWithMemory CreateMultisamplingAttachment(
+        const Swapchain& swapchain) = 0;
+
+    virtual std::vector<Framebuffer> GetFramebuffers(
+        const Swapchain& swapchain,
+        const std::vector<const ImageView*>& attachments) const = 0;
+
+    virtual Semaphore CreateSemaphore() const = 0;
+  };
+
   struct AcquireNextImageResult {
     u32 imageIndex;
     VkResult status;
@@ -16,18 +35,9 @@ class SwapchainWithResources {
   };
 
   SwapchainWithResources() = default;
-  SwapchainWithResources(const VirtualDevice& virtualDevice,
-                         const Surface& windowSurface,
-                         DeviceMemoryAllocator& deviceAllocator,
-                         const SwapchainCreateInfoBuilder createInfoBuilder,
-                         const VkFormat depthStencilFormat,
-                         const VkSampleCountFlagBits samples,
-                         const RenderPass& renderPass);
+  SwapchainWithResources(Initializer& initializer);
 
-  SwapchainWithResources RecreateSwapchain(
-      const VirtualDevice& virtualDevice, const Surface& windowSurface,
-      DeviceMemoryAllocator& deviceAllocator, const RenderPass& renderPass,
-      const VkExtent2D extent) const;
+  SwapchainWithResources RecreateSwapchain(Initializer& initializer) const;
 
   u32 GetImageCount() const;
   VkExtent2D GetImageExtent() const;
@@ -42,10 +52,9 @@ class SwapchainWithResources {
   void MoveToNextFrame();
 
  private:
-  SwapchainCreateInfoBuilder createInfoBuilder;
-  VkFormat depthStencilFormat;
-  VkSampleCountFlagBits samples;
+  SwapchainWithResources(Swapchain inSwapchain, Initializer& initializer);
 
+ private:
   Swapchain swapchain;
 
   ImageWithMemory depthStencil;

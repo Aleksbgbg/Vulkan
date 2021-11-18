@@ -2,16 +2,7 @@
 
 #include <array>
 
-SceneDescriptor::SceneDescriptor(
-    const VirtualDevice& virtualDevice, const DescriptorPool& descriptorPool,
-    DescriptorSetLayout layout, const ResourceLoader& resourceLoader,
-    const u32& bufferObjectIndex,
-    const DynamicUniformBufferInitializer& viewTransformBufferInitializer)
-    : sceneDescriptorSetLayout(std::move(layout)),
-      sceneDescriptorSet(
-          descriptorPool.AllocateDescriptorSet(sceneDescriptorSetLayout)),
-      viewTransformBuffer(viewTransformBufferInitializer, sceneDescriptorSet),
-      bufferObjectIndex(&bufferObjectIndex) {}
+#include "vulkan/structures/DescriptorPoolSize.h"
 
 void SceneDescriptor::ConfigureDescriptorPoolSizes(
     std::vector<VkDescriptorPoolSize>& poolSizes) {
@@ -23,9 +14,9 @@ void SceneDescriptor::ConfigureDescriptorPoolSizes(
                           .SetDescriptorCount(1));
 }
 
-DescriptorSetLayout SceneDescriptor::CreateLayout(
-    const VirtualDevice& virtualDevice) {
-  return virtualDevice.CreateDescriptorSetLayout(
+DescriptorSetLayout SceneDescriptor::CreateSceneDescriptorLayout(
+    const DescriptorSetLayoutFactory& descriptorSetLayoutFactory) {
+  return descriptorSetLayoutFactory.CreateDescriptorSetLayout(
       DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
           DescriptorSetLayoutBindingBuilder()
               .SetBinding(0)
@@ -34,6 +25,16 @@ DescriptorSetLayout SceneDescriptor::CreateLayout(
               .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT |
                              VK_SHADER_STAGE_FRAGMENT_BIT)));
 }
+
+SceneDescriptor::SceneDescriptor(
+    DescriptorSetLayout layout, const DescriptorPool& descriptorPool,
+    DynamicUniformBufferInitializer& dynamicUniformBufferInitializer,
+    const u32& bufferObjectIndex)
+    : sceneDescriptorSetLayout(std::move(layout)),
+      sceneDescriptorSet(
+          descriptorPool.AllocateDescriptorSet(sceneDescriptorSetLayout)),
+      viewTransformBuffer(dynamicUniformBufferInitializer, sceneDescriptorSet),
+      bufferObjectIndex(&bufferObjectIndex) {}
 
 void SceneDescriptor::WriteDescriptorSets(
     std::vector<DescriptorSet::WriteDescriptorSet>& descriptorSetWrites) const {

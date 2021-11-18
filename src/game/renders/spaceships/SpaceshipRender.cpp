@@ -23,7 +23,7 @@ struct MeshLoadParams {
   std::string_view emissive;
 };
 
-SpaceshipMesh LoadSpaceshipMesh(const ResourceLoader& resourceLoader,
+SpaceshipMesh LoadSpaceshipMesh(ResourceLoader& resourceLoader,
                                 const MeshLoadParams& params) {
   std::unordered_set<file::ModelFace> uniqueFaces;
   std::unordered_map<PositionNormalTextureVertex, u16> uniqueVertices;
@@ -147,11 +147,11 @@ class SpaceshipPipelineStateFactory : public PipelineStateFactory {
         }) {}
 
   std::vector<ShaderModule> LoadShaders(
-      const VirtualDevice& virtualDevice) const override {
+      const ShaderModuleFactory& shaderModuleFactory) const override {
     std::vector<ShaderModule> shaders;
-    shaders.emplace_back(virtualDevice.LoadShader(
+    shaders.emplace_back(shaderModuleFactory.LoadShader(
         VK_SHADER_STAGE_VERTEX_BIT, "shaders/spaceship.vert.spv"));
-    shaders.emplace_back(virtualDevice.LoadShader(
+    shaders.emplace_back(shaderModuleFactory.LoadShader(
         VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/spaceship.frag.spv"));
     return shaders;
   }
@@ -189,7 +189,8 @@ class SpaceshipDescriptorConfiguration : public DescriptorConfiguration {
   }
 
   std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
-      const VirtualDevice& virtualDevice) const override {
+      const DescriptorSetLayoutFactory& descriptorSetLayoutFactory)
+      const override {
     constexpr const std::array<VkDescriptorSetLayoutBinding, 2>
         textureSamplerLayoutBindings = {
             DescriptorSetLayoutBindingBuilder()
@@ -203,7 +204,7 @@ class SpaceshipDescriptorConfiguration : public DescriptorConfiguration {
                 .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
                 .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT),
         };
-    return virtualDevice.CreateDescriptorSetLayout(
+    return descriptorSetLayoutFactory.CreateDescriptorSetLayout(
         DescriptorSetLayoutCreateInfoBuilder()
             .SetBindingCount(textureSamplerLayoutBindings.size())
             .SetPBindings(textureSamplerLayoutBindings.data()));
@@ -225,7 +226,7 @@ std::unique_ptr<DescriptorConfiguration> SpaceshipRender::ConfigureDescriptors()
 }
 
 std::vector<std::unique_ptr<Actor>> SpaceshipRender::LoadActors(
-    const ResourceLoader& resourceLoader) {
+    ResourceLoader& resourceLoader) {
   std::vector<std::unique_ptr<Actor>> actors(2);
   actors[0] = std::make_unique<Player>(
       LoadSpaceshipMesh(

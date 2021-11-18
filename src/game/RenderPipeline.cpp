@@ -8,23 +8,21 @@
 #include "vulkan/structures/default.h"
 
 RenderPipeline::RenderPipeline(
-    const VirtualDevice& virtualDevice, const PipelineCache& pipelineCache,
-    const std::vector<const DescriptorSetLayout*> descriptorSetLayouts,
-    const SubpassReference subpassReference,
-    const VkSampleCountFlagBits samples,
+    const Initializer& initializer,
+    const ShaderModuleFactory& shaderModuleFactory,
+    const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
     const PipelineStateFactory& pipelineStateFactory) {
   constexpr const std::array<VkDynamicState, 2> dynamicStates = {
       VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
-  PipelineLayoutCreateInfoBuilder pipelineLayout =
+  const PipelineLayoutCreateInfoBuilder pipelineLayout =
       pipelineStateFactory.CreatePipelineLayout();
   PipelineVertexInputStateCreateInfoBuilder vertexInputState =
       pipelineStateFactory.CreateVertexInputState();
 
-  pipeline = virtualDevice.CreateGraphicsPipeline(
-      pipelineCache, pipelineStateFactory.LoadShaders(virtualDevice),
-      virtualDevice.CreatePipelineLayout(descriptorSetLayouts, pipelineLayout),
-      subpassReference,
+  pipeline = initializer.CreateGraphicsPipeline(
+      pipelineStateFactory.LoadShaders(shaderModuleFactory),
+      descriptorSetLayouts, pipelineLayout,
       GraphicsPipelineCreateInfoBuilder()
           .SetPDepthStencilState(PipelineDepthStencilStateCreateInfoBuilder()
                                      .SetDepthTestEnable(VK_TRUE)
@@ -47,9 +45,8 @@ RenderPipeline::RenderPipeline(
                   .SetFrontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
                   .SetPolygonMode(VK_POLYGON_MODE_FILL)
                   .SetLineWidth(1.0f))
-          .SetPMultisampleState(PipelineMultisampleStateCreateInfoBuilder()
-                                    .SetRasterizationSamples(samples)
-                                    .SetMinSampleShading(1.0f))
+          .SetPMultisampleState(
+              initializer.CreateMultisampleState().SetMinSampleShading(1.0f))
           .SetPColorBlendState(
               PipelineColorBlendStateCreateInfoBuilder()
                   .SetAttachmentCount(1)

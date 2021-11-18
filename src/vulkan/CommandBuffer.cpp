@@ -101,8 +101,8 @@ void CommandBuffer::CmdCopyBuffer(Buffer& source, Buffer& dest,
 }
 
 void CommandBuffer::CmdCopyBufferToImage(
-    Buffer& source, Image& dest, const VkImageLayout destLayout,
-    BufferImageCopyBuilder& infoBuilder) const {
+    const Buffer& source, const Image& dest, const VkImageLayout destLayout,
+    const BufferImageCopyBuilder& infoBuilder) const {
   vkCmdCopyBufferToImage(commandBuffer, source.buffer, dest.image, destLayout,
                          1, infoBuilder.Build());
 }
@@ -141,7 +141,7 @@ void CommandBuffer::CmdSetScissor(const VkRect2D scissor) const {
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
-void CommandBuffer::CmdBeginRenderPass(RenderPassBeginInfoBuilder& infoBuilder,
+void CommandBuffer::CmdBeginRenderPass(RenderPassBeginInfoBuilder infoBuilder,
                                        const VkSubpassContents subpassContents,
                                        const RenderPass& renderPass,
                                        const Framebuffer& framebuffer) const {

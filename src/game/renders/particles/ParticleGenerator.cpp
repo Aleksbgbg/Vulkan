@@ -2,7 +2,7 @@
 
 #include "game/rendering/vertices/PositionVertex.h"
 
-MultiParticleMesh LoadMesh(const ResourceLoader& resourceLoader) {
+MultiParticleMesh LoadMesh(ResourceLoader& resourceLoader) {
   constexpr float scale = 0.05f;
   const std::vector<PositionVertex> vertices = {
       /* 0 */ {{-scale, -scale, -scale}},
@@ -24,7 +24,7 @@ MultiParticleMesh LoadMesh(const ResourceLoader& resourceLoader) {
                            indices.size(), InstanceCount);
 }
 
-ParticleGenerator::ParticleGenerator(const ResourceLoader& resourceLoader)
+ParticleGenerator::ParticleGenerator(ResourceLoader& resourceLoader)
     : randomNumberGenerator(),
       mesh(LoadMesh(resourceLoader)),
       instanceParameters(resourceLoader.AllocateLocalBuffer(
@@ -38,7 +38,7 @@ const Mesh& ParticleGenerator::GetMesh() const {
   return mesh;
 }
 
-void ParticleGenerator::BindBuffers(TextureRegistry& resourceBinder) const {
+void ParticleGenerator::BindBuffers(ResourceBinder& resourceBinder) const {
   resourceBinder.BindBuffer(instanceParameters.buffer, VK_WHOLE_SIZE,
                             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0);
 }

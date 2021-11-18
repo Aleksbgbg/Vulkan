@@ -14,10 +14,10 @@ inline constexpr u32 InstanceCount = 1024;
 class ParticleGenerator : public Actor, public ParticleController {
  public:
   ParticleGenerator() = default;
-  ParticleGenerator(const ResourceLoader& resourceLoader);
+  ParticleGenerator(ResourceLoader& resourceLoader);
 
   const Mesh& GetMesh() const override;
-  void BindBuffers(TextureRegistry& resourceBinder) const override;
+  void BindBuffers(ResourceBinder& resourceBinder) const override;
 
   void SetSpawnArea(const Rectf& spawnArea) override;
   void SetTransform(const glm::mat4& transform) override;

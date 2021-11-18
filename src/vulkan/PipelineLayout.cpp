@@ -9,11 +9,11 @@ PipelineLayout::PipelineLayout() : pipelineLayout(nullptr) {}
 PipelineLayout::PipelineLayout(
     VkDevice device,
     const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts)
-    : PipelineLayout(device, PipelineLayoutCreateInfoBuilder().Reference(),
+    : PipelineLayout(device, PipelineLayoutCreateInfoBuilder(),
                      descriptorSetLayouts) {}
 
 PipelineLayout::PipelineLayout(
-    VkDevice device, PipelineLayoutCreateInfoBuilder& infoBuilder,
+    VkDevice device, PipelineLayoutCreateInfoBuilder infoBuilder,
     const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts)
     : device(device) {
   std::vector<VkDescriptorSetLayout> descriptorSetLayoutsRaw(

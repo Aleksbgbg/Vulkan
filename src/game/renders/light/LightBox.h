@@ -9,7 +9,7 @@
 class LightBox : public Actor {
  public:
   LightBox() = default;
-  LightBox(const ResourceLoader& resourceLoader);
+  LightBox(ResourceLoader& resourceLoader);
 
   const Mesh& GetMesh() const override;
 

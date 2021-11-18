@@ -5,6 +5,7 @@
 
 #include <optional>
 
+#include "DescriptorSetLayoutFactory.h"
 #include "util/types.h"
 #include "vulkan/DescriptorSetLayout.h"
 #include "vulkan/VirtualDevice.h"
@@ -16,7 +17,7 @@ class DescriptorConfiguration {
   virtual void ConfigureDescriptorPoolSizes(
       std::vector<VkDescriptorPoolSize>& poolSizes) const = 0;
   virtual std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
-      const VirtualDevice& virtualDevice) const = 0;
+      const DescriptorSetLayoutFactory& descriptorSetLayoutFactory) const = 0;
 };
 
 class EmptyDescriptorConfiguration : public DescriptorConfiguration {
@@ -24,7 +25,8 @@ class EmptyDescriptorConfiguration : public DescriptorConfiguration {
   void ConfigureDescriptorPoolSizes(
       std::vector<VkDescriptorPoolSize>& poolSizes) const override;
   std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
-      const VirtualDevice& virtualDevice) const override;
+      const DescriptorSetLayoutFactory& descriptorSetLayoutFactory)
+      const override;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERS_DESCRIPTORCONFIGURATION_H

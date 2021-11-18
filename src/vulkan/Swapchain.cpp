@@ -13,7 +13,8 @@ Swapchain::Swapchain(VkDevice device, const Swapchain& oldSwapchain,
                      SwapchainCreateInfoBuilder& infoBuilder)
     : Swapchain(device, infoBuilder.SetOldSwapchain(oldSwapchain.swapchain)) {}
 
-Swapchain::Swapchain(VkDevice device, SwapchainCreateInfoBuilder& infoBuilder)
+Swapchain::Swapchain(VkDevice device,
+                     const SwapchainCreateInfoBuilder& infoBuilder)
     : device(device) {
   VkSwapchainCreateInfoKHR swapchainCreateInfo = infoBuilder;
   imageFormat = swapchainCreateInfo.imageFormat;

@@ -22,7 +22,8 @@ class PhysicalDevice {
   std::optional<u32> FindAppropriateQueueFamily(
       const VkQueueFlags requiredProperties,
       const std::function<bool(u32)>& predicate) const;
-  VirtualDevice CreateVirtualDevice(DeviceCreateInfoBuilder& infoBuilder);
+  VirtualDevice CreateVirtualDevice(
+      const DeviceCreateInfoBuilder& infoBuilder) const;
   bool SupportsSurface(const u32 queueFamilyIndex, VkSurfaceKHR surface) const;
   VkSurfaceCapabilitiesKHR GetCapabilities(VkSurfaceKHR surface) const;
   std::vector<VkSurfaceFormatKHR> GetFormats(VkSurfaceKHR surface) const;

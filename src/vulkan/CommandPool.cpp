@@ -29,12 +29,12 @@ CommandPool& CommandPool::operator=(CommandPool&& other) noexcept {
   return *this;
 }
 
-CommandBuffer CommandPool::AllocatePrimaryCommandBuffer() {
+CommandBuffer CommandPool::AllocatePrimaryCommandBuffer() const {
   return AllocateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 }
 
 CommandBuffer CommandPool::AllocateCommandBuffer(
-    const VkCommandBufferLevel level) {
+    const VkCommandBufferLevel level) const {
   return CommandBuffer(device, queue, commandPool,
                        CommandBufferAllocateInfoBuilder()
                            .SetCommandPool(commandPool)

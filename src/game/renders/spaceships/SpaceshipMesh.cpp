@@ -13,9 +13,9 @@ SpaceshipMesh::SpaceshipMesh(BufferWithMemory vertexBuffer,
       modelCenter(modelCenter),
       modelSize(modelSize) {}
 
-void SpaceshipMesh::WriteTexture(TextureRegistry& textureRegistry) const {
-  textureRegistry.WriteTexture(texture.view, 0);
-  textureRegistry.WriteTexture(emissive.view, 1);
+void SpaceshipMesh::BindTexture(ResourceBinder& textureRegistry) const {
+  textureRegistry.BindTexture(texture.view, 0);
+  textureRegistry.BindTexture(emissive.view, 1);
 }
 
 void SpaceshipMesh::Render(const CommandBuffer& commandBuffer,

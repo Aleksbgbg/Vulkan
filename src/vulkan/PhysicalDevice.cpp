@@ -15,7 +15,7 @@ VkPhysicalDeviceProperties PhysicalDevice::GetProperties() const {
 }
 
 VirtualDevice PhysicalDevice::CreateVirtualDevice(
-    DeviceCreateInfoBuilder& infoBuilder) {
+    const DeviceCreateInfoBuilder& infoBuilder) const {
   return VirtualDevice(physicalDevice, infoBuilder);
 }
 

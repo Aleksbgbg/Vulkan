@@ -3,7 +3,7 @@
 #include "game/rendering/vertices/PositionTextureVertex.h"
 #include "util/filenames.h"
 
-TexturedMesh LoadSkyboxMesh(const ResourceLoader& resourceLoader) {
+TexturedMesh LoadSkyboxMesh(ResourceLoader& resourceLoader) {
   DrawVertices<PositionTextureVertex> drawVertices =
       PositionTextureVertex::LoadVertices(SPHERE_MODEL_FILENAME);
 
@@ -20,7 +20,7 @@ TexturedMesh LoadSkyboxMesh(const ResourceLoader& resourceLoader) {
       resourceLoader.LoadTexture(SKYBOX_TEXTURE_FILENAME));
 }
 
-Skybox::Skybox(const ResourceLoader& resourceLoader)
+Skybox::Skybox(ResourceLoader& resourceLoader)
     : mesh(LoadSkyboxMesh(resourceLoader)) {}
 
 const Mesh& Skybox::GetMesh() const {

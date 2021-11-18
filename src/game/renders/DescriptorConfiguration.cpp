@@ -5,6 +5,6 @@ void EmptyDescriptorConfiguration::ConfigureDescriptorPoolSizes(
 
 std::optional<DescriptorSetLayout>
 EmptyDescriptorConfiguration::ConfigureActorDescriptorSet(
-    const VirtualDevice& virtualDevice) const {
+    const DescriptorSetLayoutFactory& descriptorSetLayoutFactory) const {
   return std::nullopt;
 }

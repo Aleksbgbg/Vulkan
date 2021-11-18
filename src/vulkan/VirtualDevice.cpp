@@ -49,8 +49,8 @@ Swapchain VirtualDevice::CreateSwapchain(
 }
 
 Swapchain VirtualDevice::CreateSwapchain(
-    Surface& surface, const Swapchain& oldSwapchain,
-    SwapchainCreateInfoBuilder& infoBuilder) const {
+    const Surface& surface, const Swapchain& oldSwapchain,
+    SwapchainCreateInfoBuilder infoBuilder) const {
   return Swapchain(device, oldSwapchain,
                    infoBuilder.SetSurface(surface.surface));
 }
@@ -74,13 +74,13 @@ DeviceMemory VirtualDevice::AllocateDeviceMemory(
 }
 
 DescriptorSetLayout VirtualDevice::CreateDescriptorSetLayout(
-    DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const {
+    const DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const {
   return DescriptorSetLayout(device, infoBuilder);
 }
 
 PipelineLayout VirtualDevice::CreatePipelineLayout(
     const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
-    PipelineLayoutCreateInfoBuilder& infoBuilder) const {
+    const PipelineLayoutCreateInfoBuilder& infoBuilder) const {
   return PipelineLayout(device, infoBuilder, descriptorSetLayouts);
 }
 
@@ -93,7 +93,7 @@ Pipeline VirtualDevice::CreateGraphicsPipeline(
     const PipelineCache& pipelineCache,
     const std::vector<ShaderModule>& shaders, PipelineLayout pipelineLayout,
     const SubpassReference subpassReference,
-    GraphicsPipelineCreateInfoBuilder& infoBuilder) const {
+    const GraphicsPipelineCreateInfoBuilder& infoBuilder) const {
   return Pipeline(device, pipelineCache, shaders, std::move(pipelineLayout),
                   subpassReference, infoBuilder);
 }
@@ -102,13 +102,13 @@ Semaphore VirtualDevice::CreateSemaphore() const {
   return Semaphore(device, SemaphoreCreateInfoBuilder().Reference());
 }
 
-void VirtualDevice::UpdateDescriptorSets(const u32 count,
-                                         VkWriteDescriptorSet* writes) const {
+void VirtualDevice::UpdateDescriptorSets(
+    const u32 count, const VkWriteDescriptorSet* const writes) const {
   vkUpdateDescriptorSets(device, count, writes, 0, nullptr);
 }
 
 DescriptorPool VirtualDevice::CreateDescriptorPool(
-    DescriptorPoolCreateInfoBuilder& infoBuilder) const {
+    const DescriptorPoolCreateInfoBuilder& infoBuilder) const {
   return DescriptorPool(device, infoBuilder);
 }
 

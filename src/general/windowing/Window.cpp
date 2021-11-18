@@ -100,15 +100,15 @@ void Window::EndFrame() {
 }
 
 void Window::InitImGui() const {
-  ImGui_ImplSDL2_InitForVulkan(window);
+  //  ImGui_ImplSDL2_InitForVulkan(window);
 }
 
 void Window::NewFrame() const {
-  ImGui_ImplSDL2_NewFrame(window);
+  //  ImGui_ImplSDL2_NewFrame(window);
 }
 
 void Window::ShutdownImGui() const {
-  ImGui_ImplSDL2_Shutdown();
+  //  ImGui_ImplSDL2_Shutdown();
 }
 
 }  // namespace wnd

@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "DescriptorConfiguration.h"
-#include "VulkanContext.h"
 #include "game/Actor.h"
 #include "game/RenderPipeline.h"
 #include "game/rendering/resources/ResourceLoader.h"
@@ -19,7 +18,7 @@ class SceneRender {
   virtual std::unique_ptr<DescriptorConfiguration> ConfigureDescriptors()
       const = 0;
   virtual std::vector<std::unique_ptr<Actor>> LoadActors(
-      const ResourceLoader& resourceLoader) = 0;
+      ResourceLoader &resourceLoader) = 0;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERS_SCENERENDER_H

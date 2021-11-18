@@ -19,7 +19,7 @@ class Pipeline {
            const std::vector<ShaderModule>& shaderModules,
            PipelineLayout pipelineLayout,
            const SubpassReference subpassReference,
-           GraphicsPipelineCreateInfoBuilder& infoBuilder);
+           GraphicsPipelineCreateInfoBuilder infoBuilder);
 
   Pipeline(const Pipeline&) = delete;
   Pipeline(Pipeline&& other) noexcept;

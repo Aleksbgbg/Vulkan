@@ -9,7 +9,7 @@ MultiParticleMesh::MultiParticleMesh(BufferWithMemory vertexBuffer,
       indexCount(indexCount),
       instanceCount(instanceCount) {}
 
-void MultiParticleMesh::WriteTexture(TextureRegistry& textureRegistry) const {}
+void MultiParticleMesh::BindTexture(ResourceBinder& textureRegistry) const {}
 
 void MultiParticleMesh::Render(const CommandBuffer& commandBuffer,
                                const PipelineLayout& pipelineLayout) const {

@@ -62,28 +62,29 @@ class VirtualDevice {
   Buffer CreateBuffer(BufferCreateInfoBuilder& infoBuilder) const;
   Swapchain CreateSwapchain(const Surface& surface,
                             SwapchainCreateInfoBuilder infoBuilder) const;
-  Swapchain CreateSwapchain(Surface& surface, const Swapchain& oldSwapchain,
-                            SwapchainCreateInfoBuilder& infoBuilder) const;
+  Swapchain CreateSwapchain(const Surface& surface,
+                            const Swapchain& oldSwapchain,
+                            SwapchainCreateInfoBuilder infoBuilder) const;
   Image CreateImage(ImageCreateInfoBuilder& infoBuilder) const;
   DescriptorSetLayout CreateDescriptorSetLayout(
-      DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const;
+      const DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const;
   PipelineLayout CreatePipelineLayout(
       const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
-      PipelineLayoutCreateInfoBuilder& infoBuilder) const;
+      const PipelineLayoutCreateInfoBuilder& infoBuilder) const;
   RenderPass CreateRenderPass(RenderPassCreateInfoBuilder& infoBuilder) const;
   Pipeline CreateGraphicsPipeline(
       const PipelineCache& pipelineCache,
       const std::vector<ShaderModule>& shaders, PipelineLayout pipelineLayout,
       const SubpassReference subpassReference,
-      GraphicsPipelineCreateInfoBuilder& infoBuilder) const;
+      const GraphicsPipelineCreateInfoBuilder& infoBuilder) const;
   DescriptorPool CreateDescriptorPool(
-      DescriptorPoolCreateInfoBuilder& infoBuilder) const;
+      const DescriptorPoolCreateInfoBuilder& infoBuilder) const;
   Sampler CreateSampler(SamplerCreateInfoBuilder& infoBuilder) const;
   PipelineCache CreatePipelineCache() const;
   PipelineCache LoadPipelineCache(const std::vector<u8>& data) const;
 
   void UpdateDescriptorSets(const u32 count,
-                            VkWriteDescriptorSet* writes) const;
+                            const VkWriteDescriptorSet* const writes) const;
 
  private:
   VkDevice device;

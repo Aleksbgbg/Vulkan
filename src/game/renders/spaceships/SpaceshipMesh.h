@@ -3,11 +3,11 @@
 
 #include <vector>
 
-#include "game/rendering/BufferWithMemory.h"
-#include "game/rendering/ImageWithMemory.h"
+#include "BufferWithMemory.h"
+#include "ImageWithMemory.h"
 #include "game/rendering/Texture.h"
 #include "game/rendering/meshes/Mesh.h"
-#include "game/rendering/resources/TextureRegistry.h"
+#include "game/rendering/resources/ResourceBinder.h"
 #include "util/include/glm.h"
 #include "util/types.h"
 #include "vulkan/CommandBuffer.h"
@@ -25,7 +25,7 @@ class SpaceshipMesh : public Mesh {
                 std::vector<MeshFrame> meshFrames, glm::vec3 modelCenter,
                 glm::vec3 modelSize);
 
-  void WriteTexture(TextureRegistry& textureRegistry) const override;
+  void BindTexture(ResourceBinder& textureRegistry) const override;
   void Render(const CommandBuffer& commandBuffer,
               const PipelineLayout& pipelineLayout) const override;
 

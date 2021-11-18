@@ -5,10 +5,11 @@
 #include "vulkan/RenderPass.h"
 
 struct SubpassReference {
-  SubpassReference(RenderPass& renderPass, const u32 subpass)
-      : renderPass(renderPass), subpass(subpass) {}
+  SubpassReference() = default;
+  SubpassReference(const RenderPass& renderPass, const u32 subpass)
+      : renderPass(&renderPass), subpass(subpass) {}
 
-  RenderPass& renderPass;
+  const RenderPass* renderPass;
   u32 subpass;
 };
 

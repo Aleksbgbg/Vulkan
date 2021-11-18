@@ -20,8 +20,8 @@ class CommandPool {
   CommandPool& operator=(const CommandPool&) = delete;
   CommandPool& operator=(CommandPool&& other) noexcept;
 
-  CommandBuffer AllocatePrimaryCommandBuffer();
-  CommandBuffer AllocateCommandBuffer(const VkCommandBufferLevel level);
+  CommandBuffer AllocatePrimaryCommandBuffer() const;
+  CommandBuffer AllocateCommandBuffer(const VkCommandBufferLevel level) const;
 
  private:
   VkDevice device;
