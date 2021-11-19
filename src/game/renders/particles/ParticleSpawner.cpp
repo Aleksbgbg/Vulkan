@@ -88,7 +88,7 @@ MultiParticleMesh LoadMesh(ResourceLoader& resourceLoader) {
 
   return MultiParticleMesh(resourceLoader.AllocateVertexBuffer(vertices),
                            resourceLoader.AllocateIndexBuffer(indices),
-                           indices.size(), InstanceCount);
+                           indices.size());
 }
 
 std::unique_ptr<PipelineStateFactory> ParticleSpawner::ConfigurePipeline()

@@ -69,9 +69,10 @@ void SpaceshipModel::Render(const MeshRenderer& renderer) const {
   transform = glm::translate(transform, position_);
   transform = transform * glm::toMat4(glm::quat(rotation_));
 
-//  transform = glm::rotate(transform, rotation_.x, glm::vec3(0.0f, 1.0f, 0.0f));
-//  transform = glm::rotate(transform, rotation_.y, glm::vec3(1.0f, 0.0f, 0.0f));
-//  transform = glm::rotate(transform, rotation_.z, glm::vec3(0.0f, 0.0f, 1.0f));
+  //  transform = glm::rotate(transform, rotation_.x, glm::vec3(0.0f, 1.0f,
+  //  0.0f)); transform = glm::rotate(transform, rotation_.y, glm::vec3(1.0f,
+  //  0.0f, 0.0f)); transform = glm::rotate(transform, rotation_.z,
+  //  glm::vec3(0.0f, 0.0f, 1.0f));
 
   renderer.RenderTransformed(mesh_, transform);
 }

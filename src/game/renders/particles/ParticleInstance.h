@@ -47,13 +47,14 @@ class ParticleInstance : public Actor, public ParticleStream {
     glm::vec3 rotation;
   };
 
-  RandomNumberGenerator randomNumberGenerator;
-  const MultiParticleMesh& mesh;
-  BufferWithMemory instanceParameters;
-  std::array<ParticleInfo, InstanceCount> particles;
-  glm::mat4 transform;
-  Rectf spawnArea;
-  bool enabled;
+  RandomNumberGenerator randomNumberGenerator_;
+  const MultiParticleMesh& mesh_;
+  BufferWithMemory instanceParameters_;
+  std::array<ParticleInfo, InstanceCount> particles_;
+  glm::mat4 transform_;
+  Rectf spawnArea_;
+  bool enabled_;
+  u32 aliveParticles_;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERS_PARTICLES_PARTICLEINSTANCE_H
