@@ -1,18 +1,18 @@
 #ifndef VULKAN_SRC_GAME_PLAYER_H
 #define VULKAN_SRC_GAME_PLAYER_H
 
+#include "PlayerController.h"
 #include "SpaceshipMesh.h"
 #include "game/Actor.h"
 #include "game/Camera.h"
 #include "game/rendering/meshes/Mesh.h"
 #include "game/renders/ParticleStream.h"
 #include "game/renders/spaceships/SpaceshipModel.h"
-#include "general/windowing/Window.h"
 
-class Player : public Actor {
+class MainPlayer : public Actor {
  public:
-  Player(SpaceshipMesh& mesh, Camera& camera, const wnd::Window& window,
-         ParticleStream& particleController);
+  MainPlayer(SpaceshipModel spaceshipModel, Camera& camera,
+             const PlayerController& playerController);
 
   void UpdateModel(const UpdateContext& context) override;
 
@@ -21,13 +21,9 @@ class Player : public Actor {
   void Render(const MeshRenderer& renderer) const override;
 
  private:
-  SpaceshipModel spaceshipModel;
-  Camera& camera;
-  const wnd::Window& window;
-  ParticleStream& particleController;
-
-  glm::vec3 velocity;
-  glm::vec3 rotation;
+  SpaceshipModel spaceshipModel_;
+  Camera& camera_;
+  const PlayerController& playerController_;
 };
 
 #endif  // VULKAN_SRC_GAME_PLAYER_H

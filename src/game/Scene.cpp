@@ -151,13 +151,14 @@ Scene::Scene(const Initializer& initializer,
       descriptorPool_(CreateDescriptorPool(initializer)) {
   std::unique_ptr<ParticleSpawner> particleRender =
       std::make_unique<ParticleSpawner>();
+  ParticleController& particleController = *particleRender;
 
   std::vector<std::unique_ptr<SceneRender>> sceneRenders;
+  sceneRenders.push_back(std::move(particleRender));
   sceneRenders.push_back(std::make_unique<LightRender>());
   sceneRenders.push_back(std::make_unique<SkyboxRender>());
   sceneRenders.push_back(
-      std::make_unique<SpaceshipRender>(camera_, window, *particleRender));
-  sceneRenders.push_back(std::move(particleRender));
+      std::make_unique<SpaceshipRender>(camera_, particleController));
 
   DescriptorSetLayout sceneDescriptorLayout =
       SceneDescriptor::CreateSceneDescriptorLayout(descriptorSetLayoutFactory);

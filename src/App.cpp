@@ -113,11 +113,13 @@ void App::MainLoop() {
 }
 
 void App::UpdateModel(const float deltaTime) {
-  const UpdateContext updateContext{.deltaTime = deltaTime,
-                                    .keyboard = window.GetKeyboard()};
-  scene->UpdateModel(updateContext);
-
+  controls.Update(window.GetKeyboard(), window.GetMouse(),
+                  window.GetRect().Size());
   window.EndFrame();
+
+  const UpdateContext updateContext{.deltaTime = deltaTime,
+                                    .controls = controls};
+  scene->UpdateModel(updateContext);
 }
 
 void App::Render() {

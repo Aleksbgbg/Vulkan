@@ -10,8 +10,7 @@
 
 class SpaceshipRender : public SceneRender {
  public:
-  SpaceshipRender(Camera& camera, const wnd::Window& window,
-                  ParticleController& particleController);
+  SpaceshipRender(Camera& camera, ParticleController& particleController);
 
   std::unique_ptr<PipelineStateFactory> ConfigurePipeline() const override;
   std::unique_ptr<DescriptorConfiguration> ConfigureDescriptors()
@@ -21,7 +20,6 @@ class SpaceshipRender : public SceneRender {
 
  private:
   Camera& camera;
-  const wnd::Window& window;
   ParticleController& particleController;
 };
 

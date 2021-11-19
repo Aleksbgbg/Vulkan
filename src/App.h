@@ -33,6 +33,7 @@ class App {
 
  private:
   wnd::Window& window;
+  Controls controls;
 
   std::unique_ptr<Vulkan> vulkan;
 

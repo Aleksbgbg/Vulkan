@@ -7,8 +7,7 @@
 
 class Npc : public Actor {
  public:
-  Npc() = default;
-  Npc(SpaceshipMesh mesh);
+  Npc(SpaceshipMesh mesh, ParticleStream& exhaustParticles);
 
   void UpdateModel(const UpdateContext& context) override;
 
@@ -17,8 +16,8 @@ class Npc : public Actor {
   void Render(const MeshRenderer& renderer) const override;
 
  private:
-  SpaceshipMesh mesh;
-  SpaceshipModel spaceshipModel;
+  SpaceshipMesh mesh_;
+  SpaceshipModel spaceshipModel_;
 };
 
 #endif  // VULKAN_SRC_GAME_NPC_H
