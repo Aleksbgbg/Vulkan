@@ -1,10 +1,13 @@
 #include "SpaceshipRender.h"
 
+#include <game/renders/ActorSpawnController.h>
+
 #include <unordered_map>
 #include <unordered_set>
 
 #include "Npc.h"
 #include "Player.h"
+#include "PlayerSpaceships.h"
 #include "game/rendering/resources/ResourceLoader.h"
 #include "game/rendering/vertices/PositionNormalTextureVertex.h"
 #include "game/renders/spaceships/SpaceshipMesh.h"
@@ -181,13 +184,6 @@ class SpaceshipPipelineStateFactory : public PipelineStateFactory {
 
 class SpaceshipDescriptorConfiguration : public DescriptorConfiguration {
  public:
-  void ConfigureDescriptorPoolSizes(
-      std::vector<VkDescriptorPoolSize>& poolSizes) const override {
-    poolSizes.push_back(DescriptorPoolSizeBuilder()
-                            .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-                            .SetDescriptorCount(4));
-  }
-
   std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
       const DescriptorSetLayoutFactory& descriptorSetLayoutFactory)
       const override {
@@ -225,10 +221,10 @@ std::unique_ptr<DescriptorConfiguration> SpaceshipRender::ConfigureDescriptors()
   return std::make_unique<SpaceshipDescriptorConfiguration>();
 }
 
-std::vector<std::unique_ptr<Actor>> SpaceshipRender::LoadActors(
-    ResourceLoader& resourceLoader) {
+void SpaceshipRender::LoadActors(ResourceLoader& resourceLoader,
+                                 ActorSpawnController& actorSpawnController) {
   std::vector<std::unique_ptr<Actor>> actors(2);
-  actors[0] = std::make_unique<Player>(
+  actors[0] = std::make_unique<PlayerSpaceships>(
       LoadSpaceshipMesh(
           resourceLoader,
           MeshLoadParams{
@@ -245,5 +241,6 @@ std::vector<std::unique_ptr<Actor>> SpaceshipRender::LoadActors(
                          .model = NPC_SPACESHIP_MODEL_FILENAME}},
                      .texture = NPC_SPACESHIP_TEXTURE_FILENAME,
                      .emissive = NPC_SPACESHIP_EMISSIVE_FILENAME}));
-  return actors;
+
+  actorSpawnController.SpawnActorsImmediately(std::move(actors));
 }

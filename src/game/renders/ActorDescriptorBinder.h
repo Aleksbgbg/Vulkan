@@ -8,6 +8,8 @@ class ActorDescriptorBinder {
  public:
   virtual ~ActorDescriptorBinder() = default;
 
+  virtual void AddDescriptor(DescriptorSet descriptorSet) = 0;
+
   virtual void BindActorDescriptorSet(const PipelineLayout& pipelineLayout,
                                       const CommandBuffer& commandBuffer,
                                       const u32 actorIndex) const = 0;

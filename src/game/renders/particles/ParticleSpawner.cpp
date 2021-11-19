@@ -1,10 +1,11 @@
-#include "ParticleRender.h"
+#include "ParticleSpawner.h"
 
 #include <array>
 #include <vector>
 
-#include "ParticleGenerator.h"
+#include "ParticleInstance.h"
 #include "game/rendering/vertices/PositionVertex.h"
+#include "game/renders/ActorSpawnController.h"
 
 class ParticlePipelineStateFactory : public PipelineStateFactory {
  public:
@@ -53,14 +54,6 @@ class ParticlePipelineStateFactory : public PipelineStateFactory {
 
 class ParticleDescriptorConfiguration : public DescriptorConfiguration {
  public:
-  void ConfigureDescriptorPoolSizes(
-      std::vector<VkDescriptorPoolSize>& poolSizes) const override {
-    poolSizes.push_back(
-        std::move(DescriptorPoolSizeBuilder()
-                      .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                      .SetDescriptorCount(1)));
-  }
-
   std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
       const DescriptorSetLayoutFactory& descriptorSetLayoutFactory)
       const override {
@@ -76,28 +69,51 @@ class ParticleDescriptorConfiguration : public DescriptorConfiguration {
   }
 };
 
-ParticleRender::ParticleRender()
-    : particleGenerator(std::make_unique<ParticleGenerator>()) {}
+MultiParticleMesh LoadMesh(ResourceLoader& resourceLoader) {
+  constexpr float scale = 0.05f;
+  const std::vector<PositionVertex> vertices = {
+      /* 0 */ {{-scale, -scale, -scale}},
+      /* 1 */ {{-scale, scale, -scale}},
+      /* 2 */ {{scale, scale, -scale}},
+      /* 3 */ {{scale, -scale, -scale}},
+      /* 4 */ {{0.0f, 0.0f, scale}},
+  };
+  const std::vector<u16> indices = {
+      0, 1, 2, 2, 3, 0,  // bottom face
+      0, 4, 1,           // back face
+      1, 4, 2,           // left face
+      2, 4, 3,           // right face
+      3, 4, 0,           // front face
+  };
 
-std::unique_ptr<PipelineStateFactory> ParticleRender::ConfigurePipeline()
+  return MultiParticleMesh(resourceLoader.AllocateVertexBuffer(vertices),
+                           resourceLoader.AllocateIndexBuffer(indices),
+                           indices.size(), InstanceCount);
+}
+
+std::unique_ptr<PipelineStateFactory> ParticleSpawner::ConfigurePipeline()
     const {
   return std::make_unique<ParticlePipelineStateFactory>();
 }
 
-std::unique_ptr<DescriptorConfiguration> ParticleRender::ConfigureDescriptors()
+std::unique_ptr<DescriptorConfiguration> ParticleSpawner::ConfigureDescriptors()
     const {
   return std::make_unique<ParticleDescriptorConfiguration>();
 }
 
-std::vector<std::unique_ptr<Actor>> ParticleRender::LoadActors(
-    ResourceLoader& resourceLoader) {
-  *particleGenerator = std::move(ParticleGenerator(resourceLoader));
-
-  std::vector<std::unique_ptr<Actor>> actors(1);
-  actors[0] = std::move(particleGenerator);
-  return actors;
+void ParticleSpawner::LoadActors(ResourceLoader& resourceLoader,
+                                 ActorSpawnController& actorSpawnController) {
+  actorSpawnController_ = &actorSpawnController;
+  mesh_ = LoadMesh(resourceLoader);
 }
 
-ParticleController& ParticleRender::GetParticleController() const {
-  return *particleGenerator;
+ParticleStream& ParticleSpawner::CreateParticleStream() {
+  return *reinterpret_cast<ParticleInstance*>(
+      &actorSpawnController_->SpawnActor(*this));
+}
+
+std::unique_ptr<Actor> ParticleSpawner::CreateActor(
+    ResourceLoader& resourceLoader, ResourceBinder& resourceBinder) const {
+  return std::make_unique<ParticleInstance>(mesh_, resourceLoader,
+                                            resourceBinder);
 }

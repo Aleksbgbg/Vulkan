@@ -17,6 +17,7 @@ class Npc : public Actor {
   void Render(const MeshRenderer& renderer) const override;
 
  private:
+  SpaceshipMesh mesh;
   SpaceshipModel spaceshipModel;
 };
 

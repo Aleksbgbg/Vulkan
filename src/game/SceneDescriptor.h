@@ -9,8 +9,6 @@
 
 class SceneDescriptor : public SceneDescriptorBinder {
  public:
-  static void ConfigureDescriptorPoolSizes(
-      std::vector<VkDescriptorPoolSize>& poolSizes);
   static DescriptorSetLayout CreateSceneDescriptorLayout(
       const DescriptorSetLayoutFactory& descriptorSetLayoutFactory);
 
@@ -20,10 +18,7 @@ class SceneDescriptor : public SceneDescriptorBinder {
       DynamicUniformBufferInitializer& dynamicUniformBufferInitializer,
       const u32& bufferObjectIndex);
 
-  void WriteDescriptorSets(
-
-      std::vector<DescriptorSet::WriteDescriptorSet>& descriptorSetWrites)
-      const;
+  DescriptorSet::WriteDescriptorSet WriteDescriptorSet() const;
 
   PerFrameData& FrameData();
   void FlushFrameData() const;

@@ -7,8 +7,7 @@
 
 class SpaceshipModel {
  public:
-  SpaceshipModel() = default;
-  SpaceshipModel(SpaceshipMesh mesh);
+  SpaceshipModel(SpaceshipMesh& mesh);
 
   glm::vec3* Position();
   glm::vec3 Size() const;
@@ -21,7 +20,7 @@ class SpaceshipModel {
   void Render(const MeshRenderer& renderer) const;
 
  private:
-  SpaceshipMesh mesh;
+  SpaceshipMesh& mesh;
   glm::vec3 position;
   glm::vec3 rotation;
 };

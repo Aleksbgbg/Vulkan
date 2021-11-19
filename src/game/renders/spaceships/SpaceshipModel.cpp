@@ -1,9 +1,7 @@
 #include "SpaceshipModel.h"
 
-#include <glm/gtx/quaternion.hpp>
-
-SpaceshipModel::SpaceshipModel(SpaceshipMesh mesh)
-    : mesh(std::move(mesh)), position(0.0f), rotation(0.0f) {}
+SpaceshipModel::SpaceshipModel(SpaceshipMesh& mesh)
+    : mesh(mesh), position(0.0f), rotation(0.0f) {}
 
 glm::vec3* SpaceshipModel::Position() {
   return &position;

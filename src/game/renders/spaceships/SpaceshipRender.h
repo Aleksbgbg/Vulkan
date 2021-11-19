@@ -1,6 +1,8 @@
 #ifndef VULKAN_SRC_GAME_RENDERS_SPACESHIPS_SPACESHIPRENDER_H
 #define VULKAN_SRC_GAME_RENDERS_SPACESHIPS_SPACESHIPRENDER_H
 
+#include <game/renders/ActorSpawnController.h>
+
 #include "game/Camera.h"
 #include "game/renders/ParticleController.h"
 #include "game/renders/SceneRender.h"
@@ -14,8 +16,8 @@ class SpaceshipRender : public SceneRender {
   std::unique_ptr<PipelineStateFactory> ConfigurePipeline() const override;
   std::unique_ptr<DescriptorConfiguration> ConfigureDescriptors()
       const override;
-  std::vector<std::unique_ptr<Actor>> LoadActors(
-      ResourceLoader& resourceLoader) override;
+  void LoadActors(ResourceLoader& resourceLoader,
+                  ActorSpawnController& actorSpawnController) override;
 
  private:
   Camera& camera;

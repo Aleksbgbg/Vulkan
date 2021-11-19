@@ -1,29 +1,28 @@
-#ifndef VULKAN_SRC_GAME_RENDERS_PARTICLES_PARTICLEGENERATOR_H
-#define VULKAN_SRC_GAME_RENDERS_PARTICLES_PARTICLEGENERATOR_H
+#ifndef VULKAN_SRC_GAME_RENDERS_PARTICLES_PARTICLEINSTANCE_H
+#define VULKAN_SRC_GAME_RENDERS_PARTICLES_PARTICLEINSTANCE_H
 
 #include <array>
 
 #include "MultiParticleMesh.h"
 #include "game/Actor.h"
+#include "game/rendering/resources/BufferBinder.h"
 #include "game/rendering/resources/ResourceLoader.h"
-#include "game/renders/ParticleController.h"
+#include "game/renders/ParticleStream.h"
 #include "general/algorithms/RandomNumberGenerator.h"
 
 inline constexpr u32 InstanceCount = 1024;
 
-class ParticleGenerator : public Actor, public ParticleController {
+class ParticleInstance : public Actor, public ParticleStream {
  public:
-  ParticleGenerator() = default;
-  ParticleGenerator(ResourceLoader& resourceLoader);
-
-  const Mesh& GetMesh() const override;
-  void BindBuffers(ResourceBinder& resourceBinder) const override;
+  ParticleInstance(const MultiParticleMesh& mesh,
+                   ResourceLoader& resourceLoader, BufferBinder& bufferBinder);
 
   void SetSpawnArea(const Rectf& spawnArea) override;
   void SetTransform(const glm::mat4& transform) override;
   void SetEnabled(const bool enabled) override;
 
   void UpdateModel(const UpdateContext& context) override;
+  const Mesh& GetMesh() const override;
   void Render(const MeshRenderer& renderer) const override;
 
  private:
@@ -49,7 +48,7 @@ class ParticleGenerator : public Actor, public ParticleController {
   };
 
   RandomNumberGenerator randomNumberGenerator;
-  MultiParticleMesh mesh;
+  const MultiParticleMesh& mesh;
   BufferWithMemory instanceParameters;
   std::array<ParticleInfo, InstanceCount> particles;
   glm::mat4 transform;
@@ -57,4 +56,4 @@ class ParticleGenerator : public Actor, public ParticleController {
   bool enabled;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERS_PARTICLES_PARTICLEGENERATOR_H
+#endif  // VULKAN_SRC_GAME_RENDERS_PARTICLES_PARTICLEINSTANCE_H

@@ -66,13 +66,6 @@ class LightPipelineStateFactory : public PipelineStateFactory {
 
 class LightboxDescriptorConfiguration : public DescriptorConfiguration {
  public:
-  void ConfigureDescriptorPoolSizes(
-      std::vector<VkDescriptorPoolSize>& poolSizes) const override {
-    poolSizes.push_back(DescriptorPoolSizeBuilder()
-                            .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-                            .SetDescriptorCount(1));
-  }
-
   std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
       const DescriptorSetLayoutFactory& descriptorSetLayoutFactory)
       const override {
@@ -97,9 +90,9 @@ std::unique_ptr<DescriptorConfiguration> LightRender::ConfigureDescriptors()
   return std::make_unique<LightboxDescriptorConfiguration>();
 }
 
-std::vector<std::unique_ptr<Actor>> LightRender::LoadActors(
-    ResourceLoader& resourceLoader) {
+void LightRender::LoadActors(ResourceLoader& resourceLoader,
+                             ActorSpawnController& actorSpawnController) {
   std::vector<std::unique_ptr<Actor>> actors(1);
   actors[0] = std::make_unique<LightBox>(resourceLoader);
-  return actors;
+  actorSpawnController.SpawnActorsImmediately(std::move(actors));
 }

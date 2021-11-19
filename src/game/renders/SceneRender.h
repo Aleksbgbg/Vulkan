@@ -17,8 +17,8 @@ class SceneRender {
   virtual std::unique_ptr<PipelineStateFactory> ConfigurePipeline() const = 0;
   virtual std::unique_ptr<DescriptorConfiguration> ConfigureDescriptors()
       const = 0;
-  virtual std::vector<std::unique_ptr<Actor>> LoadActors(
-      ResourceLoader &resourceLoader) = 0;
+  virtual void LoadActors(ResourceLoader& resourceLoader,
+                          ActorSpawnController& actorSpawnController) = 0;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERS_SCENERENDER_H

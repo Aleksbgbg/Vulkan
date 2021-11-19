@@ -7,9 +7,9 @@ static constexpr float QuarterTurn = 0.5f * HalfTurn;
 static constexpr float ThreeQuarterTurn = 1.5f * HalfTurn;
 static constexpr float FullTurn = 2.0f * HalfTurn;
 
-Player::Player(SpaceshipMesh mesh, Camera& camera, const wnd::Window& window,
-               ParticleController& particleController)
-    : spaceshipModel(std::move(mesh)),
+Player::Player(SpaceshipMesh& mesh, Camera& camera, const wnd::Window& window,
+               ParticleStream& particleController)
+    : spaceshipModel(mesh),
       camera(camera),
       window(window),
       particleController(particleController),

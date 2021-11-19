@@ -60,13 +60,6 @@ class SkyboxPipelineStateFactory : public PipelineStateFactory {
 
 class SkyboxDescriptorConfiguration : public DescriptorConfiguration {
  public:
-  void ConfigureDescriptorPoolSizes(
-      std::vector<VkDescriptorPoolSize>& poolSizes) const override {
-    poolSizes.push_back(DescriptorPoolSizeBuilder()
-                            .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-                            .SetDescriptorCount(1));
-  }
-
   std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
       const DescriptorSetLayoutFactory& descriptorSetLayoutFactory)
       const override {
@@ -91,9 +84,9 @@ std::unique_ptr<DescriptorConfiguration> SkyboxRender::ConfigureDescriptors()
   return std::make_unique<SkyboxDescriptorConfiguration>();
 }
 
-std::vector<std::unique_ptr<Actor>> SkyboxRender::LoadActors(
-    ResourceLoader& resourceLoader) {
+void SkyboxRender::LoadActors(ResourceLoader& resourceLoader,
+                              ActorSpawnController& actorSpawnController) {
   std::vector<std::unique_ptr<Actor>> actors(1);
   actors[0] = std::make_unique<Skybox>(resourceLoader);
-  return actors;
+  actorSpawnController.SpawnActorsImmediately(std::move(actors));
 }

@@ -10,7 +10,7 @@ App::App(wnd::Window& window, std::unique_ptr<Vulkan> appVulkan)
     : window(window),
       vulkan(std::move(appVulkan)),
       scene(std::make_unique<Scene>(*vulkan, *vulkan, *vulkan, *vulkan, *vulkan,
-                                    *vulkan, *vulkan, window, imageIndex)),
+                                    *vulkan, window, imageIndex)),
       swapchain(*vulkan),
       previousTime(std::chrono::high_resolution_clock::time_point::min()),
       threadMessenger(),

@@ -14,16 +14,12 @@ class DescriptorConfiguration {
  public:
   virtual ~DescriptorConfiguration() = default;
 
-  virtual void ConfigureDescriptorPoolSizes(
-      std::vector<VkDescriptorPoolSize>& poolSizes) const = 0;
   virtual std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
       const DescriptorSetLayoutFactory& descriptorSetLayoutFactory) const = 0;
 };
 
 class EmptyDescriptorConfiguration : public DescriptorConfiguration {
  public:
-  void ConfigureDescriptorPoolSizes(
-      std::vector<VkDescriptorPoolSize>& poolSizes) const override;
   std::optional<DescriptorSetLayout> ConfigureActorDescriptorSet(
       const DescriptorSetLayoutFactory& descriptorSetLayoutFactory)
       const override;

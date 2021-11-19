@@ -7,6 +7,7 @@
 #include "DynamicUniformBuffer.h"
 #include "game/SceneDescriptor.h"
 #include "game/model/UpdateContext.h"
+#include "game/renders/ActorSpawnController.h"
 #include "game/renders/SceneRenderer.h"
 #include "general/windowing/Window.h"
 #include "vulkan/CommandBuffer.h"
@@ -19,6 +20,10 @@ class Scene {
 
     virtual DescriptorPool CreateDescriptorPool(
         const DescriptorPoolCreateInfoBuilder& infoBuilder) const = 0;
+
+    virtual DescriptorSet::WriteDescriptorSet CreateImageSamplerWrite(
+        const DescriptorSet& descriptorSet, const ImageView& imageView,
+        const u32 binding) const = 0;
     virtual void UpdateDescriptorSets(
         const u32 descriptorSetCount,
         const VkWriteDescriptorSet* const descriptorSetWrites) const = 0;
@@ -30,7 +35,6 @@ class Scene {
         const DescriptorSetLayoutFactory& descriptorSetLayoutFactory,
         const RenderPipeline::Initializer& renderPipelineInitializer,
         const ShaderModuleFactory& shaderModuleFactory,
-        const ResourceBinder::ImageSamplerWriter& imageSamplerWriter,
         ResourceLoader& resourceLoader, const wnd::Window& window,
         const u32& imageIndex);
 
@@ -46,13 +50,13 @@ class Scene {
   void Render(const CommandBuffer& commandBuffer) const;
 
  private:
-  std::vector<SceneRenderer> renderers;
+  std::vector<std::unique_ptr<SceneRenderer>> renderers_;
 
-  const wnd::Window* window;
-  Camera camera;
+  const wnd::Window* window_;
+  Camera camera_;
 
-  DescriptorPool descriptorPool;
-  SceneDescriptor sceneDescriptor;
+  DescriptorPool descriptorPool_;
+  SceneDescriptor sceneDescriptor_;
 };
 
 #endif  // VULKAN_SRC_GAME_SCENE_H

@@ -2,18 +2,6 @@
 
 #include <array>
 
-#include "vulkan/structures/DescriptorPoolSize.h"
-
-void SceneDescriptor::ConfigureDescriptorPoolSizes(
-    std::vector<VkDescriptorPoolSize>& poolSizes) {
-  poolSizes.push_back(DescriptorPoolSizeBuilder()
-                          .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
-                          .SetDescriptorCount(1));
-  poolSizes.push_back(DescriptorPoolSizeBuilder()
-                          .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                          .SetDescriptorCount(1));
-}
-
 DescriptorSetLayout SceneDescriptor::CreateSceneDescriptorLayout(
     const DescriptorSetLayoutFactory& descriptorSetLayoutFactory) {
   return descriptorSetLayoutFactory.CreateDescriptorSetLayout(
@@ -36,10 +24,8 @@ SceneDescriptor::SceneDescriptor(
       viewTransformBuffer(dynamicUniformBufferInitializer, sceneDescriptorSet),
       bufferObjectIndex(&bufferObjectIndex) {}
 
-void SceneDescriptor::WriteDescriptorSets(
-    std::vector<DescriptorSet::WriteDescriptorSet>& descriptorSetWrites) const {
-  descriptorSetWrites.push_back(
-      std::move(viewTransformBuffer.CreateWriteDescriptorSet(0)));
+DescriptorSet::WriteDescriptorSet SceneDescriptor::WriteDescriptorSet() const {
+  return viewTransformBuffer.CreateWriteDescriptorSet(0);
 }
 
 PerFrameData& SceneDescriptor::FrameData() {

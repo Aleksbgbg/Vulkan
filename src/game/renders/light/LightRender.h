@@ -1,6 +1,8 @@
 #ifndef VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTRENDER_H
 #define VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTRENDER_H
 
+#include <game/renders/ActorSpawnController.h>
+
 #include "game/renders/SceneRender.h"
 
 class LightRender : public SceneRender {
@@ -8,8 +10,8 @@ class LightRender : public SceneRender {
   std::unique_ptr<PipelineStateFactory> ConfigurePipeline() const override;
   std::unique_ptr<DescriptorConfiguration> ConfigureDescriptors()
       const override;
-  std::vector<std::unique_ptr<Actor>> LoadActors(
-      ResourceLoader &resourceLoader) override;
+  void LoadActors(ResourceLoader& resourceLoader,
+                  ActorSpawnController& actorSpawnController) override;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTRENDER_H

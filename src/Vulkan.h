@@ -26,8 +26,7 @@ class Vulkan : public SwapchainWithResources::Initializer,
                public RenderPipeline::Initializer,
                public DescriptorSetLayoutFactory,
                public ShaderModuleFactory,
-               public ResourceLoader,
-               public ResourceBinder::ImageSamplerWriter {
+               public ResourceLoader {
  public:
   Vulkan(const VulkanWindow& window);
   ~Vulkan();
