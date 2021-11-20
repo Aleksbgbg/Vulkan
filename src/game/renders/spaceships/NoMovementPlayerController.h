@@ -5,8 +5,9 @@
 
 class NoMovementPlayerController : public PlayerController {
  public:
-  glm::vec3 GetVelocity() const override;
+  bool IsMoving() const override;
   glm::vec3 GetRotation() const override;
+  glm::vec3 GetPosition() const override;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERS_SPACESHIPS_NOMOVEMENTPLAYERCONTROLLER_H

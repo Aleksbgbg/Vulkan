@@ -5,14 +5,16 @@
 
 #include "Camera.h"
 #include "DynamicUniformBuffer.h"
+#include "NetworkedPlayerController.h"
 #include "game/SceneDescriptor.h"
 #include "game/model/UpdateContext.h"
 #include "game/renders/ActorSpawnController.h"
 #include "game/renders/SceneRenderer.h"
+#include "game/renders/spaceships/PlayerSpawnConsumer.h"
 #include "general/windowing/Window.h"
 #include "vulkan/CommandBuffer.h"
 
-class Scene {
+class Scene : public PlayerSpawnConsumer {
  public:
   class Initializer {
    public:
@@ -35,6 +37,7 @@ class Scene {
         const DescriptorSetLayoutFactory& descriptorSetLayoutFactory,
         const RenderPipeline::Initializer& renderPipelineInitializer,
         const ShaderModuleFactory& shaderModuleFactory,
+        const NetworkedPlayerController& mainPlayerController,
         ResourceLoader& resourceLoader, const wnd::Window& window,
         const u32& imageIndex);
 
@@ -49,6 +52,8 @@ class Scene {
   void UpdateModel(const UpdateContext& context);
   void Render(const CommandBuffer& commandBuffer) const;
 
+  void SpawnPlayer(const PlayerController& controller) override;
+
  private:
   std::vector<std::unique_ptr<SceneRenderer>> renderers_;
 
@@ -57,6 +62,8 @@ class Scene {
 
   DescriptorPool descriptorPool_;
   SceneDescriptor sceneDescriptor_;
+
+  PlayerSpawnConsumer* spawnConsumer_;
 };
 
 #endif  // VULKAN_SRC_GAME_SCENE_H

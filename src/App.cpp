@@ -6,31 +6,36 @@
 #include "general/logging/log.h"
 #include "vulkan/structures/ClearValue.h"
 
-App::App(wnd::Window& window, std::unique_ptr<Vulkan> appVulkan)
-    : window(window),
-      vulkan(std::move(appVulkan)),
-      scene(std::make_unique<Scene>(*vulkan, *vulkan, *vulkan, *vulkan, *vulkan,
-                                    *vulkan, window, imageIndex)),
-      swapchain(*vulkan),
-      previousTime(std::chrono::high_resolution_clock::time_point::min()),
-      threadMessenger(),
-      imageIndex(0) {
-  const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
-  scene->UpdateAspect(static_cast<float>(swapchainExtent.width) /
-                      static_cast<float>(swapchainExtent.height));
+App::App(wnd::Window& window, std::unique_ptr<Vulkan> vulkan,
+         std::unique_ptr<AppNetwork> appNetwork)
+    : window_(window),
+      appNetwork_(std::move(appNetwork)),
+      controls_(),
+      mainPlayerController_(appNetwork_->ActorIndexForCurrentApp()),
+      vulkan_(std::move(vulkan)),
+      scene_(std::make_unique<Scene>(*vulkan_, *vulkan_, *vulkan_, *vulkan_,
+                                     *vulkan_, mainPlayerController_, *vulkan_,
+                                     window, imageIndex_)),
+      swapchain_(*vulkan_),
+      previousTime_(std::chrono::high_resolution_clock::time_point::min()),
+      threadMessenger_(),
+      imageIndex_(0) {
+  const VkExtent2D swapchainExtent = swapchain_.GetImageExtent();
+  scene_->UpdateAspect(static_cast<float>(swapchainExtent.width) /
+                       static_cast<float>(swapchainExtent.height));
 
-  for (u32 renderIndex = 0; renderIndex < swapchain.GetImageCount();
+  for (u32 renderIndex = 0; renderIndex < swapchain_.GetImageCount();
        ++renderIndex) {
-    swapchainRenderData.emplace_back(SwapchainRenderPass{
-        .commandBuffer = vulkan->AllocatePrimaryRenderCommandBuffer(),
-        .renderCompleteSemaphore = vulkan->CreateSemaphore(),
+    swapchainRenderData_.emplace_back(SwapchainRenderPass{
+        .commandBuffer = vulkan_->AllocatePrimaryRenderCommandBuffer(),
+        .renderCompleteSemaphore = vulkan_->CreateSemaphore(),
         .submitCompleteFence =
-            vulkan->CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
+            vulkan_->CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
   }
 }
 
 App::~App() {
-  vulkan->WaitIdle();
+  vulkan_->WaitIdle();
 }
 
 int App::Run() {
@@ -42,22 +47,22 @@ int App::Run() {
 
 void App::MainThread() {
   while (true) {
-    switch (window.WaitAndProcessEvent()) {
+    switch (window_.WaitAndProcessEvent()) {
       case wnd::Window::Event::Exit:
-        threadMessenger.PostMessage(EventNotification::Unpaused);
-        threadMessenger.PostMessage(EventNotification::Exited);
+        threadMessenger_.PostMessage(EventNotification::Unpaused);
+        threadMessenger_.PostMessage(EventNotification::Exited);
         return;
 
       case wnd::Window::Event::Minimized:
-        threadMessenger.PostMessage(EventNotification::Paused);
+        threadMessenger_.PostMessage(EventNotification::Paused);
         break;
 
       case wnd::Window::Event::Restored:
-        threadMessenger.PostMessage(EventNotification::Unpaused);
+        threadMessenger_.PostMessage(EventNotification::Unpaused);
         break;
 
       case wnd::Window::Event::SizeChanged:
-        threadMessenger.PostMessage(EventNotification::Resized);
+        threadMessenger_.PostMessage(EventNotification::Resized);
         break;
     }
   }
@@ -68,23 +73,23 @@ void App::RenderThread() {
     while (true) {
       MainLoop();
 
-      while (threadMessenger.HasMessage()) {
-        EventNotification message = threadMessenger.PopMessage();
+      while (threadMessenger_.HasMessage()) {
+        EventNotification message = threadMessenger_.PopMessage();
 
         switch (message) {
           case EventNotification::Exited:
             return;
 
           case EventNotification::Paused:
-            threadMessenger.WaitMessage(EventNotification::Unpaused);
+            threadMessenger_.WaitMessage(EventNotification::Unpaused);
             break;
 
           case EventNotification::Resized:
-            oldSwapchain = std::move(swapchain);
-            swapchain = oldSwapchain.RecreateSwapchain(*vulkan);
-            const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
-            scene->UpdateAspect(static_cast<float>(swapchainExtent.width) /
-                                static_cast<float>(swapchainExtent.height));
+            oldSwapchain_ = std::move(swapchain_);
+            swapchain_ = oldSwapchain_.RecreateSwapchain(*vulkan_);
+            const VkExtent2D swapchainExtent = swapchain_.GetImageExtent();
+            scene_->UpdateAspect(static_cast<float>(swapchainExtent.width) /
+                                 static_cast<float>(swapchainExtent.height));
             break;
         }
       }
@@ -96,43 +101,45 @@ void App::RenderThread() {
 }
 
 void App::MainLoop() {
-  if (previousTime == std::chrono::high_resolution_clock::time_point::min()) {
-    previousTime = std::chrono::high_resolution_clock::now();
+  if (previousTime_ == std::chrono::high_resolution_clock::time_point::min()) {
+    previousTime_ = std::chrono::high_resolution_clock::now();
   }
 
   const auto timeNow = std::chrono::high_resolution_clock::now();
   const float deltaTime =
       std::chrono::duration<float, std::chrono::seconds::period>(timeNow -
-                                                                 previousTime)
+                                                                 previousTime_)
           .count();
 
   UpdateModel(deltaTime);
   Render();
 
-  previousTime = timeNow;
+  previousTime_ = timeNow;
 }
 
 void App::UpdateModel(const float deltaTime) {
-  controls.Update(window.GetKeyboard(), window.GetMouse(),
-                  window.GetRect().Size());
-  window.EndFrame();
-
   const UpdateContext updateContext{.deltaTime = deltaTime,
-                                    .controls = controls};
-  scene->UpdateModel(updateContext);
+                                    .controls = controls_};
+  controls_.Update(window_.GetKeyboard(), window_.GetMouse(),
+                   window_.GetRect().Size());
+  appNetwork_->Update(updateContext);
+  appNetwork_->ExecuteSpawns(*scene_);
+  mainPlayerController_.Update(*appNetwork_);
+  window_.EndFrame();
+  scene_->UpdateModel(updateContext);
 }
 
 void App::Render() {
   const SwapchainWithResources::AcquireNextImageResult nextImageResult =
-      swapchain.AcquireNextImage();
+      swapchain_.AcquireNextImage();
 
   if (nextImageResult.status == VK_ERROR_OUT_OF_DATE_KHR) {
     return;
   }
 
-  imageIndex = nextImageResult.imageIndex;
+  imageIndex_ = nextImageResult.imageIndex;
 
-  SwapchainRenderPass& swapchainRender = swapchainRenderData[imageIndex];
+  SwapchainRenderPass& swapchainRender = swapchainRenderData_[imageIndex_];
 
   swapchainRender.submitCompleteFence.Wait().Reset();
   constexpr const VkClearValue colorClear =
@@ -151,14 +158,14 @@ void App::Render() {
   };
 
   swapchainRender.commandBuffer.Begin();
-  vulkan->CmdBeginRenderPass(
+  vulkan_->CmdBeginRenderPass(
       swapchainRender.commandBuffer,
       RenderPassBeginInfoBuilder()
-          .SetRenderArea(Rect2DBuilder().SetExtent(swapchain.GetImageExtent()))
+          .SetRenderArea(Rect2DBuilder().SetExtent(swapchain_.GetImageExtent()))
           .SetClearValueCount(clearValues.size())
           .SetPClearValues(clearValues.data()),
-      swapchain.CurrentFramebuffer());
-  scene->Render(swapchainRender.commandBuffer);
+      swapchain_.CurrentFramebuffer());
+  scene_->Render(swapchainRender.commandBuffer);
   swapchainRender.commandBuffer.CmdEndRenderPass();
   swapchainRender.commandBuffer.End();
   swapchainRender.commandBuffer.Submit(
@@ -166,8 +173,8 @@ void App::Render() {
           .SetWaitSemaphore(&nextImageResult.semaphore)
           .SetSignalSemaphore(&swapchainRender.renderCompleteSemaphore)
           .SetSignalFence(&swapchainRender.submitCompleteFence));
-  vulkan->Present(swapchain, SynchronisationPack().SetWaitSemaphore(
-                                 &swapchainRender.renderCompleteSemaphore));
+  vulkan_->Present(swapchain_, SynchronisationPack().SetWaitSemaphore(
+                                   &swapchainRender.renderCompleteSemaphore));
 
-  swapchain.MoveToNextFrame();
+  swapchain_.MoveToNextFrame();
 }

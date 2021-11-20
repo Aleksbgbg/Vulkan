@@ -143,6 +143,7 @@ Scene::Scene(const Initializer& initializer,
              const DescriptorSetLayoutFactory& descriptorSetLayoutFactory,
              const RenderPipeline::Initializer& renderPipelineInitializer,
              const ShaderModuleFactory& shaderModuleFactory,
+             const NetworkedPlayerController& mainPlayerController,
              ResourceLoader& resourceLoader, const wnd::Window& window,
              const u32& imageIndex)
     : renderers_(),
@@ -153,12 +154,16 @@ Scene::Scene(const Initializer& initializer,
       std::make_unique<ParticleSpawner>();
   ParticleController& particleController = *particleRender;
 
+  std::unique_ptr<SpaceshipRender> spaceshipRender =
+      std::make_unique<SpaceshipRender>(camera_, particleController,
+                                        mainPlayerController);
+  spawnConsumer_ = spaceshipRender.get();
+
   std::vector<std::unique_ptr<SceneRender>> sceneRenders;
   sceneRenders.push_back(std::move(particleRender));
   sceneRenders.push_back(std::make_unique<LightRender>());
   sceneRenders.push_back(std::make_unique<SkyboxRender>());
-  sceneRenders.push_back(
-      std::make_unique<SpaceshipRender>(camera_, particleController));
+  sceneRenders.push_back(std::move(spaceshipRender));
 
   DescriptorSetLayout sceneDescriptorLayout =
       SceneDescriptor::CreateSceneDescriptorLayout(descriptorSetLayoutFactory);
@@ -244,4 +249,8 @@ void Scene::Render(const CommandBuffer& commandBuffer) const {
   for (const std::unique_ptr<SceneRenderer>& renderer : renderers_) {
     renderer->Render(commandBuffer, sceneDescriptor_, *window_);
   }
+}
+
+void Scene::SpawnPlayer(const PlayerController& controller) {
+  spawnConsumer_->SpawnPlayer(controller);
 }

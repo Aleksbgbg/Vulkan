@@ -9,21 +9,22 @@ MainPlayer::MainPlayer(SpaceshipModel spaceshipModel, Camera& camera,
       playerController_(playerController) {}
 
 void MainPlayer::UpdateModel(const UpdateContext& context) {
-  const glm::vec3 velocity = playerController_.GetVelocity();
+  const bool isMoving = playerController_.IsMoving();
+  const glm::vec3 position = playerController_.GetPosition();
   const glm::vec3 rotation = playerController_.GetRotation();
 
   glm::vec3 lookAround =
       glm::vec3(context.controls.AxisValue(Axis::View) * 2.0f, 0.0f);
   lookAround.x = CoerceToRange(lookAround.x, -QuarterTurn, QuarterTurn);
 
-  spaceshipModel_.Rotate(rotation);
-  spaceshipModel_.Move(velocity, context.deltaTime);
+  spaceshipModel_.SetIsMoving(isMoving);
+  spaceshipModel_.SetRotation(rotation);
+  spaceshipModel_.SetPosition(position);
+  spaceshipModel_.Update();
 
-  glm::vec3* const modelPosition = spaceshipModel_.Position();
-
-  const glm::mat4 cameraTransform =
-      glm::translate(glm::mat4(1.0f), *modelPosition) *
-      glm::toMat4(glm::quat(rotation)) * glm::toMat4(glm::quat(lookAround));
+  const glm::mat4 cameraTransform = glm::translate(glm::mat4(1.0f), position) *
+                                    glm::toMat4(glm::quat(rotation)) *
+                                    glm::toMat4(glm::quat(lookAround));
 
   const bool reverseView =
       context.controls.IsControlActive(Control::ReverseView);
@@ -33,7 +34,7 @@ void MainPlayer::UpdateModel(const UpdateContext& context) {
                                        reverseView ? spaceshipModel_.Size().z
                                                    : -spaceshipModel_.Size().z,
                                        1.0f),
-       .lookAt = glm::vec4(*modelPosition + glm::vec3(0.0f, 0.5f, 0.0f), 1.0f),
+       .lookAt = glm::vec4(position + glm::vec3(0.0f, 0.5f, 0.0f), 1.0f),
        .rotation = rotation,
        .reverse = reverseView});
 }

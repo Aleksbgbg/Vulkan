@@ -208,8 +208,11 @@ class SpaceshipDescriptorConfiguration : public DescriptorConfiguration {
 };
 
 SpaceshipRender::SpaceshipRender(Camera& camera,
-                                 ParticleController& particleController)
-    : camera(camera), particleController(particleController) {}
+                                 ParticleController& particleController,
+                                 const PlayerController& mainPlayerController)
+    : camera_(camera),
+      particleController_(particleController),
+      mainPlayerController_(mainPlayerController) {}
 
 std::unique_ptr<PipelineStateFactory> SpaceshipRender::ConfigurePipeline()
     const {
@@ -223,18 +226,22 @@ std::unique_ptr<DescriptorConfiguration> SpaceshipRender::ConfigureDescriptors()
 
 void SpaceshipRender::LoadActors(ResourceLoader& resourceLoader,
                                  ActorSpawnController& actorSpawnController) {
+  std::unique_ptr<SpaceshipsActor> spaceshipsActor =
+      std::make_unique<SpaceshipsActor>(
+          LoadSpaceshipMesh(
+              resourceLoader,
+              MeshLoadParams{
+                  .frames = {MeshFrameLoadParams{
+                                 .model = SPACESHIP_STATIONARY_MODEL_FILENAME},
+                             MeshFrameLoadParams{
+                                 .model = SPACESHIP_MOVING_MODEL_FILENAME}},
+                  .texture = SPACESHIP_TEXTURE_FILENAME,
+                  .emissive = SPACESHIP_EMISSIVE_FILENAME}),
+          camera_, particleController_, mainPlayerController_);
+  spawnConsumer_ = spaceshipsActor.get();
+
   std::vector<std::unique_ptr<Actor>> actors(2);
-  actors[0] = std::make_unique<SpaceshipsActor>(
-      LoadSpaceshipMesh(
-          resourceLoader,
-          MeshLoadParams{
-              .frames = {MeshFrameLoadParams{
-                             .model = SPACESHIP_STATIONARY_MODEL_FILENAME},
-                         MeshFrameLoadParams{
-                             .model = SPACESHIP_MOVING_MODEL_FILENAME}},
-              .texture = SPACESHIP_TEXTURE_FILENAME,
-              .emissive = SPACESHIP_EMISSIVE_FILENAME}),
-      camera, particleController);
+  actors[0] = std::move(spaceshipsActor);
   actors[1] = std::make_unique<Npc>(
       LoadSpaceshipMesh(
           resourceLoader,
@@ -242,7 +249,11 @@ void SpaceshipRender::LoadActors(ResourceLoader& resourceLoader,
                              .model = NPC_SPACESHIP_MODEL_FILENAME}},
                          .texture = NPC_SPACESHIP_TEXTURE_FILENAME,
                          .emissive = NPC_SPACESHIP_EMISSIVE_FILENAME}),
-      particleController.CreateParticleStream());
+      particleController_.CreateParticleStream());
 
   actorSpawnController.SpawnActorsImmediately(std::move(actors));
+}
+
+void SpaceshipRender::SpawnPlayer(const PlayerController& controller) {
+  spawnConsumer_->SpawnPlayer(controller);
 }

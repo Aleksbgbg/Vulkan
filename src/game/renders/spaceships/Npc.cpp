@@ -2,15 +2,19 @@
 
 Npc::Npc(SpaceshipMesh mesh, ParticleStream& exhaustParticles)
     : mesh_(std::move(mesh)), spaceshipModel_(mesh_, exhaustParticles) {
-  spaceshipModel_.Move(glm::vec3(1.0f, 0.0f, 0.0f), 1.0f);
+  spaceshipModel_.SetPosition(glm::vec3(10.0f, 0.0f, 0.0f));
 }
 
 void Npc::UpdateModel(const UpdateContext& context) {
-  spaceshipModel_.Move(
-      glm::vec3(
-          0.0f, 0.0f,
-          context.controls.IsControlActive(Control::MoveNpc) ? 1.0f : 0.0f),
-      context.deltaTime);
+  const bool isMoving = context.controls.IsControlActive(Control::MoveNpc);
+
+  spaceshipModel_.SetIsMoving(isMoving);
+  if (isMoving) {
+    spaceshipModel_.SetPosition(
+        *spaceshipModel_.Position() +
+        glm::vec3(0.0f, 0.0f, 10.0f * context.deltaTime));
+  }
+  spaceshipModel_.Update();
 }
 
 const Mesh& Npc::GetMesh() const {

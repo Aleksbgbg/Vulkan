@@ -6,8 +6,10 @@ OtherPlayer::OtherPlayer(SpaceshipModel spaceshipModel,
       playerController_(playerController) {}
 
 void OtherPlayer::UpdateModel(const UpdateContext& context) {
-  spaceshipModel_.Rotate(playerController_.GetRotation());
-  spaceshipModel_.Move(playerController_.GetVelocity(), context.deltaTime);
+  spaceshipModel_.SetIsMoving(playerController_.IsMoving());
+  spaceshipModel_.SetPosition(playerController_.GetPosition());
+  spaceshipModel_.SetRotation(playerController_.GetRotation());
+  spaceshipModel_.Update();
 }
 
 const Mesh& OtherPlayer::GetMesh() const {

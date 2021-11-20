@@ -9,14 +9,17 @@ class SystemInputPlayerController : public PlayerController, public Updatable {
  public:
   SystemInputPlayerController();
 
-  glm::vec3 GetVelocity() const override;
+  bool IsMoving() const override;
   glm::vec3 GetRotation() const override;
+  glm::vec3 GetPosition() const override;
 
   void UpdateModel(const UpdateContext& context) override;
 
  private:
+  bool moving_;
   glm::vec3 velocity_;
   glm::vec3 rotation_;
+  glm::vec3 position_;
 };
 
 #endif  // VULKAN_SRC_GAME_RENDERS_SPACESHIPS_SYSTEMINPUTPLAYERCONTROLLER_H

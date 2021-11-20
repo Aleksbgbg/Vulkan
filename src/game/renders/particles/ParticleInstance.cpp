@@ -38,6 +38,24 @@ void ParticleInstance::UpdateModel(const UpdateContext& context) {
   ParticleRenderData& particleRenderData =
       *reinterpret_cast<ParticleRenderData* const>(instanceParametersMemory);
 
+  for (u32 index = 0; index < aliveParticles_; ++index) {
+    ParticleInfo& particle = particles_[index];
+
+    particle.timeToLive -= context.deltaTime;
+    particle.position.z += particle.velocity.z;
+  }
+
+  for (u32 index = 0; index < aliveParticles_;) {
+    ParticleInfo& particle = particles_[index];
+
+    if (particle.timeToLive < 0.0f) {
+      --aliveParticles_;
+      std::swap(particle, particles_[aliveParticles_]);
+    } else {
+      ++index;
+    }
+  }
+
   if (enabled_) {
     for (u32 index = aliveParticles_; index < particles_.size(); ++index) {
       ParticleInfo& particle = particles_[index];
@@ -55,24 +73,6 @@ void ParticleInstance::UpdateModel(const UpdateContext& context) {
     }
 
     aliveParticles_ = particles_.size();
-  }
-
-  for (u32 index = 0; index < aliveParticles_; ++index) {
-    ParticleInfo& particle = particles_[index];
-
-    particle.timeToLive -= context.deltaTime;
-    particle.position.z += particle.velocity.z;
-  }
-
-  for (u32 index = 0; index < aliveParticles_;) {
-    ParticleInfo& particle = particles_[index];
-
-    if (particle.timeToLive < 0.0f) {
-      --aliveParticles_;
-      std::swap(particle, particles_[aliveParticles_]);
-    } else {
-      ++index;
-    }
   }
 
   for (u32 index = 0; index < aliveParticles_; ++index) {
