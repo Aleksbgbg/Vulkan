@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_COMMANDBUFFER_H
-#define VULKAN_SRC_VULKAN_COMMANDBUFFER_H
+#ifndef VULKAN_SRC_VULKAN_COMMANDBUFFER_H_
+#define VULKAN_SRC_VULKAN_COMMANDBUFFER_H_
 
 #include <vulkan/vulkan.h>
 
@@ -102,4 +102,4 @@ class CommandBuffer {
   VkCommandBuffer commandBuffer;
 };
 
-#endif  // VULKAN_SRC_VULKAN_COMMANDBUFFER_H
+#endif  // VULKAN_SRC_VULKAN_COMMANDBUFFER_H_

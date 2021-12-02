@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERS_ACTORGENERATOR_H
-#define VULKAN_SRC_GAME_RENDERS_ACTORGENERATOR_H
+#ifndef VULKAN_SRC_GAME_RENDERS_ACTORGENERATOR_H_
+#define VULKAN_SRC_GAME_RENDERS_ACTORGENERATOR_H_
 
 #include <memory>
 
@@ -15,4 +15,4 @@ class ActorGenerator {
       ResourceLoader& resourceLoader, ResourceBinder& resourceBinder) const = 0;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERS_ACTORGENERATOR_H
+#endif  // VULKAN_SRC_GAME_RENDERS_ACTORGENERATOR_H_

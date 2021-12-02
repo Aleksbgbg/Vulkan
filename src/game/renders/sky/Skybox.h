@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_SKYBOX_H
-#define VULKAN_SRC_GAME_SKYBOX_H
+#ifndef VULKAN_SRC_GAME_RENDERS_SKY_SKYBOX_H_
+#define VULKAN_SRC_GAME_RENDERS_SKY_SKYBOX_H_
 
 #include "game/Actor.h"
 #include "game/rendering/meshes/TexturedMesh.h"
@@ -20,4 +20,4 @@ class Skybox : public Actor {
   TexturedMesh mesh;
 };
 
-#endif  // VULKAN_SRC_GAME_SKYBOX_H
+#endif  // VULKAN_SRC_GAME_RENDERS_SKY_SKYBOX_H_

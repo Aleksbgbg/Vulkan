@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_QUEUE_H
-#define VULKAN_SRC_VULKAN_QUEUE_H
+#ifndef VULKAN_SRC_VULKAN_QUEUE_H_
+#define VULKAN_SRC_VULKAN_QUEUE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -28,4 +28,4 @@ class Queue {
   u32 familyIndex;
 };
 
-#endif  // VULKAN_SRC_VULKAN_QUEUE_H
+#endif  // VULKAN_SRC_VULKAN_QUEUE_H_

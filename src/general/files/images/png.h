@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GENERAL_FILES_PNG_H
-#define VULKAN_SRC_GENERAL_FILES_PNG_H
+#ifndef VULKAN_SRC_GENERAL_FILES_IMAGES_PNG_H_
+#define VULKAN_SRC_GENERAL_FILES_IMAGES_PNG_H_
 
 #include <string_view>
 
@@ -11,4 +11,4 @@ Image ReadPng(const std::string_view path);
 
 }  // namespace file
 
-#endif  // VULKAN_SRC_GENERAL_FILES_PNG_H
+#endif  // VULKAN_SRC_GENERAL_FILES_IMAGES_PNG_H_

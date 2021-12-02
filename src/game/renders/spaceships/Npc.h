@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_NPC_H
-#define VULKAN_SRC_GAME_NPC_H
+#ifndef VULKAN_SRC_GAME_RENDERS_SPACESHIPS_NPC_H_
+#define VULKAN_SRC_GAME_RENDERS_SPACESHIPS_NPC_H_
 
 #include "game/Actor.h"
 #include "game/rendering/meshes/Mesh.h"
@@ -20,4 +20,4 @@ class Npc : public Actor {
   SpaceshipModel spaceshipModel_;
 };
 
-#endif  // VULKAN_SRC_GAME_NPC_H
+#endif  // VULKAN_SRC_GAME_RENDERS_SPACESHIPS_NPC_H_

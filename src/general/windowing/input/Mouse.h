@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_MOUSE_H
-#define VULKAN_SRC_MOUSE_H
+#ifndef VULKAN_SRC_GENERAL_WINDOWING_INPUT_MOUSE_H_
+#define VULKAN_SRC_GENERAL_WINDOWING_INPUT_MOUSE_H_
 
 #include <optional>
 
@@ -22,4 +22,4 @@ class Mouse {
   std::optional<glm::vec2> lastRightClickPosition;
 };
 
-#endif  // VULKAN_SRC_MOUSE_H
+#endif  // VULKAN_SRC_GENERAL_WINDOWING_INPUT_MOUSE_H_

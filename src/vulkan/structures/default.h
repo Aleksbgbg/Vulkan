@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H
-#define VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H
+#ifndef VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H_
+#define VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H_
 
 #include <vulkan/vulkan.h>
 
@@ -51,4 +51,4 @@ inline constexpr const VkImageMemoryBarrier
             .SetSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
             .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
 
-#endif  // VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H
+#endif  // VULKAN_SRC_VULKAN_STRUCTURES_DEFAULT_H_

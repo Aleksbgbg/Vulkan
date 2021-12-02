@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_VIRTUALDEVICE_H
-#define VULKAN_SRC_VULKAN_VIRTUALDEVICE_H
+#ifndef VULKAN_SRC_VULKAN_VIRTUALDEVICE_H_
+#define VULKAN_SRC_VULKAN_VIRTUALDEVICE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -90,4 +90,4 @@ class VirtualDevice {
   VkDevice device;
 };
 
-#endif  // VULKAN_SRC_VULKAN_VIRTUALDEVICE_H
+#endif  // VULKAN_SRC_VULKAN_VIRTUALDEVICE_H_

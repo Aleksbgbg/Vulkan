@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_FILE_H
-#define VULKAN_SRC_FILE_H
+#ifndef VULKAN_SRC_GENERAL_FILES_FILE_H_
+#define VULKAN_SRC_GENERAL_FILES_FILE_H_
 
 #include <string_view>
 #include <vector>
@@ -15,4 +15,4 @@ void WriteFile(const std::string_view filename, const std::vector<u8>& data);
 
 }  // namespace file
 
-#endif  // VULKAN_SRC_FILE_H
+#endif  // VULKAN_SRC_GENERAL_FILES_FILE_H_

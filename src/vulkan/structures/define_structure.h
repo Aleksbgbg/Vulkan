@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_STRUCTURES_DEFINE_STRUCTURE_H
-#define VULKAN_SRC_STRUCTURES_DEFINE_STRUCTURE_H
+#ifndef VULKAN_SRC_VULKAN_STRUCTURES_DEFINE_STRUCTURE_H_
+#define VULKAN_SRC_VULKAN_STRUCTURES_DEFINE_STRUCTURE_H_
 
 #define __STRUCTURE_BUILDER(name, structure, initializer)      \
   class name {                                                 \
@@ -60,4 +60,4 @@
   }                           \
   ;
 
-#endif  // VULKAN_SRC_STRUCTURES_DEFINE_STRUCTURE_H
+#endif  // VULKAN_SRC_VULKAN_STRUCTURES_DEFINE_STRUCTURE_H_

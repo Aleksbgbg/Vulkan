@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_LIGHTBOX_H
-#define VULKAN_SRC_GAME_LIGHTBOX_H
+#ifndef VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTBOX_H_
+#define VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTBOX_H_
 
 #include "game/Actor.h"
 #include "game/rendering/meshes/MeshRenderer.h"
@@ -21,4 +21,4 @@ class LightBox : public Actor {
   glm::vec3 rotation;
 };
 
-#endif  // VULKAN_SRC_GAME_LIGHTBOX_H
+#endif  // VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTBOX_H_

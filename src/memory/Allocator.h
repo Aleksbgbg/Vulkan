@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_MEMORY_ALLOCATOR_H
-#define VULKAN_SRC_MEMORY_ALLOCATOR_H
+#ifndef VULKAN_SRC_MEMORY_ALLOCATOR_H_
+#define VULKAN_SRC_MEMORY_ALLOCATOR_H_
 
 #include <vulkan/vulkan.h>
 
@@ -10,4 +10,4 @@ class Allocator {
   virtual std::unique_ptr<MemoryObject> Allocate(VkDeviceSize size) = 0;
 };
 
-#endif  // VULKAN_SRC_MEMORY_ALLOCATOR_H
+#endif  // VULKAN_SRC_MEMORY_ALLOCATOR_H_

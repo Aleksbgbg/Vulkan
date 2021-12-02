@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_DESCRIPTORSET_H
-#define VULKAN_SRC_VULKAN_DESCRIPTORSET_H
+#ifndef VULKAN_SRC_VULKAN_DESCRIPTORSET_H_
+#define VULKAN_SRC_VULKAN_DESCRIPTORSET_H_
 
 #include <vulkan/vulkan.h>
 
@@ -64,4 +64,4 @@ class DescriptorSet {
   VkDescriptorSet descriptorSet;
 };
 
-#endif  // VULKAN_SRC_VULKAN_DESCRIPTORSET_H
+#endif  // VULKAN_SRC_VULKAN_DESCRIPTORSET_H_

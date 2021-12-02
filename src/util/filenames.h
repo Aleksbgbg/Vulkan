@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_FILENAMES_H
-#define VULKAN_SRC_FILENAMES_H
+#ifndef VULKAN_SRC_UTIL_FILENAMES_H_
+#define VULKAN_SRC_UTIL_FILENAMES_H_
 
 inline constexpr const char* const PIPELINE_CACHE_FILENAME = "pipeline.cache";
 
@@ -33,4 +33,4 @@ inline constexpr const char* const KOREAN_FONT_FILENAME =
     "resources/IBMPlexSansKR-Regular.ttf";
 inline constexpr const char* const UI_FONT_FILENAME = "resources/SegoeUI.ttf";
 
-#endif  // VULKAN_SRC_FILENAMES_H
+#endif  // VULKAN_SRC_UTIL_FILENAMES_H_

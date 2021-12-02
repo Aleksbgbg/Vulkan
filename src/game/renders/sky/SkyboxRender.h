@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERS_SKY_SKYBOXRENDER_H
-#define VULKAN_SRC_GAME_RENDERS_SKY_SKYBOXRENDER_H
+#ifndef VULKAN_SRC_GAME_RENDERS_SKY_SKYBOXRENDER_H_
+#define VULKAN_SRC_GAME_RENDERS_SKY_SKYBOXRENDER_H_
 
 #include <game/renders/ActorSpawnController.h>
 
@@ -14,4 +14,4 @@ class SkyboxRender : public SceneRender {
                   ActorSpawnController& actorSpawnController) override;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERS_SKY_SKYBOXRENDER_H
+#endif  // VULKAN_SRC_GAME_RENDERS_SKY_SKYBOXRENDER_H_

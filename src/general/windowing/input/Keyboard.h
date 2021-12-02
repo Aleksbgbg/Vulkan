@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_KEYBOARD_H
-#define VULKAN_SRC_KEYBOARD_H
+#ifndef VULKAN_SRC_GENERAL_WINDOWING_INPUT_KEYBOARD_H_
+#define VULKAN_SRC_GENERAL_WINDOWING_INPUT_KEYBOARD_H_
 
 #include <SDL.h>
 #include <SDL_keycode.h>
@@ -21,4 +21,4 @@ class Keyboard {
   std::unordered_set<SDL_Keycode> pressedKeys;
 };
 
-#endif  // VULKAN_SRC_KEYBOARD_H
+#endif  // VULKAN_SRC_GENERAL_WINDOWING_INPUT_KEYBOARD_H_

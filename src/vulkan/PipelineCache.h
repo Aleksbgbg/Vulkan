@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_PIPELINECACHE_H
-#define VULKAN_SRC_VULKAN_PIPELINECACHE_H
+#ifndef VULKAN_SRC_VULKAN_PIPELINECACHE_H_
+#define VULKAN_SRC_VULKAN_PIPELINECACHE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -30,4 +30,4 @@ class PipelineCache {
   VkPipelineCache pipelineCache;
 };
 
-#endif  // VULKAN_SRC_VULKAN_PIPELINECACHE_H
+#endif  // VULKAN_SRC_VULKAN_PIPELINECACHE_H_

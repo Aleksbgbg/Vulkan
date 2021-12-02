@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_SHADERMODULE_H
-#define VULKAN_SRC_VULKAN_SHADERMODULE_H
+#ifndef VULKAN_SRC_VULKAN_SHADERMODULE_H_
+#define VULKAN_SRC_VULKAN_SHADERMODULE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -27,4 +27,4 @@ class ShaderModule {
   VkShaderStageFlagBits stage;
 };
 
-#endif  // VULKAN_SRC_VULKAN_SHADERMODULE_H
+#endif  // VULKAN_SRC_VULKAN_SHADERMODULE_H_

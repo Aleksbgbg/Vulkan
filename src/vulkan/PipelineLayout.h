@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_PIPELINELAYOUT_H
-#define VULKAN_SRC_VULKAN_PIPELINELAYOUT_H
+#ifndef VULKAN_SRC_VULKAN_PIPELINELAYOUT_H_
+#define VULKAN_SRC_VULKAN_PIPELINELAYOUT_H_
 
 #include <vulkan/vulkan.h>
 
@@ -34,4 +34,4 @@ class PipelineLayout {
   VkPipelineLayout pipelineLayout;
 };
 
-#endif  // VULKAN_SRC_VULKAN_PIPELINELAYOUT_H
+#endif  // VULKAN_SRC_VULKAN_PIPELINELAYOUT_H_

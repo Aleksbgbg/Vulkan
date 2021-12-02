@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H
-#define VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H
+#ifndef VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H_
+#define VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H_
 
 #include "VulkanWindow.h"
 #include "general/geometry/Rect.h"
@@ -50,4 +50,4 @@ class Window : public VulkanWindow {
 
 }  // namespace wnd
 
-#endif  // VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H
+#endif  // VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H_

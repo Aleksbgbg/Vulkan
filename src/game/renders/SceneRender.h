@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERS_SCENERENDER_H
-#define VULKAN_SRC_GAME_RENDERS_SCENERENDER_H
+#ifndef VULKAN_SRC_GAME_RENDERS_SCENERENDER_H_
+#define VULKAN_SRC_GAME_RENDERS_SCENERENDER_H_
 
 #include <memory>
 #include <vector>
@@ -21,4 +21,4 @@ class SceneRender {
                           ActorSpawnController& actorSpawnController) = 0;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERS_SCENERENDER_H
+#endif  // VULKAN_SRC_GAME_RENDERS_SCENERENDER_H_

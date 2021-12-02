@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_RENDERPASS_H
-#define VULKAN_SRC_VULKAN_RENDERPASS_H
+#ifndef VULKAN_SRC_VULKAN_RENDERPASS_H_
+#define VULKAN_SRC_VULKAN_RENDERPASS_H_
 
 #include <vulkan/vulkan.h>
 
@@ -28,4 +28,4 @@ class RenderPass {
   VkRenderPass renderPass;
 };
 
-#endif  // VULKAN_SRC_VULKAN_RENDERPASS_H
+#endif  // VULKAN_SRC_VULKAN_RENDERPASS_H_

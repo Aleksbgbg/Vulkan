@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_SCENEDESCRIPTOR_H
-#define VULKAN_SRC_SCENEDESCRIPTOR_H
+#ifndef VULKAN_SRC_GAME_SCENEDESCRIPTOR_H_
+#define VULKAN_SRC_GAME_SCENEDESCRIPTOR_H_
 
 #include "BufferWithMemory.h"
 #include "game/rendering/resources/ResourceLoader.h"
@@ -36,4 +36,4 @@ class SceneDescriptor : public SceneDescriptorBinder {
   const u32* bufferObjectIndex;
 };
 
-#endif  // VULKAN_SRC_SCENEDESCRIPTOR_H
+#endif  // VULKAN_SRC_GAME_SCENEDESCRIPTOR_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_DESCRIPTORPOOL_H
-#define VULKAN_SRC_VULKAN_DESCRIPTORPOOL_H
+#ifndef VULKAN_SRC_VULKAN_DESCRIPTORPOOL_H_
+#define VULKAN_SRC_VULKAN_DESCRIPTORPOOL_H_
 
 #include <vulkan/vulkan.h>
 
@@ -36,4 +36,4 @@ class DescriptorPool {
   VkDescriptorPool descriptorPool;
 };
 
-#endif  // VULKAN_SRC_VULKAN_DESCRIPTORPOOL_H
+#endif  // VULKAN_SRC_VULKAN_DESCRIPTORPOOL_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_ERROR_H
-#define VULKAN_SRC_VULKAN_ERROR_H
+#ifndef VULKAN_SRC_VULKAN_ERROR_H_
+#define VULKAN_SRC_VULKAN_ERROR_H_
 
 #include "util/build_definition.h"
 
@@ -34,4 +34,4 @@ class VulkanResultException : public std::runtime_error {
 
 #endif
 
-#endif  // VULKAN_SRC_VULKAN_ERROR_H
+#endif  // VULKAN_SRC_VULKAN_ERROR_H_

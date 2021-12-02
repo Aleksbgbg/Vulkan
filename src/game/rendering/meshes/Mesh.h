@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERING_RESOURCES_MESH_H
-#define VULKAN_SRC_GAME_RENDERING_RESOURCES_MESH_H
+#ifndef VULKAN_SRC_GAME_RENDERING_MESHES_MESH_H_
+#define VULKAN_SRC_GAME_RENDERING_MESHES_MESH_H_
 
 #include "game/rendering/resources/ResourceBinder.h"
 #include "util/include/glm.h"
@@ -16,4 +16,4 @@ class Mesh {
                       const PipelineLayout& pipelineLayout) const = 0;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERING_RESOURCES_MESH_H
+#endif  // VULKAN_SRC_GAME_RENDERING_MESHES_MESH_H_

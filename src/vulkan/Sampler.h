@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_SAMPLER_H
-#define VULKAN_SRC_VULKAN_SAMPLER_H
+#ifndef VULKAN_SRC_VULKAN_SAMPLER_H_
+#define VULKAN_SRC_VULKAN_SAMPLER_H_
 
 #include <vulkan/vulkan.h>
 
@@ -25,4 +25,4 @@ class Sampler {
   VkSampler sampler;
 };
 
-#endif  // VULKAN_SRC_VULKAN_SAMPLER_H
+#endif  // VULKAN_SRC_VULKAN_SAMPLER_H_

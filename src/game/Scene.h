@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_SCENE_H
-#define VULKAN_SRC_GAME_SCENE_H
+#ifndef VULKAN_SRC_GAME_SCENE_H_
+#define VULKAN_SRC_GAME_SCENE_H_
 
 #include <vector>
 
@@ -59,4 +59,4 @@ class Scene {
   SceneDescriptor sceneDescriptor_;
 };
 
-#endif  // VULKAN_SRC_GAME_SCENE_H
+#endif  // VULKAN_SRC_GAME_SCENE_H_

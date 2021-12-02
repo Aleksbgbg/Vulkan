@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERS_PARTICLESTREAM_H
-#define VULKAN_SRC_GAME_RENDERS_PARTICLESTREAM_H
+#ifndef VULKAN_SRC_GAME_RENDERS_PARTICLESTREAM_H_
+#define VULKAN_SRC_GAME_RENDERS_PARTICLESTREAM_H_
 
 #include "general/geometry/Rect.h"
 #include "util/include/glm.h"
@@ -13,4 +13,4 @@ class ParticleStream {
   virtual void SetEnabled(const bool enabled) = 0;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERS_PARTICLESTREAM_H
+#endif  // VULKAN_SRC_GAME_RENDERS_PARTICLESTREAM_H_

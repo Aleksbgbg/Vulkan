@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERING_IMAGEWITHMEMORY_H
-#define VULKAN_SRC_GAME_RENDERING_IMAGEWITHMEMORY_H
+#ifndef VULKAN_SRC_IMAGEWITHMEMORY_H_
+#define VULKAN_SRC_IMAGEWITHMEMORY_H_
 
 #include "memory/DeviceMemorySubAllocation.h"
 #include "vulkan/Image.h"
@@ -9,4 +9,4 @@ struct ImageWithMemory {
   DeviceMemorySubAllocation memory;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERING_IMAGEWITHMEMORY_H
+#endif  // VULKAN_SRC_IMAGEWITHMEMORY_H_

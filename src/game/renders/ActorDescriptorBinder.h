@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERS_ACTORDESCRIPTORBINDER_H
-#define VULKAN_SRC_GAME_RENDERS_ACTORDESCRIPTORBINDER_H
+#ifndef VULKAN_SRC_GAME_RENDERS_ACTORDESCRIPTORBINDER_H_
+#define VULKAN_SRC_GAME_RENDERS_ACTORDESCRIPTORBINDER_H_
 
 #include "util/types.h"
 #include "vulkan/CommandBuffer.h"
@@ -15,4 +15,4 @@ class ActorDescriptorBinder {
                                       const u32 actorIndex) const = 0;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERS_ACTORDESCRIPTORBINDER_H
+#endif  // VULKAN_SRC_GAME_RENDERS_ACTORDESCRIPTORBINDER_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_DEVICEMEMORY_H
-#define VULKAN_SRC_VULKAN_DEVICEMEMORY_H
+#ifndef VULKAN_SRC_VULKAN_DEVICEMEMORY_H_
+#define VULKAN_SRC_VULKAN_DEVICEMEMORY_H_
 
 #include <vulkan/vulkan_core.h>
 
@@ -43,4 +43,4 @@ class DeviceMemory {
   VkDeviceMemory memory;
 };
 
-#endif  // VULKAN_SRC_VULKAN_DEVICEMEMORY_H
+#endif  // VULKAN_SRC_VULKAN_DEVICEMEMORY_H_

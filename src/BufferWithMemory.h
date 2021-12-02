@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERING_BUFFERWITHMEMORY_H
-#define VULKAN_SRC_GAME_RENDERING_BUFFERWITHMEMORY_H
+#ifndef VULKAN_SRC_BUFFERWITHMEMORY_H_
+#define VULKAN_SRC_BUFFERWITHMEMORY_H_
 
 #include "memory/DeviceMemorySubAllocation.h"
 #include "vulkan/Buffer.h"
@@ -9,4 +9,4 @@ struct BufferWithMemory {
   DeviceMemorySubAllocation memory;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERING_BUFFERWITHMEMORY_H
+#endif  // VULKAN_SRC_BUFFERWITHMEMORY_H_

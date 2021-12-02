@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_PHYSICALDEVICE_H
-#define VULKAN_SRC_VULKAN_PHYSICALDEVICE_H
+#ifndef VULKAN_SRC_VULKAN_PHYSICALDEVICE_H_
+#define VULKAN_SRC_VULKAN_PHYSICALDEVICE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -35,4 +35,4 @@ class PhysicalDevice {
   VkPhysicalDeviceMemoryProperties memoryProperties;
 };
 
-#endif  // VULKAN_SRC_VULKAN_PHYSICALDEVICE_H
+#endif  // VULKAN_SRC_VULKAN_PHYSICALDEVICE_H_

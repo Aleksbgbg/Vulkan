@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VIEWTRANSFORM_H
-#define VULKAN_SRC_VIEWTRANSFORM_H
+#ifndef VULKAN_SRC_VIEWTRANSFORM_H_
+#define VULKAN_SRC_VIEWTRANSFORM_H_
 
 #include "util/include/glm.h"
 
@@ -27,4 +27,4 @@ struct PerFrameData {
   Light light;
 };
 
-#endif  // VULKAN_SRC_VIEWTRANSFORM_H
+#endif  // VULKAN_SRC_VIEWTRANSFORM_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_IMAGEVIEW_H
-#define VULKAN_SRC_VULKAN_IMAGEVIEW_H
+#ifndef VULKAN_SRC_VULKAN_IMAGEVIEW_H_
+#define VULKAN_SRC_VULKAN_IMAGEVIEW_H_
 
 #include <vulkan/vulkan.h>
 
@@ -26,4 +26,4 @@ class ImageView {
   VkImageView imageView;
 };
 
-#endif  // VULKAN_SRC_VULKAN_IMAGEVIEW_H
+#endif  // VULKAN_SRC_VULKAN_IMAGEVIEW_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_PLAYER_H
-#define VULKAN_SRC_GAME_PLAYER_H
+#ifndef VULKAN_SRC_GAME_RENDERS_SPACESHIPS_MAINPLAYER_H_
+#define VULKAN_SRC_GAME_RENDERS_SPACESHIPS_MAINPLAYER_H_
 
 #include "PlayerController.h"
 #include "SpaceshipMesh.h"
@@ -26,4 +26,4 @@ class MainPlayer : public Actor {
   const PlayerController& playerController_;
 };
 
-#endif  // VULKAN_SRC_GAME_PLAYER_H
+#endif  // VULKAN_SRC_GAME_RENDERS_SPACESHIPS_MAINPLAYER_H_

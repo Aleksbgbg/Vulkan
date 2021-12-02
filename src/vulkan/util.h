@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_UTIL_H
-#define VULKAN_SRC_VULKAN_UTIL_H
+#ifndef VULKAN_SRC_VULKAN_UTIL_H_
+#define VULKAN_SRC_VULKAN_UTIL_H_
 
 #include <functional>
 #include <set>
@@ -42,4 +42,4 @@ bool RequiredValuesAreAvailable(
   return requiredElementsSet.empty();
 }
 
-#endif  // VULKAN_SRC_VULKAN_UTIL_H
+#endif  // VULKAN_SRC_VULKAN_UTIL_H_

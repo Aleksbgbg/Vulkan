@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTRENDER_H
-#define VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTRENDER_H
+#ifndef VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTRENDER_H_
+#define VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTRENDER_H_
 
 #include <game/renders/ActorSpawnController.h>
 
@@ -14,4 +14,4 @@ class LightRender : public SceneRender {
                   ActorSpawnController& actorSpawnController) override;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTRENDER_H
+#endif  // VULKAN_SRC_GAME_RENDERS_LIGHT_LIGHTRENDER_H_

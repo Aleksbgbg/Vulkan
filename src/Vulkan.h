@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_H
-#define VULKAN_SRC_VULKAN_H
+#ifndef VULKAN_SRC_VULKAN_H_
+#define VULKAN_SRC_VULKAN_H_
 
 #include <vulkan/vulkan.h>
 
@@ -8,7 +8,6 @@
 #include "Vulkan.h"
 #include "game/Scene.h"
 #include "game/rendering/resources/ResourceLoader.h"
-#include "general/animations/NormalizedOneTimeFunctionAnimation.h"
 #include "general/geometry/Rect.h"
 #include "general/threading/MultithreadedMessageQueue.h"
 #include "general/windowing/Window.h"
@@ -141,4 +140,4 @@ class Vulkan : public SwapchainWithResources::Initializer,
   CommandPool renderCommandPool;
 };
 
-#endif  // VULKAN_SRC_VULKAN_H
+#endif  // VULKAN_SRC_VULKAN_H_

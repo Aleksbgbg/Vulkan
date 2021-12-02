@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_SWAPCHAIN_H
-#define VULKAN_SRC_VULKAN_SWAPCHAIN_H
+#ifndef VULKAN_SRC_VULKAN_SWAPCHAIN_H_
+#define VULKAN_SRC_VULKAN_SWAPCHAIN_H_
 
 #include <vulkan/vulkan.h>
 
@@ -56,4 +56,4 @@ class Swapchain {
   VkExtent2D imageExtent;
 };
 
-#endif  // VULKAN_SRC_VULKAN_SWAPCHAIN_H
+#endif  // VULKAN_SRC_VULKAN_SWAPCHAIN_H_

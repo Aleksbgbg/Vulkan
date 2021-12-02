@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_COMMANDPOOL_H
-#define VULKAN_SRC_VULKAN_COMMANDPOOL_H
+#ifndef VULKAN_SRC_VULKAN_COMMANDPOOL_H_
+#define VULKAN_SRC_VULKAN_COMMANDPOOL_H_
 
 #include <vulkan/vulkan.h>
 
@@ -29,4 +29,4 @@ class CommandPool {
   VkCommandPool commandPool;
 };
 
-#endif  // VULKAN_SRC_VULKAN_COMMANDPOOL_H
+#endif  // VULKAN_SRC_VULKAN_COMMANDPOOL_H_

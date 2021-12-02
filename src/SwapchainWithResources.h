@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_SWAPCHAINWITHRESOURCES_H
-#define VULKAN_SRC_SWAPCHAINWITHRESOURCES_H
+#ifndef VULKAN_SRC_SWAPCHAINWITHRESOURCES_H_
+#define VULKAN_SRC_SWAPCHAINWITHRESOURCES_H_
 
 #include "ImageWithMemory.h"
 #include "memory/DeviceMemoryAllocator.h"
@@ -75,4 +75,4 @@ class SwapchainWithResources {
   u32 currentImageIndex;
 };
 
-#endif  // VULKAN_SRC_SWAPCHAINWITHRESOURCES_H
+#endif  // VULKAN_SRC_SWAPCHAINWITHRESOURCES_H_

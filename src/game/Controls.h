@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_CONTROLS_H
-#define VULKAN_SRC_GAME_CONTROLS_H
+#ifndef VULKAN_SRC_GAME_CONTROLS_H_
+#define VULKAN_SRC_GAME_CONTROLS_H_
 
 #include <unordered_map>
 #include <unordered_set>
@@ -34,4 +34,4 @@ class Controls {
   std::unordered_map<Axis, glm::vec2> axisValues_;
 };
 
-#endif  // VULKAN_SRC_GAME_CONTROLS_H
+#endif  // VULKAN_SRC_GAME_CONTROLS_H_

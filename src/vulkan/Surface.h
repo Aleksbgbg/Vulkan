@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_SURFACE_H
-#define VULKAN_SRC_VULKAN_SURFACE_H
+#ifndef VULKAN_SRC_VULKAN_SURFACE_H_
+#define VULKAN_SRC_VULKAN_SURFACE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -34,4 +34,4 @@ class Surface {
   VkSurfaceKHR surface;
 };
 
-#endif  // VULKAN_SRC_VULKAN_SURFACE_H
+#endif  // VULKAN_SRC_VULKAN_SURFACE_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RECT_H
-#define VULKAN_SRC_RECT_H
+#ifndef VULKAN_SRC_GENERAL_GEOMETRY_RECT_H_
+#define VULKAN_SRC_GENERAL_GEOMETRY_RECT_H_
 
 #include "util/include/glm.h"
 #include "util/types.h"
@@ -51,4 +51,4 @@ class Rect {
   T y2;
 };
 
-#endif  // VULKAN_SRC_RECT_H
+#endif  // VULKAN_SRC_GENERAL_GEOMETRY_RECT_H_

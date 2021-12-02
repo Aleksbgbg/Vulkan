@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_BUILD_DEFINITION_H
-#define VULKAN_SRC_BUILD_DEFINITION_H
+#ifndef VULKAN_SRC_UTIL_BUILD_DEFINITION_H_
+#define VULKAN_SRC_UTIL_BUILD_DEFINITION_H_
 
 // Compilation depending on debug / release
 
@@ -31,4 +31,4 @@
 #define WINDOWS
 #endif
 
-#endif  // VULKAN_SRC_BUILD_DEFINITION_H
+#endif  // VULKAN_SRC_UTIL_BUILD_DEFINITION_H_

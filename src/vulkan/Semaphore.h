@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_SEMAPHORE_H
-#define VULKAN_SRC_VULKAN_SEMAPHORE_H
+#ifndef VULKAN_SRC_VULKAN_SEMAPHORE_H_
+#define VULKAN_SRC_VULKAN_SEMAPHORE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -26,4 +26,4 @@ class Semaphore {
   VkSemaphore semaphore;
 };
 
-#endif  // VULKAN_SRC_VULKAN_SEMAPHORE_H
+#endif  // VULKAN_SRC_VULKAN_SEMAPHORE_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERS_SCENERENDERER_H
-#define VULKAN_SRC_GAME_RENDERS_SCENERENDERER_H
+#ifndef VULKAN_SRC_GAME_RENDERS_SCENERENDERER_H_
+#define VULKAN_SRC_GAME_RENDERS_SCENERENDERER_H_
 
 #include "ActorDescriptorAllocator.h"
 #include "ActorDescriptorBinder.h"
@@ -46,4 +46,4 @@ class SceneRenderer : public ActorSpawnController {
   std::vector<std::unique_ptr<Actor>> actors_;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERS_SCENERENDERER_H
+#endif  // VULKAN_SRC_GAME_RENDERS_SCENERENDERER_H_

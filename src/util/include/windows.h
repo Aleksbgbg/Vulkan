@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_INCLUDE_WINDOWS_H
-#define VULKAN_SRC_INCLUDE_WINDOWS_H
+#ifndef VULKAN_SRC_UTIL_INCLUDE_WINDOWS_H_
+#define VULKAN_SRC_UTIL_INCLUDE_WINDOWS_H_
 
 #include <Windows.h>
 
@@ -11,4 +11,4 @@
 #undef CreateWindowA
 #undef CreateWindowExA
 
-#endif  // VULKAN_SRC_INCLUDE_WINDOWS_H
+#endif  // VULKAN_SRC_UTIL_INCLUDE_WINDOWS_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_SKYBOXMESH_H
-#define VULKAN_SRC_GAME_SKYBOXMESH_H
+#ifndef VULKAN_SRC_GAME_RENDERING_MESHES_TEXTUREDMESH_H_
+#define VULKAN_SRC_GAME_RENDERING_MESHES_TEXTUREDMESH_H_
 
 #include "BufferWithMemory.h"
 #include "game/rendering/Texture.h"
@@ -23,4 +23,4 @@ class TexturedMesh : public Mesh {
   Texture texture;
 };
 
-#endif  // VULKAN_SRC_GAME_SKYBOXMESH_H
+#endif  // VULKAN_SRC_GAME_RENDERING_MESHES_TEXTUREDMESH_H_

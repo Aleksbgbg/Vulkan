@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_BUFFER_H
-#define VULKAN_SRC_VULKAN_BUFFER_H
+#ifndef VULKAN_SRC_VULKAN_BUFFER_H_
+#define VULKAN_SRC_VULKAN_BUFFER_H_
 
 #include <vulkan/vulkan.h>
 
@@ -32,4 +32,4 @@ class Buffer {
   VkDeviceSize size;
 };
 
-#endif  // VULKAN_SRC_VULKAN_BUFFER_H
+#endif  // VULKAN_SRC_VULKAN_BUFFER_H_

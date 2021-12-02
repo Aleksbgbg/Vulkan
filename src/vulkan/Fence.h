@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_VULKAN_FENCE_H
-#define VULKAN_SRC_VULKAN_FENCE_H
+#ifndef VULKAN_SRC_VULKAN_FENCE_H_
+#define VULKAN_SRC_VULKAN_FENCE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -29,4 +29,4 @@ class Fence {
   VkFence fence;
 };
 
-#endif  // VULKAN_SRC_VULKAN_FENCE_H
+#endif  // VULKAN_SRC_VULKAN_FENCE_H_

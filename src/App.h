@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_APP_H
-#define VULKAN_SRC_APP_H
+#ifndef VULKAN_SRC_APP_H_
+#define VULKAN_SRC_APP_H_
 
 #include <chrono>
 #include <memory>
@@ -58,4 +58,4 @@ class App {
   std::vector<SwapchainRenderPass> swapchainRenderData;
 };
 
-#endif  // VULKAN_SRC_APP_H
+#endif  // VULKAN_SRC_APP_H_

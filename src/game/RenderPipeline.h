@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_RENDERPIPELINE_H
-#define VULKAN_SRC_GAME_RENDERPIPELINE_H
+#ifndef VULKAN_SRC_GAME_RENDERPIPELINE_H_
+#define VULKAN_SRC_GAME_RENDERPIPELINE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -63,4 +63,4 @@ class RenderPipeline {
   Pipeline pipeline;
 };
 
-#endif  // VULKAN_SRC_GAME_RENDERPIPELINE_H
+#endif  // VULKAN_SRC_GAME_RENDERPIPELINE_H_

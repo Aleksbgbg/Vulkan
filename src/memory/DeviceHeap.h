@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_MEMORY_DEVICEHEAP_H
-#define VULKAN_SRC_MEMORY_DEVICEHEAP_H
+#ifndef VULKAN_SRC_MEMORY_DEVICEHEAP_H_
+#define VULKAN_SRC_MEMORY_DEVICEHEAP_H_
 
 #include <memory>
 #include <vector>
@@ -59,4 +59,4 @@ class DeviceHeap {
   std::vector<AllocatedMemory> allocations;
 };
 
-#endif  // VULKAN_SRC_MEMORY_DEVICEHEAP_H
+#endif  // VULKAN_SRC_MEMORY_DEVICEHEAP_H_

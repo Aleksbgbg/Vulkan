@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_MEMORY_MEMORYBLOCK_H
-#define VULKAN_SRC_MEMORY_MEMORYBLOCK_H
+#ifndef VULKAN_SRC_MEMORY_MEMORYBLOCK_H_
+#define VULKAN_SRC_MEMORY_MEMORYBLOCK_H_
 
 #include <vulkan/vulkan.h>
 
@@ -8,4 +8,4 @@ struct MemoryBlock {
   VkDeviceSize size;
 };
 
-#endif  // VULKAN_SRC_MEMORY_MEMORYBLOCK_H
+#endif  // VULKAN_SRC_MEMORY_MEMORYBLOCK_H_

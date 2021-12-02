@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_MODEL_H
-#define VULKAN_SRC_MODEL_H
+#ifndef VULKAN_SRC_GENERAL_FILES_OBJ_H_
+#define VULKAN_SRC_GENERAL_FILES_OBJ_H_
 
 #include <array>
 #include <string_view>
@@ -92,4 +92,4 @@ class hash<file::ModelFace> {
 
 }  // namespace std
 
-#endif  // VULKAN_SRC_MODEL_H
+#endif  // VULKAN_SRC_GENERAL_FILES_OBJ_H_
