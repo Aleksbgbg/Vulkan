@@ -15,32 +15,43 @@ for path in CODE_PATHS:
       if not file.endswith(".cpp") and not file.endswith(".cc") and not file.endswith(".h"):
         continue
 
+      modified = False
+
       relative_path = os.path.join(subdir, file)
 
       with open(relative_path, "r+") as file_handle:
-        lines = file_handle.read().splitlines()
+        lines = file_handle.read().split("\n")
 
         # Enforce trailing newline
         if len(lines[-1]) > 0:
           lines.append("")
+          modified = True
 
         # Coerce header guards
         if file.endswith(".h"):
           header_guard = "VULKAN_" + relative_path.upper().replace("\\", "_")[:-2] + "_H_"        
 
-          end_guard_line = 0
+          end_guard_line_index = 0
 
           for (index, line) in enumerate(lines):
             if line.startswith("#endif"):
-              end_guard_line = index
+              end_guard_line_index = index
 
-          lines[0] = f"#ifndef {header_guard}"
-          lines[1] = f"#define {header_guard}"
-          lines[end_guard_line] = f"#endif  // {header_guard}"
-          
-        file_handle.seek(0)
-        file_handle.write("\n".join(lines))
-        file_handle.truncate()
+          guard_line = f"#ifndef {header_guard}"
+          define_line = f"#define {header_guard}"
+          end_guard_line = f"#endif  // {header_guard}"
+
+          if lines[0] != guard_line or lines[1] != define_line or lines[end_guard_line_index] != end_guard_line:
+            lines[0] = guard_line
+            lines[1] = define_line
+            lines[end_guard_line] = end_guard_line
+
+            modified = True
+
+        if modified:
+          file_handle.seek(0)
+          file_handle.write("\n".join(lines))
+          file_handle.truncate()
       
       # .cpp -> .cc
       if file.endswith(".cpp"):

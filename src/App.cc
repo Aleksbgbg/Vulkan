@@ -6,7 +6,7 @@
 #include "general/logging/log.h"
 #include "vulkan/structures/ClearValue.h"
 
-App::App(wnd::Window& window, std::unique_ptr<Vulkan> appVulkan)
+App::App(sys::Window& window, std::unique_ptr<Vulkan> appVulkan)
     : window(window),
       vulkan(std::move(appVulkan)),
       scene(std::make_unique<Scene>(*vulkan, *vulkan, *vulkan, *vulkan, *vulkan,
@@ -43,20 +43,20 @@ int App::Run() {
 void App::MainThread() {
   while (true) {
     switch (window.WaitAndProcessEvent()) {
-      case wnd::Window::Event::Exit:
+      case sys::Window::Event::Exit:
         threadMessenger.PostMessage(EventNotification::Unpaused);
         threadMessenger.PostMessage(EventNotification::Exited);
         return;
 
-      case wnd::Window::Event::Minimized:
+      case sys::Window::Event::Minimized:
         threadMessenger.PostMessage(EventNotification::Paused);
         break;
 
-      case wnd::Window::Event::Restored:
+      case sys::Window::Event::Restored:
         threadMessenger.PostMessage(EventNotification::Unpaused);
         break;
 
-      case wnd::Window::Event::SizeChanged:
+      case sys::Window::Event::SizeChanged:
         threadMessenger.PostMessage(EventNotification::Resized);
         break;
     }

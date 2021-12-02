@@ -9,7 +9,7 @@
 #include "Vulkan.h"
 #include "game/Scene.h"
 #include "general/threading/MultithreadedMessageQueue.h"
-#include "general/windowing/Window.h"
+#include "system/windowing/Window.h"
 #include "util/types.h"
 #include "vulkan/CommandBuffer.h"
 #include "vulkan/Fence.h"
@@ -17,7 +17,7 @@
 
 class App {
  public:
-  App(wnd::Window& window, std::unique_ptr<Vulkan> appVulkan);
+  App(sys::Window& window, std::unique_ptr<Vulkan> appVulkan);
   ~App();
 
   int Run();
@@ -32,7 +32,7 @@ class App {
   void Render();
 
  private:
-  wnd::Window& window;
+  sys::Window& window;
   Controls controls;
 
   std::unique_ptr<Vulkan> vulkan;

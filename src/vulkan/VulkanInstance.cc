@@ -1,7 +1,6 @@
 #include "VulkanInstance.h"
 
 #include "error.h"
-#include "general/windowing/VulkanWindow.h"
 #include "util.h"
 
 VulkanInstance::VulkanInstance() : instance(nullptr) {}
@@ -32,8 +31,9 @@ DebugUtilsMessenger VulkanInstance::CreateDebugUtilsMessenger(
   return DebugUtilsMessenger(instance, infoBuilder);
 }
 
-Surface VulkanInstance::CreateSurface(const VulkanWindow& vulkanWindow) const {
-  return vulkanWindow.CreateWindowSurface(instance);
+Surface VulkanInstance::CreateSurface(
+    const SurfaceFactory& surfaceFactory) const {
+  return surfaceFactory.CreateWindowSurface(instance);
 }
 
 std::vector<PhysicalDevice> VulkanInstance::GetPhysicalDevices() const {

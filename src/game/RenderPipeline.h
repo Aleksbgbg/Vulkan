@@ -3,7 +3,9 @@
 
 #include <vulkan/vulkan.h>
 
-#include "general/windowing/Window.h"
+#include <string_view>
+
+#include "system/windowing/Window.h"
 #include "vulkan/CommandBuffer.h"
 #include "vulkan/Pipeline.h"
 
@@ -57,7 +59,7 @@ class RenderPipeline {
 
   const PipelineLayout& GetLayout() const;
   void Bind(const CommandBuffer& commandBuffer,
-            const wnd::Window& window) const;
+            const sys::Window& window) const;
 
  private:
   Pipeline pipeline;

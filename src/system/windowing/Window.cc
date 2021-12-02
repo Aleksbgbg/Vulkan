@@ -1,6 +1,6 @@
 #include "Window.h"
 
-namespace wnd {
+namespace sys {
 
 Window::Window(const Recti windowRect, SDL_Window* window)
     : windowRect(windowRect), window(window), keyboard(), mouse() {}
@@ -95,4 +95,4 @@ void Window::EndFrame() {
   keyboard.ClearPressedKeys();
 }
 
-}  // namespace wnd
+}  // namespace sys

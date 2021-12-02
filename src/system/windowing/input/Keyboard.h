@@ -1,10 +1,11 @@
-#ifndef VULKAN_SRC_GENERAL_WINDOWING_INPUT_KEYBOARD_H_
-#define VULKAN_SRC_GENERAL_WINDOWING_INPUT_KEYBOARD_H_
-
-#include <SDL.h>
-#include <SDL_keycode.h>
+#ifndef VULKAN_SRC_SYSTEM_WINDOWING_INPUT_KEYBOARD_H_
+#define VULKAN_SRC_SYSTEM_WINDOWING_INPUT_KEYBOARD_H_
 
 #include <unordered_set>
+
+#include "util/include/sdl.h"
+// After including main SDL
+#include <SDL_keycode.h>
 
 class Keyboard {
  public:
@@ -21,4 +22,4 @@ class Keyboard {
   std::unordered_set<SDL_Keycode> pressedKeys;
 };
 
-#endif  // VULKAN_SRC_GENERAL_WINDOWING_INPUT_KEYBOARD_H_
+#endif  // VULKAN_SRC_SYSTEM_WINDOWING_INPUT_KEYBOARD_H_

@@ -6,14 +6,15 @@
 #include "DynamicUniformBuffer.h"
 #include "SwapchainWithResources.h"
 #include "Vulkan.h"
+#include "VulkanSystem.h"
 #include "game/Scene.h"
 #include "game/rendering/resources/ResourceLoader.h"
 #include "general/geometry/Rect.h"
 #include "general/threading/MultithreadedMessageQueue.h"
-#include "general/windowing/Window.h"
-#include "general/windowing/input/Keyboard.h"
-#include "general/windowing/input/Mouse.h"
 #include "memory/DeviceMemoryAllocator.h"
+#include "system/windowing/Window.h"
+#include "system/windowing/input/Keyboard.h"
+#include "system/windowing/input/Mouse.h"
 #include "vulkan/Swapchain.h"
 #include "vulkan/VulkanInstance.h"
 
@@ -27,7 +28,7 @@ class Vulkan : public SwapchainWithResources::Initializer,
                public ShaderModuleFactory,
                public ResourceLoader {
  public:
-  Vulkan(const VulkanWindow& window);
+  Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window);
   ~Vulkan();
 
   CommandBuffer AllocatePrimaryRenderCommandBuffer() const;

@@ -9,7 +9,6 @@
 #include "game/rendering/meshes/Mesh.h"
 #include "game/renders/ParticleController.h"
 #include "game/renders/spaceships/SpaceshipModel.h"
-#include "general/windowing/Window.h"
 
 class SpaceshipsActor : public Actor {
  public:

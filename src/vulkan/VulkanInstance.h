@@ -6,15 +6,12 @@
 #include "DebugUtilsMessenger.h"
 #include "PhysicalDevice.h"
 #include "Surface.h"
+#include "SurfaceFactory.h"
 #include "structures/DebugUtilsMessengerCreateInfo.h"
 #include "structures/InstanceCreateInfo.h"
 #include "util/types.h"
 
-class VulkanWindow;
-
 class VulkanInstance {
-  friend class ImGuiInstance;
-
  public:
   VulkanInstance();
   explicit VulkanInstance(const InstanceCreateInfoBuilder& infoBuilder);
@@ -29,7 +26,7 @@ class VulkanInstance {
 
   DebugUtilsMessenger CreateDebugUtilsMessenger(
       DebugUtilsMessengerCreateInfoExtBuilder& infoBuilder) const;
-  Surface CreateSurface(const VulkanWindow& vulkanWindow) const;
+  Surface CreateSurface(const SurfaceFactory& surfaceFactory) const;
 
   std::vector<PhysicalDevice> GetPhysicalDevices() const;
 

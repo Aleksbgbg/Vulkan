@@ -1,16 +1,23 @@
-#ifndef VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H_
-#define VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H_
+#ifndef VULKAN_SRC_SYSTEM_WINDOWING_WINDOW_H_
+#define VULKAN_SRC_SYSTEM_WINDOWING_WINDOW_H_
 
-#include "VulkanWindow.h"
 #include "general/geometry/Rect.h"
-#include "general/windowing/input/Keyboard.h"
-#include "general/windowing/input/Mouse.h"
-#include "util/include/sdl.h"
+#include "system/windowing/input/Keyboard.h"
+#include "system/windowing/input/Mouse.h"
+#include "vulkan/SurfaceFactory.h"
 
-namespace wnd {
+namespace sys {
 
-class Window : public VulkanWindow {
+class Window : public SurfaceFactory {
  public:
+  enum class Event {
+    None,
+    Exit,
+    Minimized,
+    Restored,
+    SizeChanged,
+  };
+
   Window(const Recti windowRect, SDL_Window* window);
 
   Window(const Window&) = delete;
@@ -20,15 +27,6 @@ class Window : public VulkanWindow {
 
   Window& operator=(const Window&) = delete;
   Window& operator=(Window&& other) noexcept;
-
- public:
-  enum class Event {
-    None,
-    Exit,
-    Minimized,
-    Restored,
-    SizeChanged,
-  };
 
   Recti GetRect() const;
 
@@ -48,6 +46,6 @@ class Window : public VulkanWindow {
   Mouse mouse;
 };
 
-}  // namespace wnd
+}  // namespace sys
 
-#endif  // VULKAN_SRC_GENERAL_WINDOWING_WINDOW_H_
+#endif  // VULKAN_SRC_SYSTEM_WINDOWING_WINDOW_H_

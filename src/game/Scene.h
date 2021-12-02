@@ -9,7 +9,7 @@
 #include "game/model/UpdateContext.h"
 #include "game/renders/ActorSpawnController.h"
 #include "game/renders/SceneRenderer.h"
-#include "general/windowing/Window.h"
+#include "system/windowing/Window.h"
 #include "vulkan/CommandBuffer.h"
 
 class Scene {
@@ -35,7 +35,7 @@ class Scene {
         const DescriptorSetLayoutFactory& descriptorSetLayoutFactory,
         const RenderPipeline::Initializer& renderPipelineInitializer,
         const ShaderModuleFactory& shaderModuleFactory,
-        ResourceLoader& resourceLoader, const wnd::Window& window,
+        ResourceLoader& resourceLoader, const sys::Window& window,
         const u32& imageIndex);
 
   Scene(const Scene&) = delete;
@@ -52,7 +52,7 @@ class Scene {
  private:
   std::vector<std::unique_ptr<SceneRenderer>> renderers_;
 
-  const wnd::Window* window_;
+  const sys::Window* window_;
   Camera camera_;
 
   DescriptorPool descriptorPool_;

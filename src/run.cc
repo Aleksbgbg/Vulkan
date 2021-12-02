@@ -1,18 +1,19 @@
+#include "run.h"
+
 #include <stdexcept>
 
 #include "App.h"
 #include "general/files/file.h"
 #include "general/logging/log.h"
-#include "general/windowing/system_window.h"
 
-int RunVulkanApp() {
-  std::unique_ptr<wnd::Window> window = InitializeSystemWindow(1920, 1080);
-  return App(*window, std::make_unique<Vulkan>(*window)).Run();
+int RunVulkanApp(const sys::System& system) {
+  const std::unique_ptr<sys::Window> window = system.SpawnWindow(1920, 1080);
+  return App(*window, std::make_unique<Vulkan>(system, *window)).Run();
 }
 
-int run() {
+int run(const sys::System& system) {
   try {
-    return RunVulkanApp();
+    return RunVulkanApp(system);
   } catch (const std::exception& exception) {
     const std::string errorString =
         std::string("Error during run:\n") + exception.what();
@@ -20,8 +21,4 @@ int run() {
     file::WriteFile("RunDebug.txt", errorString);
     throw;
   }
-}
-
-int main() {
-  return run();
 }

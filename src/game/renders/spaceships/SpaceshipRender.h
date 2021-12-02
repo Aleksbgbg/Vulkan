@@ -1,12 +1,10 @@
 #ifndef VULKAN_SRC_GAME_RENDERS_SPACESHIPS_SPACESHIPRENDER_H_
 #define VULKAN_SRC_GAME_RENDERS_SPACESHIPS_SPACESHIPRENDER_H_
 
-#include <game/renders/ActorSpawnController.h>
-
 #include "game/Camera.h"
+#include "game/renders/ActorSpawnController.h"
 #include "game/renders/ParticleController.h"
 #include "game/renders/SceneRender.h"
-#include "general/windowing/Window.h"
 
 class SpaceshipRender : public SceneRender {
  public:

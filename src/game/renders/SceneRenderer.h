@@ -34,7 +34,7 @@ class SceneRenderer : public ActorSpawnController {
   void UpdateModel(const UpdateContext& updateContext);
   void Render(const CommandBuffer& commandBuffer,
               const SceneDescriptorBinder& sceneDescriptorBinder,
-              const wnd::Window& window) const;
+              const sys::Window& window) const;
 
  private:
   ResourceLoader& resourceLoader_;

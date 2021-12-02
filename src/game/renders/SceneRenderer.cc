@@ -54,7 +54,7 @@ void SceneRenderer::UpdateModel(const UpdateContext& updateContext) {
 
 void SceneRenderer::Render(const CommandBuffer& commandBuffer,
                            const SceneDescriptorBinder& sceneDescriptorBinder,
-                           const wnd::Window& window) const {
+                           const sys::Window& window) const {
   renderPipeline_.Bind(commandBuffer, window);
   sceneDescriptorBinder.BindActorDescriptorSet(commandBuffer,
                                                renderPipeline_.GetLayout());

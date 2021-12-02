@@ -143,7 +143,7 @@ Scene::Scene(const Initializer& initializer,
              const DescriptorSetLayoutFactory& descriptorSetLayoutFactory,
              const RenderPipeline::Initializer& renderPipelineInitializer,
              const ShaderModuleFactory& shaderModuleFactory,
-             ResourceLoader& resourceLoader, const wnd::Window& window,
+             ResourceLoader& resourceLoader, const sys::Window& window,
              const u32& imageIndex)
     : renderers_(),
       window_(&window),

@@ -25,20 +25,13 @@
 
 static constexpr u32 WANTED_SWAPCHAIN_IMAGES = 3u;
 
-VulkanInstance CreateVulkanInstance() {
+VulkanInstance CreateVulkanInstance(const VulkanSystem& vulkanSystem) {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
 
   const std::vector<const char*> requiredExtensions = {
     VK_KHR_SURFACE_EXTENSION_NAME,
-  // Hardcoded to prevent leaking platform details - may need to be fetched from
-  // platform layer using the macros in the future if they start changing
-#if defined(WINDOWS)
-    "VK_KHR_win32_surface",
-#endif
-#if defined(LINUX)
-    "VK_KHR_xlib_surface",
-#endif
+    vulkanSystem.SurfaceExtensionName(),
 #if defined(VALIDATION)
     VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
 #endif
@@ -96,10 +89,13 @@ PhysicalDevice ChoosePhysicalDevice(const VulkanInstance& instance) {
 }
 
 u32 CalculateSwapchainImages(
-    const VkSurfaceCapabilitiesKHR surfaceCapabilities) {
+    const VkSurfaceCapabilitiesKHR& surfaceCapabilities) {
+  const u32 maxImageCount = surfaceCapabilities.maxImageCount == 0
+                                ? WANTED_SWAPCHAIN_IMAGES
+                                : surfaceCapabilities.maxImageCount;
+
   return CoerceToRange(WANTED_SWAPCHAIN_IMAGES,
-                       surfaceCapabilities.minImageCount,
-                       surfaceCapabilities.maxImageCount);
+                       surfaceCapabilities.minImageCount, maxImageCount);
 }
 
 u32 ChooseQueueFamily(const PhysicalDevice& physicalDevice,
@@ -279,8 +275,8 @@ RenderPass Vulkan::CreateRenderPass() const {
           .SetPDependencies(subpassDependencies.data()));
 }
 
-Vulkan::Vulkan(const VulkanWindow& window)
-    : instance(CreateVulkanInstance()),
+Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
+    : instance(CreateVulkanInstance(vulkanSystem)),
 #ifdef VALIDATION
       debugMessenger(instance.CreateDebugUtilsMessenger(
           DebugUtilsMessengerCreateInfoExtBuilder()

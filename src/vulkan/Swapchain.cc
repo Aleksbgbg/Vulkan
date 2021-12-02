@@ -16,7 +16,7 @@ Swapchain::Swapchain(VkDevice device, const Swapchain& oldSwapchain,
 Swapchain::Swapchain(VkDevice device,
                      const SwapchainCreateInfoBuilder& infoBuilder)
     : device(device) {
-  VkSwapchainCreateInfoKHR swapchainCreateInfo = infoBuilder;
+  const VkSwapchainCreateInfoKHR swapchainCreateInfo = infoBuilder;
   imageFormat = swapchainCreateInfo.imageFormat;
   imageExtent = swapchainCreateInfo.imageExtent;
   PROCEED_ON_VALID_RESULT(
@@ -77,7 +77,7 @@ VkExtent2D Swapchain::GetImageExtent() const {
 Swapchain::AcquireNextImageResult Swapchain::AcquireNextImage(
     const SynchronisationPack& synchronisation) const {
   u32 imageIndex;
-  VkResult status = vkAcquireNextImageKHR(
+  const VkResult status = vkAcquireNextImageKHR(
       device, swapchain, UINT64_MAX,
       synchronisation.GetSignalSemaphore()->Raw(), VK_NULL_HANDLE, &imageIndex);
 

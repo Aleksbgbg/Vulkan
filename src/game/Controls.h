@@ -5,8 +5,8 @@
 #include <unordered_set>
 
 #include "general/geometry/Rect.h"
-#include "general/windowing/input/Keyboard.h"
-#include "general/windowing/input/Mouse.h"
+#include "system/windowing/input/Keyboard.h"
+#include "system/windowing/input/Mouse.h"
 
 enum class Control {
   Accelerate = 1,

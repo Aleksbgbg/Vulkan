@@ -8,6 +8,7 @@
 #undef PostMessage
 #undef min
 #undef max
+#undef CreateWindow
 #undef CreateWindowA
 #undef CreateWindowExA
 
