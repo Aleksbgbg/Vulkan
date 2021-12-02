@@ -1,3 +1,8 @@
+# Formats C++ code in codebase
+# - Adds trailing newline
+# - Fixes incorrect header guards
+# - Ensures sources files use the .cc extension
+
 import os
 
 CODE_PATHS = ["src", "test"]
