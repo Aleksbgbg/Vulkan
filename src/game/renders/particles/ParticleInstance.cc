@@ -10,7 +10,8 @@ ParticleInstance::ParticleInstance(const MultiParticleMesh& mesh,
       particles_(),
       transform_(1.0f),
       aliveParticles_(0) {
-  bufferBinder.BindBuffer(instanceParameters_.buffer, VK_WHOLE_SIZE,
+  bufferBinder.BindBuffer(instanceParameters_.buffer,
+                          instanceParameters_.buffer.Size(),
                           VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0);
 
   KillAllParticles();
