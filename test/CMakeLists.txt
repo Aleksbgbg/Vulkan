@@ -5,6 +5,6 @@ set(TEST_SOURCES main.cc memory/DeviceHeapTest.cc general/files/images/ReadPngTe
 add_executable(${TEST_BINARY_NAME} ${TEST_SOURCES})
 add_test(NAME ${TEST_BINARY_NAME} COMMAND ${TEST_BINARY_NAME})
 
-target_link_libraries(${TEST_BINARY_NAME} PRIVATE ${CMAKE_PROJECT_NAME}_lib gtest gmock)
+target_link_libraries(${TEST_BINARY_NAME} PRIVATE ${CMAKE_PROJECT_NAME}_lib gtest)
 
-add_files_to_output(data/images data/images)
+add_files_to_output(data/images ${CMAKE_CURRENT_BINARY_DIR}/data/images)
