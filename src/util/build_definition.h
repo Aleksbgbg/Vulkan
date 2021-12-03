@@ -11,12 +11,14 @@
 #define VALIDATION
 #define DIAGNOSTICS
 #define TOOLS
+#define PROFILING
 #endif
 
 #if defined(RELEASE)
 // #define VALIDATION
 #define DIAGNOSTICS
 // #define TOOLS
+#define PROFILING
 #endif
 
 #endif  // VULKAN_SRC_UTIL_BUILD_DEFINITION_H_

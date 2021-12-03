@@ -1,5 +1,7 @@
 #include "Framebuffer.h"
 
+#include <utility>
+
 #include "error.h"
 
 Framebuffer::Framebuffer() : framebuffer(nullptr) {}

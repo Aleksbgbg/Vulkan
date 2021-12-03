@@ -1,5 +1,7 @@
 #include "Semaphore.h"
 
+#include <utility>
+
 #include "error.h"
 
 Semaphore::Semaphore() : semaphore(nullptr) {}

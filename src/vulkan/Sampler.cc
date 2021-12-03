@@ -1,5 +1,7 @@
 #include "Sampler.h"
 
+#include <utility>
+
 #include "error.h"
 
 Sampler::Sampler() : sampler(nullptr) {}

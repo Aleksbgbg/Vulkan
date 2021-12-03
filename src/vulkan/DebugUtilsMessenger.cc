@@ -1,5 +1,7 @@
 #include "DebugUtilsMessenger.h"
 
+#include <utility>
+
 #include "error.h"
 
 DebugUtilsMessenger::DebugUtilsMessenger() : messenger(nullptr) {}

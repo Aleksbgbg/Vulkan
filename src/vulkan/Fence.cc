@@ -1,5 +1,7 @@
 #include "Fence.h"
 
+#include <utility>
+
 #include "error.h"
 
 Fence::Fence() : fence(nullptr) {}

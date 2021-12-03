@@ -1,5 +1,7 @@
 #include "ImageView.h"
 
+#include <utility>
+
 #include "error.h"
 
 ImageView::ImageView() : imageView(nullptr) {}
