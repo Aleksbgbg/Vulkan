@@ -24,8 +24,6 @@ elseif (UNIX)
   target_link_libraries(${LIBRARY_NAME} PRIVATE Threads::Threads)
   target_link_libraries(${BINARY_NAME} PRIVATE SDL2)
   target_link_libraries(${BINARY_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib/vulkan/lib/linux/libvulkan.so)
-
-  target_compile_options(${BINARY_NAME} PRIVATE -I/usr/include/SDL2 -D_REENTRANT -lSDL2 -lX11)
 endif ()
 target_link_libraries(${BINARY_NAME} PRIVATE ${LIBRARY_NAME})
 
