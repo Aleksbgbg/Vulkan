@@ -3,45 +3,57 @@
 namespace sys {
 
 Window::Window(const Recti windowRect, SDL_Window* window)
-    : windowRect(windowRect), window(window), keyboard(), mouse() {}
+    : isFocused_(false),
+      windowRect_(windowRect),
+      window_(window),
+      keyboard_(),
+      mouse_() {}
 
 Window::Window(Window&& other) noexcept
-    : windowRect(other.windowRect),
-      window(other.window),
-      keyboard(std::move(other.keyboard)),
-      mouse(std::move(other.mouse)) {
-  other.window = nullptr;
+    : windowRect_(other.windowRect_),
+      window_(other.window_),
+      keyboard_(std::move(other.keyboard_)),
+      mouse_(std::move(other.mouse_)) {
+  other.window_ = nullptr;
 }
 
 Window& Window::operator=(Window&& other) noexcept {
-  windowRect = other.windowRect;
-  std::swap(window, other.window);
-  keyboard = std::move(other.keyboard);
-  mouse = std::move(other.mouse);
+  windowRect_ = other.windowRect_;
+  std::swap(window_, other.window_);
+  keyboard_ = std::move(other.keyboard_);
+  mouse_ = std::move(other.mouse_);
 
   return *this;
 }
 
 Window::~Window() {
-  if (window != nullptr) {
+  if (window_ != nullptr) {
     SDL_Quit();
   }
 }
 
+bool Window::IsFocused() const {
+  return isFocused_;
+}
+
+glm::vec2 Window::GetSize() const {
+  return windowRect_.Size();
+}
+
 Recti Window::GetRect() const {
-  return windowRect;
+  return windowRect_;
 }
 
 Keyboard& Window::GetKeyboard() {
-  return keyboard;
+  return keyboard_;
 }
 
 const Keyboard& Window::GetKeyboard() const {
-  return keyboard;
+  return keyboard_;
 }
 
 const Mouse& Window::GetMouse() const {
-  return mouse;
+  return mouse_;
 }
 
 Window::Event Window::WaitAndProcessEvent() {
@@ -61,38 +73,41 @@ Window::Event Window::WaitAndProcessEvent() {
           return Event::Restored;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED:
-          windowRect =
-              Rectf::FromRegion(windowRect.X(), windowRect.Y(),
+          windowRect_ =
+              Rectf::FromRegion(windowRect_.X(), windowRect_.Y(),
                                 event.window.data1, event.window.data2);
           return Event::SizeChanged;
+
+        case SDL_WINDOWEVENT_FOCUS_GAINED:
+          isFocused_ = true;
+          break;
+
+        case SDL_WINDOWEVENT_FOCUS_LOST:
+          isFocused_ = false;
+          break;
       }
       break;
 
     case SDL_KEYDOWN:
       if (event.key.repeat == 0) {
-        keyboard.Keydown(event.key.keysym.sym);
+        keyboard_.KeyDown(event.key.keysym.sym);
       }
       break;
 
     case SDL_KEYUP:
-      keyboard.Keyup(event.key.keysym.sym);
+      keyboard_.KeyUp(event.key.keysym.sym);
       break;
 
     case SDL_MOUSEMOTION:
-      mouse.Movement(event.motion);
-      break;
-
-    case SDL_MOUSEBUTTONDOWN:
-    case SDL_MOUSEBUTTONUP:
-      mouse.Button(event.button);
+      mouse_.Movement(event.motion);
       break;
   }
 
   return Event::None;
 }
 
-void Window::EndFrame() {
-  keyboard.ClearPressedKeys();
+void Window::ClearInputs() {
+  keyboard_.ClearPressedKeys();
 }
 
 }  // namespace sys

@@ -8,7 +8,7 @@ layout(set = 0, binding = 0) uniform PerFrameData {
 } frame;
 
 layout(push_constant) uniform PerObjectData {
-    mat4 model;
+   mat4 model;
 } object;
 
 layout(location = 0) in vec3 in_position;

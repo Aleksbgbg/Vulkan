@@ -1,62 +1,25 @@
 #ifndef VULKAN_SRC_GAME_SCENE_H_
 #define VULKAN_SRC_GAME_SCENE_H_
 
+#include <memory>
 #include <vector>
 
 #include "Camera.h"
-#include "DynamicUniformBuffer.h"
-#include "game/SceneDescriptor.h"
-#include "game/model/UpdateContext.h"
-#include "game/renders/ActorSpawnController.h"
-#include "game/renders/SceneRenderer.h"
-#include "system/windowing/Window.h"
-#include "vulkan/CommandBuffer.h"
+#include "Renderer.h"
+#include "UpdateContext.h"
+#include "game/actor/Actor.h"
+#include "game/composition/ActorConsumer.h"
 
-class Scene {
+class Scene : public ActorConsumer {
  public:
-  class Initializer {
-   public:
-    virtual ~Initializer() = default;
+  Scene(Renderer& renderer, game::Camera& camera);
 
-    virtual DescriptorPool CreateDescriptorPool(
-        const DescriptorPoolCreateInfoBuilder& infoBuilder) const = 0;
-
-    virtual DescriptorSet::WriteDescriptorSet CreateImageSamplerWrite(
-        const DescriptorSet& descriptorSet, const ImageView& imageView,
-        const u32 binding) const = 0;
-    virtual void UpdateDescriptorSets(
-        const u32 descriptorSetCount,
-        const VkWriteDescriptorSet* const descriptorSetWrites) const = 0;
-  };
-
-  Scene() = default;
-  Scene(const Initializer& initializer,
-        DynamicUniformBufferInitializer& uniformBufferInitializer,
-        const DescriptorSetLayoutFactory& descriptorSetLayoutFactory,
-        const RenderPipeline::Initializer& renderPipelineInitializer,
-        const ShaderModuleFactory& shaderModuleFactory,
-        ResourceLoader& resourceLoader, const sys::Window& window,
-        const u32& imageIndex);
-
-  Scene(const Scene&) = delete;
-  Scene(Scene&&) = delete;
-
-  Scene& operator=(const Scene&) = delete;
-  Scene& operator=(Scene&&) = delete;
-
-  void UpdateAspect(const float aspect);
+  void Consume(std::unique_ptr<game::Actor> value) override;
 
   void UpdateModel(const UpdateContext& context);
-  void Render(const CommandBuffer& commandBuffer) const;
 
  private:
-  std::vector<std::unique_ptr<SceneRenderer>> renderers_;
-
-  const sys::Window* window_;
-  Camera camera_;
-
-  DescriptorPool descriptorPool_;
-  SceneDescriptor sceneDescriptor_;
+  std::vector<std::unique_ptr<game::Actor>> actors_;
 };
 
 #endif  // VULKAN_SRC_GAME_SCENE_H_

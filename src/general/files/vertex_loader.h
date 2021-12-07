@@ -8,8 +8,8 @@
 #include "general/files/obj.h"
 
 template <typename TVertex, typename TVertexProducer>
-DrawVertices<TVertex> LoadUniqueDrawVertices(const std::string_view filename,
-                                             TVertexProducer vertexProducer) {
+DrawVertices<TVertex> LoadDrawVertices(const std::string_view filename,
+                                       TVertexProducer vertexProducer) {
   std::unordered_map<TVertex, u16> uniqueVertices;
   DrawVertices<TVertex> drawVertices;
 

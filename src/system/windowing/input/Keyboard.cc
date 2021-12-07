@@ -1,11 +1,11 @@
 #include "Keyboard.h"
 
-void Keyboard::Keydown(const SDL_Keycode keycode) {
+void Keyboard::KeyDown(const SDL_Keycode keycode) {
   keysDown.insert(keycode);
   pressedKeys.insert(keycode);
 }
 
-void Keyboard::Keyup(const SDL_Keycode keycode) {
+void Keyboard::KeyUp(const SDL_Keycode keycode) {
   keysDown.erase(keycode);
 }
 

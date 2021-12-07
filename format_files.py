@@ -29,7 +29,7 @@ for path in CODE_PATHS:
 
         # Coerce header guards
         if file.endswith(".h"):
-          header_guard = "VULKAN_" + relative_path.upper().replace("\\", "_")[:-2] + "_H_"        
+          header_guard = "VULKAN_" + relative_path.upper().replace("\\", "_").replace("/", "_")[:-2] + "_H_"        
 
           end_guard_line_index = 0
 
@@ -44,7 +44,7 @@ for path in CODE_PATHS:
           if lines[0] != guard_line or lines[1] != define_line or lines[end_guard_line_index] != end_guard_line:
             lines[0] = guard_line
             lines[1] = define_line
-            lines[end_guard_line] = end_guard_line
+            lines[end_guard_line_index] = end_guard_line
 
             modified = True
 

@@ -2,16 +2,17 @@
 // refers to SDL1)
 #include <SDL2/SDL.h>
 
+#include "renderer/vulkan/api/error.h"
 #include "run.h"
 #include "system/System.h"
 #include "system/windowing/Window.h"
 #include "util/include/sdl.h"
-#include "vulkan/error.h"
-#include "vulkan/structures/XlibSurfaceCreateInfo.h"
 
 // Must come last or they break other includes
 #include <SDL2/SDL_syswm.h>
 #include <X11/Xlib.h>
+
+#include "renderer/vulkan/api/structures/XlibSurfaceCreateInfo.h"
 
 class LinuxWindow : public sys::Window {
  public:

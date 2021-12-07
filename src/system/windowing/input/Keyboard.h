@@ -9,8 +9,8 @@
 
 class Keyboard {
  public:
-  void Keydown(const SDL_Keycode keycode);
-  void Keyup(const SDL_Keycode keycode);
+  void KeyDown(const SDL_Keycode keycode);
+  void KeyUp(const SDL_Keycode keycode);
 
   void ClearPressedKeys();
 

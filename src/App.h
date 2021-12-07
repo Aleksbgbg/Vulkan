@@ -2,23 +2,15 @@
 #define VULKAN_SRC_APP_H_
 
 #include <chrono>
-#include <memory>
-#include <vector>
 
-#include "SwapchainWithResources.h"
-#include "Vulkan.h"
 #include "game/Scene.h"
 #include "general/threading/MultithreadedMessageQueue.h"
+#include "renderer/vulkan/Vulkan.h"
 #include "system/windowing/Window.h"
-#include "util/types.h"
-#include "vulkan/CommandBuffer.h"
-#include "vulkan/Fence.h"
-#include "vulkan/Semaphore.h"
 
 class App {
  public:
-  App(sys::Window& window, std::unique_ptr<Vulkan> appVulkan);
-  ~App();
+  App(sys::Window& window, Vulkan& vulkan);
 
   int Run();
 
@@ -32,30 +24,17 @@ class App {
   void Render();
 
  private:
-  sys::Window& window;
-  Controls controls;
+  sys::Window& window_;
+  Vulkan& vulkan_;
 
-  std::unique_ptr<Vulkan> vulkan;
-
-  std::unique_ptr<Scene> scene;
-
-  SwapchainWithResources swapchain;
-  SwapchainWithResources oldSwapchain;
-
-  u32 imageIndex;
+  Controls controls_;
+  game::Camera camera_;
+  Scene scene_;
 
   enum class EventNotification { Exited, Paused, Unpaused, Resized };
-  MultithreadedMessageQueue<EventNotification> threadMessenger;
+  MultithreadedMessageQueue<EventNotification> threadMessenger_;
 
-  std::chrono::time_point<std::chrono::high_resolution_clock> previousTime;
-
-  struct SwapchainRenderPass {
-    CommandBuffer commandBuffer;
-
-    Semaphore renderCompleteSemaphore;
-    Fence submitCompleteFence;
-  };
-  std::vector<SwapchainRenderPass> swapchainRenderData;
+  std::chrono::time_point<std::chrono::high_resolution_clock> previousTime_;
 };
 
 #endif  // VULKAN_SRC_APP_H_

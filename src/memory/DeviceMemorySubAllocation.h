@@ -2,7 +2,7 @@
 #define VULKAN_SRC_MEMORY_DEVICEMEMORYSUBALLOCATION_H_
 
 #include "ReservedBlock.h"
-#include "vulkan/DeviceMemory.h"
+#include "renderer/vulkan/api/DeviceMemory.h"
 
 class DeviceMemorySubAllocation {
   friend class DeviceMemoryAllocator;

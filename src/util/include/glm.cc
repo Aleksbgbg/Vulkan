@@ -2,6 +2,15 @@
 
 #include "util/types.h"
 
+glm::quat Rotation(const float angle, glm::vec3 axis) {
+  axis = glm::normalize(axis);
+  const float halfAngle = angle / 2.0f;
+  const float sinHalfAngle = std::sin(halfAngle);
+  return glm::quat(std::cos(halfAngle),
+                   glm::vec3(axis.x * sinHalfAngle, axis.y * sinHalfAngle,
+                             axis.z * sinHalfAngle));
+}
+
 std::ostream& operator<<(std::ostream& stream, const glm::mat4& mat) {
   stream << "glm::mat4{\n";
 

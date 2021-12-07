@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "VulkanSystem.h"
+#include "renderer/vulkan/VulkanSystem.h"
 #include "util/include/sdl.h"
 #include "windowing/Window.h"
 

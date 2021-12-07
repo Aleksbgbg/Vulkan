@@ -3,10 +3,10 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "general/geometry/Rect.h"
-#include "system/windowing/input/Keyboard.h"
-#include "system/windowing/input/Mouse.h"
+#include "system/windowing/Window.h"
 
 enum class Control {
   Accelerate = 1,
@@ -14,6 +14,8 @@ enum class Control {
   ReverseView,
   MoveNpc,
   SpawnPlayer,
+  TiltLeft,
+  TiltRight,
 };
 
 enum class Axis {
@@ -23,15 +25,23 @@ enum class Axis {
 
 class Controls {
  public:
-  bool IsControlActive(const Control control) const;
-  glm::vec2 AxisValue(const Axis axis) const;
+  Controls();
 
-  void Update(const Keyboard& keyboard, const Mouse& mouse,
-              const glm::vec2 windowSize);
+  bool IsControlActive(const Control control) const;
+  glm::vec2 NormalizedAxisValue(const Axis axis) const;
+
+  void Update(const sys::Window& window);
 
  private:
+  struct ControlWithKey {
+    Control control;
+    SDL_KeyCode key;
+  };
+  std::vector<ControlWithKey> continuousKeyControls_;
+  std::vector<ControlWithKey> singleKeyControls_;
+
   std::unordered_set<Control> activeControls_;
-  std::unordered_map<Axis, glm::vec2> axisValues_;
+  std::unordered_map<Axis, glm::vec2> normalizedAxisValues_;
 };
 
 #endif  // VULKAN_SRC_GAME_CONTROLS_H_

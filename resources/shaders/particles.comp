@@ -1,0 +1,120 @@
+#version 450
+
+#extension GL_EXT_debug_printf : enable
+
+layout(local_size_x = 64, local_size_y = 1) in;
+
+layout(set = 0, binding = 0) uniform SceneUniform {
+  float deltaTime;
+} scene;
+
+layout(set = 1, binding = 0) uniform ParticleSpawnParamsUniform {
+  uint randomSeed;
+  bool enableRespawn;
+  mat4 baseTransform;
+  vec3 spawnRegionLow;
+  vec3 spawnRegionHigh;
+} spawnParams;
+
+struct Particle {
+  mat4 baseTransform;
+  vec3 position;
+  float velocity;
+  float totalLife;
+  float timeToLive;
+  bool isRendering;
+};
+
+layout(set = 1, binding = 1) buffer ParticleBuffer {
+  Particle particles[];
+} info;
+
+struct ParticleRender {
+  mat4 transform;
+  float fractionOfLife;
+};
+
+layout(set = 1, binding = 2) buffer ParticleRenderBuffer {
+  ParticleRender renders[];
+} render;
+
+layout(set = 1, binding = 3) buffer DrawIndexedIndirectCommandBuffer {
+  uint indexCount;
+  uint instanceCount;
+  uint firstIndex;
+  int vertexOffset;
+  uint firstInstance;
+} draw;
+
+const uint ELEMENT_COUNT = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
+
+const float PARTICLE_DISTANCE_OVER_LIFETIME = 0.1;
+const float PARTICLE_LIFETIME = 0.3;
+
+uint rngState;
+
+uint rand_pcg() {
+  uint state = rngState;
+  rngState = rngState * 747796405u + 2891336453u;
+  uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+  return (word >> 22u) ^ word;
+}
+
+float random() {
+  return float(rand_pcg()) * (1.0 / 4294967296.0);
+}
+
+float randomInRange(float low, float high) {
+  return (random() * (high - low)) + low;
+}
+
+void main() {
+  uint index = gl_LocalInvocationIndex;
+
+  Particle particle = info.particles[index];
+  ParticleRender particleRender = render.renders[index];
+
+  if (!spawnParams.enableRespawn && particle.timeToLive <= 0.0f) {
+    return;
+  }
+
+  rngState = spawnParams.randomSeed + index;
+
+  vec4 movement = particle.baseTransform * vec4(0.0, 0.0, -particle.velocity * scene.deltaTime, 0.0);
+
+  particle.position += vec3(movement);
+  particle.timeToLive -= scene.deltaTime;
+
+  if (spawnParams.enableRespawn) {
+    if (particle.timeToLive <= 0.0f) {
+      vec3 spawnPoint = vec3(
+      randomInRange(spawnParams.spawnRegionLow.x, spawnParams.spawnRegionHigh.x),
+      randomInRange(spawnParams.spawnRegionLow.y, spawnParams.spawnRegionHigh.y),
+      randomInRange(spawnParams.spawnRegionLow.z, spawnParams.spawnRegionHigh.z));
+      float lifetime = PARTICLE_LIFETIME * random();
+
+      particle.baseTransform = spawnParams.baseTransform;
+      particle.position = spawnPoint;
+      particle.velocity = PARTICLE_DISTANCE_OVER_LIFETIME / lifetime;
+      particle.totalLife = lifetime;
+      particle.timeToLive = lifetime;
+      particle.isRendering = true;
+    }
+  } else {
+    if (particle.isRendering && particle.timeToLive <= 0.0f) {
+      particle.isRendering = false;
+    }
+  }
+
+  if (particle.isRendering) {
+    mat4 transform = mat4(1.0f);
+    transform[3] = vec4(particle.position, 1.0f);
+    particleRender.transform = particle.baseTransform * transform;
+    particleRender.fractionOfLife = particle.timeToLive / particle.totalLife;
+  } else {
+    particleRender.transform = mat4(0.0f);
+  }
+
+  info.particles[index] = particle;
+  render.renders[index] = particleRender;
+}

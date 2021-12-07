@@ -1,10 +1,10 @@
+#include "renderer/vulkan/api/error.h"
+#include "renderer/vulkan/api/structures/Win32SurfaceCreateInfo.h"
 #include "run.h"
 #include "system/System.h"
 #include "system/windowing/Window.h"
 #include "util/include/sdl.h"
 #include "util/include/windows.h"
-#include "vulkan/error.h"
-#include "vulkan/structures/Win32SurfaceCreateInfo.h"
 
 // Must come after sdl.h and windows.h
 #include <SDL_syswm.h>

@@ -6,10 +6,10 @@
 
 #include "DeviceHeap.h"
 #include "DeviceMemorySubAllocation.h"
-#include "vulkan/Buffer.h"
-#include "vulkan/DeviceMemory.h"
-#include "vulkan/Image.h"
-#include "vulkan/VirtualDevice.h"
+#include "renderer/vulkan/api/Buffer.h"
+#include "renderer/vulkan/api/DeviceMemory.h"
+#include "renderer/vulkan/api/Image.h"
+#include "renderer/vulkan/api/VirtualDevice.h"
 
 class DeviceMemoryAllocator {
  public:

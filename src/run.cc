@@ -8,12 +8,14 @@
 #include "util/build_definition.h"
 
 int RunVulkanApp(const sys::System& system) {
-  const std::unique_ptr<sys::Window> window = system.SpawnWindow(1920, 1080);
-
 #if defined(PROFILING)
   const auto startTime = std::chrono::high_resolution_clock::now();
 #endif
-  App app(*window, std::make_unique<Vulkan>(system, *window));
+
+  const std::unique_ptr<sys::Window> window = system.SpawnWindow(1920, 1080);
+  Vulkan vulkan(system, *window);
+  App app(*window, vulkan);
+
 #if defined(PROFILING)
   const auto endTime = std::chrono::high_resolution_clock::now();
   const float startupDuration =

@@ -1,47 +1,93 @@
 #include "Controls.h"
 
+#include "general/math/math.h"
+
+Controls::Controls()
+    : continuousKeyControls_({
+          {Control::Accelerate, SDLK_w},
+          {Control::Decelerate, SDLK_s},
+          {Control::ReverseView, SDLK_c},
+          {Control::MoveNpc, SDLK_f},
+          {Control::TiltLeft, SDLK_e},
+          {Control::TiltRight, SDLK_q},
+      }),
+      singleKeyControls_({
+          {Control::SpawnPlayer, SDLK_g},
+      }),
+      activeControls_(),
+      normalizedAxisValues_() {}
+
 bool Controls::IsControlActive(const Control control) const {
   return activeControls_.contains(control);
 }
 
-glm::vec2 Controls::AxisValue(const Axis axis) const {
-  return axisValues_.at(axis);
+glm::vec2 Controls::NormalizedAxisValue(const Axis axis) const {
+  return normalizedAxisValues_.at(axis);
 }
 
-void Controls::Update(const Keyboard& keyboard, const Mouse& mouse,
-                      const glm::vec2 windowSize) {
+void Controls::Update(const sys::Window& window) {
+  const Keyboard& keyboard = window.GetKeyboard();
+  const Mouse& mouse = window.GetMouse();
+
   activeControls_.clear();
 
-  if (keyboard.IsKeyDown(SDLK_w)) {
-    activeControls_.insert(Control::Accelerate);
+  for (const ControlWithKey controlWithKey : continuousKeyControls_) {
+    if (keyboard.IsKeyDown(controlWithKey.key)) {
+      activeControls_.insert(controlWithKey.control);
+    }
   }
 
-  if (keyboard.IsKeyDown(SDLK_s)) {
-    activeControls_.insert(Control::Decelerate);
+  for (const ControlWithKey controlWithKey : singleKeyControls_) {
+    if (keyboard.PressedKey(controlWithKey.key)) {
+      activeControls_.insert(controlWithKey.control);
+    }
   }
 
-  if (keyboard.IsKeyDown(SDLK_c)) {
-    activeControls_.insert(Control::ReverseView);
-  }
+  if (window.IsFocused()) {
+    const glm::vec2 halfWindowSize = window.GetSize() / 2.0f;
+    const glm::vec2 mousePositionCentered =
+        mouse.GetPosition() - halfWindowSize;
 
-  if (keyboard.IsKeyDown(SDLK_f)) {
-    activeControls_.insert(Control::MoveNpc);
-  }
+    glm::vec2 mouseInputNormalized = mousePositionCentered / halfWindowSize;
 
-  if (keyboard.PressedKey(SDLK_g)) {
-    activeControls_.insert(Control::SpawnPlayer);
-  }
+    const bool lookAround = keyboard.IsKeyDown(SDLK_LALT);
+    if (lookAround) {
+      if (glm::length(mouseInputNormalized) > 1.0f) {
+        mouseInputNormalized = glm::normalize(mouseInputNormalized);
+      }
 
-  const glm::vec2 halfWindowSize = windowSize / 2.0f;
-  const glm::vec2 mousePosition = mouse.GetPosition();
-  const glm::vec2 mousePositionCentered = mousePosition - halfWindowSize;
-  const glm::vec2 mouseInputNormalized = mousePositionCentered / halfWindowSize;
+      normalizedAxisValues_[Axis::Movement] = glm::vec2(0.0f);
+      normalizedAxisValues_[Axis::View] = mouseInputNormalized;
+    } else {
+      constexpr float Deadzone = 0.1f;
+      if (mouseInputNormalized.x < 0.0f) {
+        mouseInputNormalized.x =
+            CoerceToRange(mouseInputNormalized.x + Deadzone, -1.0f, 0.0f);
+      } else if (mouseInputNormalized.x > 0.0f) {
+        mouseInputNormalized.x =
+            CoerceToRange(mouseInputNormalized.x - Deadzone, 0.0f, 1.0f);
+      }
+      if (mouseInputNormalized.y < 0.0f) {
+        mouseInputNormalized.y =
+            CoerceToRange(mouseInputNormalized.y + Deadzone, -1.0f, 0.0f);
+      } else if (mouseInputNormalized.y > 0.0f) {
+        mouseInputNormalized.y =
+            CoerceToRange(mouseInputNormalized.y - Deadzone, 0.0f, 1.0f);
+      }
+      mouseInputNormalized.x =
+          AffineTransform(mouseInputNormalized.x, -0.9f, 0.9f, -1.0f, 1.0f);
+      mouseInputNormalized.y =
+          AffineTransform(mouseInputNormalized.y, -0.9f, 0.9f, -1.0f, 1.0f);
 
-  if (keyboard.IsKeyDown(SDLK_LALT)) {  // Look around
-    axisValues_[Axis::Movement] = glm::vec2(0.0f);
-    axisValues_[Axis::View] = mouseInputNormalized;
+      if (glm::length(mouseInputNormalized) > 1.0f) {
+        mouseInputNormalized = glm::normalize(mouseInputNormalized);
+      }
+
+      normalizedAxisValues_[Axis::Movement] = mouseInputNormalized;
+      normalizedAxisValues_[Axis::View] = glm::vec2(0.0f);
+    }
   } else {
-    axisValues_[Axis::Movement] = mouseInputNormalized;
-    axisValues_[Axis::View] = glm::vec2(0.0f);
+    normalizedAxisValues_[Axis::Movement] = glm::vec2(0.0f);
+    normalizedAxisValues_[Axis::View] = glm::vec2(0.0f);
   }
 }

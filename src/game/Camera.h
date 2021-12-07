@@ -3,25 +3,25 @@
 
 #include "util/include/glm.h"
 
+namespace game {
+
 class Camera {
  public:
-  struct View {
-    glm::vec3 position;
-    glm::vec3 lookAt;
-    glm::vec3 rotation;
-    bool reverse;
-  };
+  Camera();
 
   glm::mat4 GetViewMatrix() const;
-  glm::vec3 GetPosition() const;
 
-  void SetView(const View& value);
+  struct View {
+    glm::mat4 positionTransform;
+    glm::vec2 lookAround;
+    bool reverse;
+  };
+  void SetView(const View& view);
 
  private:
-  glm::vec3 Up() const;
-
- private:
-  View view;
+  glm::mat4 cameraTransform_;
 };
+
+}  // namespace game
 
 #endif  // VULKAN_SRC_GAME_CAMERA_H_
