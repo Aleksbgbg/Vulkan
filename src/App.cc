@@ -5,12 +5,12 @@
 
 #include "general/logging/log.h"
 
-App::App(sys::Window& window, Vulkan& vulkan)
+App::App(sys::Window& window, sys::Sound& sound, Vulkan& vulkan)
     : window_(window),
       vulkan_(vulkan),
       controls_(),
       camera_(),
-      scene_(vulkan_, camera_),
+      scene_(vulkan_, sound, camera_),
       previousTime_(std::chrono::high_resolution_clock::time_point::min()),
       threadMessenger_() {}
 

@@ -11,6 +11,7 @@
 #include "game/Renderer.h"
 #include "game/actor/Actor.h"
 #include "game/actor/behaviour/Behaviour.h"
+#include "system/sound/Sound.h"
 
 class BehaviourFactory {
  public:
@@ -64,9 +65,9 @@ class CompositionBuilder {
 
  public:
   static CompositionBuilder ForActor(ActorConsumer& actorConsumer,
-                                     Renderer& renderer);
+                                     Renderer& renderer, sys::Sound& sound);
   static CompositionBuilder ForParticleSystem(
-      ActorConsumer& actorConsumer, Renderer& renderer,
+      ActorConsumer& actorConsumer, Renderer& renderer, sys::Sound& sound,
       const ParticleBehaviour particleBehaviour);
 
   CompositionBuilder& Attach(
@@ -83,7 +84,7 @@ class CompositionBuilder {
 
  private:
   CompositionBuilder(ActorConsumer& actorConsumer, Renderer& renderer,
-                     Composition composition);
+                     sys::Sound& sound, Composition composition);
 
   void SpawnComposition(const Composition& composition,
                         const game::Actor* parent) const;
@@ -91,6 +92,7 @@ class CompositionBuilder {
  private:
   ActorConsumer* actorConsumer_;
   Renderer* renderer_;
+  sys::Sound* sound_;
 
   Composition composition_;
 };

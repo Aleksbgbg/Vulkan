@@ -55,5 +55,6 @@ class WindowsSystem : public sys::System {
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
                    const int nCmdShow) {
-  return run(WindowsSystem());
+  WindowsSystem system;
+  return run(system);
 }

@@ -57,5 +57,6 @@ class LinuxSystem : public sys::System {
 };
 
 int main() {
-  return run(LinuxSystem());
+  LinuxSystem system;
+  return run(system);
 }

@@ -36,4 +36,7 @@ inline constexpr const char* const KOREAN_FONT_FILENAME =
     "resources/IBMPlexSansKR-Regular.ttf";
 inline constexpr const char* const UI_FONT_FILENAME = "resources/SegoeUI.ttf";
 
+inline constexpr const char* const BACKGROUND_MUSIC_FILENAME =
+    "resources/background.wav";
+
 #endif  // VULKAN_SRC_UTIL_FILENAMES_H_

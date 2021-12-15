@@ -1,24 +1,28 @@
 #include "CompositionBuilder.h"
 
 #include "game/actor/property/ParticleController.h"
+#include "game/actor/property/SoundEmitter.h"
 #include "game/actor/property/Transform.h"
 
 CompositionBuilder CompositionBuilder::ForActor(ActorConsumer& actorConsumer,
-                                                Renderer& renderer) {
+                                                Renderer& renderer,
+                                                sys::Sound& sound) {
   Composition composition = std::make_unique<Composition_T>();
   composition->type = Composition_T::Type::Actor;
 
-  return CompositionBuilder(actorConsumer, renderer, std::move(composition));
+  return CompositionBuilder(actorConsumer, renderer, sound,
+                            std::move(composition));
 }
 
 CompositionBuilder CompositionBuilder::ForParticleSystem(
-    ActorConsumer& actorConsumer, Renderer& renderer,
+    ActorConsumer& actorConsumer, Renderer& renderer, sys::Sound& sound,
     const ParticleBehaviour particleBehaviour) {
   Composition composition = std::make_unique<Composition_T>();
   composition->type = Composition_T::Type::ParticleSystem;
   composition->infoForType.particleSystem.behaviour = particleBehaviour;
 
-  return CompositionBuilder(actorConsumer, renderer, std::move(composition));
+  return CompositionBuilder(actorConsumer, renderer, sound,
+                            std::move(composition));
 }
 
 CompositionBuilder& CompositionBuilder::Attach(
@@ -49,10 +53,11 @@ void CompositionBuilder::Spawn() const {
 }
 
 CompositionBuilder::CompositionBuilder(ActorConsumer& actorConsumer,
-                                       Renderer& renderer,
+                                       Renderer& renderer, sys::Sound& sound,
                                        Composition composition)
     : actorConsumer_(&actorConsumer),
       renderer_(&renderer),
+      sound_(&sound),
       composition_(std::move(composition)) {}
 
 void CompositionBuilder::SpawnComposition(const Composition& composition,
@@ -68,6 +73,8 @@ void CompositionBuilder::SpawnComposition(const Composition& composition,
   std::unordered_map<PropertyKey, std::unique_ptr<Property>> properties;
   properties.insert(
       {Transform::Key(), std::make_unique<Transform>(parentTransform)});
+  properties.insert(
+      {SoundEmitter::Key(), std::make_unique<SoundEmitter>(*sound_)});
 
   if (composition->type == Composition_T::Type::ParticleSystem) {
     properties.insert(

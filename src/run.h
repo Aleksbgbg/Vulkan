@@ -3,6 +3,6 @@
 
 #include "system/System.h"
 
-int run(const sys::System& system);
+int run(sys::System& system);
 
 #endif  // VULKAN_SRC_RUN_H_

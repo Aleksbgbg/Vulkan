@@ -6,11 +6,12 @@
 #include "game/Scene.h"
 #include "general/threading/MultithreadedMessageQueue.h"
 #include "renderer/vulkan/Vulkan.h"
+#include "system/sound/Sound.h"
 #include "system/windowing/Window.h"
 
 class App {
  public:
-  App(sys::Window& window, Vulkan& vulkan);
+  App(sys::Window& window, sys::Sound& sound, Vulkan& vulkan);
 
   int Run();
 

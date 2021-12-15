@@ -12,7 +12,7 @@
 class SceneComposer {
  public:
   SceneComposer(ActorConsumer& actorConsumer, Renderer& renderer,
-                game::Camera& camera);
+                sys::Sound& sound, game::Camera& camera);
 
   MeshHandle LoadMesh(const RenderType renderType,
                       const MeshLoadParams& meshLoadParams);
@@ -24,6 +24,7 @@ class SceneComposer {
  private:
   ActorConsumer& actorConsumer_;
   Renderer& renderer_;
+  sys::Sound& sound_;
   game::Camera& camera_;
 };
 

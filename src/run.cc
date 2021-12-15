@@ -7,14 +7,16 @@
 #include "general/logging/log.h"
 #include "util/build_definition.h"
 
-int RunVulkanApp(const sys::System& system) {
+int RunVulkanApp(sys::System& system) {
 #if defined(PROFILING)
   const auto startTime = std::chrono::high_resolution_clock::now();
 #endif
 
   const std::unique_ptr<sys::Window> window = system.SpawnWindow(1920, 1080);
+  sys::Sound& sound = system.GetSound();
+
   Vulkan vulkan(system, *window);
-  App app(*window, vulkan);
+  App app(*window, sound, vulkan);
 
 #if defined(PROFILING)
   const auto endTime = std::chrono::high_resolution_clock::now();
@@ -29,7 +31,7 @@ int RunVulkanApp(const sys::System& system) {
   return app.Run();
 }
 
-int run(const sys::System& system) {
+int run(sys::System& system) {
   try {
     return RunVulkanApp(system);
   } catch (const std::exception& exception) {

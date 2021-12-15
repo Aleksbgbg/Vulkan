@@ -1,5 +1,6 @@
 #include "Scene.h"
 
+#include "game/behaviours/BackgroundMusic.h"
 #include "game/behaviours/ExhaustParticleController.h"
 #include "game/behaviours/ForwardMovement.h"
 #include "game/behaviours/PlayerMovement.h"
@@ -9,7 +10,8 @@
 #include "general/math/math.h"
 #include "util/filenames.h"
 
-Scene::Scene(Renderer& renderer, game::Camera& camera) : actors_() {
+Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
+    : actors_() {
   constexpr float ShipMinX = -1.7f;
   constexpr float ShipMaxX = 1.7f;
   constexpr float ShipMinY = -0.8f;
@@ -35,7 +37,7 @@ Scene::Scene(Renderer& renderer, game::Camera& camera) : actors_() {
   constexpr float z2 =
       AffineTransform(ModelMaxZ - 55.0f, 0.0f, ModelMaxZ, ShipMinZ, ShipMaxZ);
 
-  SceneComposer scene(*this, renderer, camera);
+  SceneComposer scene(*this, renderer, sound, camera);
 
   const MeshHandle skyboxMesh = scene.LoadMesh(
       RenderType::Skybox,
@@ -65,6 +67,11 @@ Scene::Scene(Renderer& renderer, game::Camera& camera) : actors_() {
                             actor.RetrieveProperty<ParticleController>()))
           .Mesh(exhaustParticleMesh)
           .SpawnRegion(glm::vec3(x1, y1, z1), glm::vec3(x2, y2, z2)));
+
+  scene.Actor()
+      .Attach(
+          BEHAVIOUR(BackgroundMusic, actor.RetrieveProperty<SoundEmitter>()))
+      .Spawn();
   scene.Actor().Mesh(skyboxMesh).Spawn();
   scene.Actor()
       .Attach(BEHAVIOUR(SunMovement, actor.RetrieveProperty<Transform>()))

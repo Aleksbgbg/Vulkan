@@ -9,10 +9,11 @@
 #include "UpdateContext.h"
 #include "game/actor/Actor.h"
 #include "game/composition/ActorConsumer.h"
+#include "system/sound/Sound.h"
 
 class Scene : public ActorConsumer {
  public:
-  Scene(Renderer& renderer, game::Camera& camera);
+  Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera);
 
   void Consume(std::unique_ptr<game::Actor> value) override;
 
