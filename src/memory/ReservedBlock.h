@@ -2,8 +2,8 @@
 #define VULKAN_SRC_MEMORY_RESERVEDBLOCK_H_
 
 #include "AllocatedBlock.h"
+#include "Allocator.h"
 #include "MemoryBlock.h"
-#include "MemoryObject.h"
 
 class DeviceHeap;
 
@@ -15,7 +15,7 @@ class ReservedBlock {
 
   template <typename T>
   T& GetMemoryObjectAs() const {
-    return *reinterpret_cast<T*>(memory);
+    return *reinterpret_cast<T*>(memory_);
   }
 
   ReservedBlock();
@@ -37,12 +37,13 @@ class ReservedBlock {
     u64 availableSize;
   };
 
-  ReservedBlock(DeviceHeap* heap, MemoryObject* memory, AllocationInfo info);
+  ReservedBlock(DeviceHeap* heap, Allocator::MemoryObject* memory,
+                AllocationInfo info);
 
  private:
-  DeviceHeap* heap;
-  MemoryObject* memory;
-  AllocationInfo info;
+  DeviceHeap* heap_;
+  Allocator::MemoryObject* memory_;
+  AllocationInfo info_;
 };
 
 #endif  // VULKAN_SRC_MEMORY_RESERVEDBLOCK_H_

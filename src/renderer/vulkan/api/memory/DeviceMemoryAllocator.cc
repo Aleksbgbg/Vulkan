@@ -4,7 +4,7 @@
 
 static constexpr u32 InitialAllocationSize = 1u * 1024u * 1024u;
 
-struct DeviceMemoryObject : public MemoryObject {
+struct DeviceMemoryObject : public Allocator::MemoryObject {
   DeviceMemoryObject(DeviceMemory deviceMemory)
       : deviceMemory(std::move(deviceMemory)) {}
 
@@ -13,23 +13,23 @@ struct DeviceMemoryObject : public MemoryObject {
 
 DeviceMemoryAllocator::HeapAllocator::HeapAllocator(
     VirtualDevice* virtualDevice, u32 memoryTypeIndex)
-    : virtualDevice(virtualDevice), memoryTypeIndex(memoryTypeIndex) {}
+    : virtualDevice_(virtualDevice), memoryTypeIndex_(memoryTypeIndex) {}
 
-std::unique_ptr<MemoryObject> DeviceMemoryAllocator::HeapAllocator::Allocate(
-    const VkDeviceSize size) {
+std::unique_ptr<Allocator::MemoryObject>
+DeviceMemoryAllocator::HeapAllocator::Allocate(const VkDeviceSize size) {
   return std::make_unique<DeviceMemoryObject>(
-      virtualDevice->AllocateDeviceMemory(memoryTypeIndex, size));
+      virtualDevice_->AllocateDeviceMemory(memoryTypeIndex_, size));
 }
 
 DeviceMemoryAllocator::DeviceMemoryAllocator(
     VirtualDevice* virtualDevice,
     const VkPhysicalDeviceMemoryProperties* const memoryProperties)
-    : virtualDevice(virtualDevice),
-      memoryProperties(memoryProperties),
-      heapsPerMemoryIndex(memoryProperties->memoryTypeCount) {
-  for (u32 memoryIndex = 0; memoryIndex < heapsPerMemoryIndex.size();
+    : virtualDevice_(virtualDevice),
+      memoryProperties_(memoryProperties),
+      heapsPerMemoryIndex_(memoryProperties->memoryTypeCount) {
+  for (u32 memoryIndex = 0; memoryIndex < heapsPerMemoryIndex_.size();
        ++memoryIndex) {
-    Heap& heap = heapsPerMemoryIndex[memoryIndex];
+    Heap& heap = heapsPerMemoryIndex_[memoryIndex];
     heap.allocator = HeapAllocator(virtualDevice, memoryIndex);
     heap.deviceHeap = DeviceHeap(InitialAllocationSize, &heap.allocator);
   }
@@ -56,14 +56,14 @@ DeviceMemorySubAllocation DeviceMemoryAllocator::ReserveMemoryBlock(
     const VkMemoryPropertyFlags requiredProperties) {
   const std::optional<u32> memoryTypeIndex =
       DeviceMemory::FindSuitableMemoryTypeIndex(
-          *memoryProperties, requiredProperties,
+          *memoryProperties_, requiredProperties,
           memoryRequirements.memoryTypeBits);
 
   if (!memoryTypeIndex.has_value()) {
     throw std::runtime_error("Could not find suitable GPU memory to allocate.");
   }
 
-  DeviceHeap& heap = heapsPerMemoryIndex[memoryTypeIndex.value()].deviceHeap;
+  DeviceHeap& heap = heapsPerMemoryIndex_[memoryTypeIndex.value()].deviceHeap;
   ReservedBlock reservedBlock =
       heap.ReserveMemory({.size = memoryRequirements.size,
                           .alignment = memoryRequirements.alignment});

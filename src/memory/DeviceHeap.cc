@@ -15,16 +15,16 @@ DeviceHeap::DeviceHeap(u64 initialAllocationSize, Allocator* allocator)
 
 DeviceHeap::DeviceHeap(u64 initialAllocationSize, float enlargementFactor,
                        Allocator* allocator)
-    : initialAllocationSize(initialAllocationSize),
-      enlargementFactor(enlargementFactor),
-      allocator(allocator),
-      enlargementIndex(0),
-      allocations() {}
+    : initialAllocationSize_(initialAllocationSize),
+      enlargementFactor_(enlargementFactor),
+      allocator_(allocator),
+      enlargementIndex_(0),
+      allocations_() {}
 
 ReservedBlock DeviceHeap::ReserveMemory(
     const MemoryAllocation requestedAllocation) {
   while (true) {
-    for (AllocatedMemory& allocation : allocations) {
+    for (AllocatedMemory& allocation : allocations_) {
       AllocationList& list = allocation.list;
 
       AllocationChain* previous = nullptr;
@@ -73,41 +73,42 @@ ReservedBlock DeviceHeap::ReserveMemory(
           }
 
           return ReservedBlock(
-              this, allocations[allocatedBlock.allocationIndex].memory.get(),
+              this, allocations_[allocatedBlock.allocationIndex].memory.get(),
               allocationInfo);
         }
       }
     }
 
     u64 allocationSize =
-        initialAllocationSize *
-        std::ceil(std::pow(enlargementFactor, enlargementIndex));
+        initialAllocationSize_ *
+        std::ceil(std::pow(enlargementFactor_, enlargementIndex_));
 
     if (requestedAllocation.size > allocationSize) {
       const u64 enlargementsRequired =
-          std::log(requestedAllocation.size / initialAllocationSize) /
-          std::log(enlargementFactor);
+          std::log(requestedAllocation.size / initialAllocationSize_) /
+          std::log(enlargementFactor_);
       const u64 nextEnlargementIndex = enlargementsRequired + 1;
       allocationSize =
-          initialAllocationSize *
-          std::ceil(std::pow(enlargementFactor, nextEnlargementIndex));
-      enlargementIndex = nextEnlargementIndex + 1;
+          initialAllocationSize_ *
+          std::ceil(std::pow(enlargementFactor_, nextEnlargementIndex));
+      enlargementIndex_ = nextEnlargementIndex + 1;
     } else {
-      ++enlargementIndex;
+      ++enlargementIndex_;
     }
 
     AllocationList allocationList;
-    allocationList.Add(AllocatedBlock{.allocationIndex = allocations.size(),
+    allocationList.Add(AllocatedBlock{.allocationIndex = allocations_.size(),
                                       .offset = 0,
                                       .size = allocationSize});
-    allocations.emplace_back(AllocatedMemory{
+    allocations_.emplace_back(AllocatedMemory{
         .list = std::move(allocationList),
-        .memory = std::move(allocator->Allocate(allocationSize))});
+        .memory = std::move(allocator_->Allocate(allocationSize))});
   }
 }
 
 void DeviceHeap::Return(const AllocatedBlock returningBlock) {
-  AllocationList& allocation = allocations[returningBlock.allocationIndex].list;
+  AllocationList& allocation =
+      allocations_[returningBlock.allocationIndex].list;
 
   AllocationChain* previous = nullptr;
   for (AllocationChain* current = allocation.First(); current != nullptr;

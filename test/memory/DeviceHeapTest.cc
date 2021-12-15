@@ -12,7 +12,7 @@ static constexpr u64 TWO_MEGABYTES = 2ull * 1024ull * 1024ull;
 static constexpr u64 THREE_MEGABYTES = 3ull * 1024ull * 1024ull;
 static constexpr u64 FOUR_MEGABYTES = 4ull * 1024ull * 1024ull;
 
-class CopyCountingMemoryObject : public MemoryObject {
+class CopyCountingMemoryObject : public Allocator::MemoryObject {
  public:
   CopyCountingMemoryObject(u32* aliveCopies) : aliveCopies(aliveCopies) {
     ++(*aliveCopies);
@@ -35,7 +35,7 @@ class CopyCountingMemoryObject : public MemoryObject {
   u32* aliveCopies;
 };
 
-class MemoryObjectWithId : public MemoryObject {
+class MemoryObjectWithId : public Allocator::MemoryObject {
  public:
   MemoryObjectWithId() : MemoryObjectWithId(0) {}
   MemoryObjectWithId(u32 id) : id(id) {}
@@ -60,7 +60,7 @@ class TestAllocator : public Allocator {
   TestAllocator(std::queue<MemoryObject*> objectsToAllocate)
       : objectsToAllocate(objectsToAllocate) {}
 
-  std::unique_ptr<MemoryObject> Allocate(const VkDeviceSize size) override {
+  std::unique_ptr<MemoryObject> Allocate(const u64 size) override {
     allocations.emplace_back(Allocation{.size = size});
 
     if (objectsToAllocate.empty()) {
@@ -78,7 +78,7 @@ class TestAllocator : public Allocator {
   std::queue<MemoryObject*> objectsToAllocate;
 };
 
-TEST(DeviceMemoryAllocatorTest, ReservesRequestedMemory) {
+TEST(DeviceHeapTest, ReservesRequestedMemory) {
   TestAllocator allocator;
   DeviceHeap heap(ONE_MEGABYTE, &allocator);
 
@@ -89,7 +89,7 @@ TEST(DeviceMemoryAllocatorTest, ReservesRequestedMemory) {
   ASSERT_EQ(128, reservedBlock.GetMemoryBlock().size);
 }
 
-TEST(DeviceMemoryAllocatorTest, HonoursConsecutiveReservations) {
+TEST(DeviceHeapTest, HonoursConsecutiveReservations) {
   TestAllocator allocator;
   DeviceHeap heap(ONE_MEGABYTE, &allocator);
 
@@ -102,7 +102,7 @@ TEST(DeviceMemoryAllocatorTest, HonoursConsecutiveReservations) {
   ASSERT_EQ(64, lastReservedBlock.GetMemoryBlock().size);
 }
 
-TEST(DeviceMemoryAllocatorTest, FirstReservationCausesInitialAllocation) {
+TEST(DeviceHeapTest, FirstReservationCausesInitialAllocation) {
   TestAllocator allocator;
   DeviceHeap heap(THREE_MEGABYTES, &allocator);
 
@@ -112,7 +112,7 @@ TEST(DeviceMemoryAllocatorTest, FirstReservationCausesInitialAllocation) {
   ASSERT_EQ(THREE_MEGABYTES, allocator.allocations[0].size);
 }
 
-TEST(DeviceMemoryAllocatorTest,
+TEST(DeviceHeapTest,
      SubReservationsExceedingAllocationCauseFurtherAllocations) {
   TestAllocator allocator;
   DeviceHeap heap(FOUR_MEGABYTES, &allocator);
@@ -127,7 +127,7 @@ TEST(DeviceMemoryAllocatorTest,
   ASSERT_EQ(2, allocator.allocations.size());
 }
 
-TEST(DeviceMemoryAllocatorTest,
+TEST(DeviceHeapTest,
      SubReservationsNotExceedingAllocationDoNotCauseFurtherAllocations) {
   TestAllocator allocator;
   DeviceHeap heap(FOUR_MEGABYTES, &allocator);
@@ -140,7 +140,7 @@ TEST(DeviceMemoryAllocatorTest,
   ASSERT_EQ(1, allocator.allocations.size());
 }
 
-TEST(DeviceMemoryAllocatorTest, AllocateEntireHeapPossible) {
+TEST(DeviceHeapTest, AllocateEntireHeapPossible) {
   TestAllocator allocator;
   DeviceHeap heap(1, &allocator);
 
@@ -152,7 +152,7 @@ TEST(DeviceMemoryAllocatorTest, AllocateEntireHeapPossible) {
   ASSERT_EQ(1, allocator.allocations.size());
 }
 
-TEST(DeviceMemoryAllocatorTest, ReleasedMemoryCanBeReserved) {
+TEST(DeviceHeapTest, ReleasedMemoryCanBeReserved) {
   TestAllocator allocator;
   DeviceHeap heap(THREE_MEGABYTES, &allocator);
 
@@ -169,7 +169,7 @@ TEST(DeviceMemoryAllocatorTest, ReleasedMemoryCanBeReserved) {
   ASSERT_EQ(256, reservedBlock.GetMemoryBlock().size);
 }
 
-TEST(DeviceMemoryAllocatorTest, HeapDoesNotGetFragmented) {
+TEST(DeviceHeapTest, HeapDoesNotGetFragmented) {
   // Arrange
   TestAllocator allocator;
   DeviceHeap heap(6, &allocator);
@@ -204,7 +204,7 @@ TEST(DeviceMemoryAllocatorTest, HeapDoesNotGetFragmented) {
   ASSERT_EQ(1, allocator.allocations.size());
 }
 
-TEST(DeviceMemoryAllocatorTest, HeapDoesNotGetFragmentedForBigAllocations) {
+TEST(DeviceHeapTest, HeapDoesNotGetFragmentedForBigAllocations) {
   // Arrange
   TestAllocator allocator;
   DeviceHeap heap(ONE_MEGABYTE, &allocator);
@@ -230,12 +230,12 @@ TEST(DeviceMemoryAllocatorTest, HeapDoesNotGetFragmentedForBigAllocations) {
   ASSERT_EQ(1, allocator.allocations.size());
 }
 
-TEST(DeviceMemoryAllocatorTest, KeepsAllocationsAliveOnAllHeaps) {
+TEST(DeviceHeapTest, KeepsAllocationsAliveOnAllHeaps) {
   CopyCountingMemoryObject* const allocation1 =
       new CopyCountingMemoryObject(new u32());
   CopyCountingMemoryObject* const allocation2 =
       new CopyCountingMemoryObject(new u32());
-  std::queue<MemoryObject*> objectsToAllocate;
+  std::queue<Allocator::MemoryObject*> objectsToAllocate;
   objectsToAllocate.emplace(allocation1);
   objectsToAllocate.emplace(allocation2);
   TestAllocator allocator(objectsToAllocate);
@@ -252,14 +252,14 @@ TEST(DeviceMemoryAllocatorTest, KeepsAllocationsAliveOnAllHeaps) {
   ASSERT_EQ(1, *allocation2->aliveCopies);
 }
 
-TEST(DeviceMemoryAllocatorTest, DestroyesAllocationsWhenDestroyed) {
+TEST(DeviceHeapTest, DestroyesAllocationsWhenDestroyed) {
   u32* const allocation1AliveCopies = new u32(0);
   u32* const allocation2AliveCopies = new u32(0);
   CopyCountingMemoryObject* const allocation1 =
       new CopyCountingMemoryObject(allocation1AliveCopies);
   CopyCountingMemoryObject* const allocation2 =
       new CopyCountingMemoryObject(allocation2AliveCopies);
-  std::queue<MemoryObject*> objectsToAllocate;
+  std::queue<Allocator::MemoryObject*> objectsToAllocate;
   objectsToAllocate.emplace(allocation1);
   objectsToAllocate.emplace(allocation2);
   TestAllocator allocator(objectsToAllocate);
@@ -276,7 +276,7 @@ TEST(DeviceMemoryAllocatorTest, DestroyesAllocationsWhenDestroyed) {
   ASSERT_EQ(0, *allocation2AliveCopies);
 }
 
-TEST(DeviceMemoryAllocatorTest, ReturnsAllocationsToCorrectHeaps) {
+TEST(DeviceHeapTest, ReturnsAllocationsToCorrectHeaps) {
   // Arrange
   TestAllocator allocator;
   DeviceHeap heap(3, &allocator);
@@ -311,11 +311,10 @@ TEST(DeviceMemoryAllocatorTest, ReturnsAllocationsToCorrectHeaps) {
   ASSERT_EQ(2, allocator.allocations.size());
 }
 
-TEST(DeviceMemoryAllocatorTest,
-     SimpleAllocationReturnsCorrectAllocationReference) {
+TEST(DeviceHeapTest, SimpleAllocationReturnsCorrectAllocationReference) {
   MemoryObjectWithId* const allocation1 = new MemoryObjectWithId(1);
   MemoryObjectWithId* const allocation2 = new MemoryObjectWithId(2);
-  std::queue<MemoryObject*> objectsToAllocate;
+  std::queue<Allocator::MemoryObject*> objectsToAllocate;
   objectsToAllocate.emplace(allocation1);
   objectsToAllocate.emplace(allocation2);
   TestAllocator allocator(objectsToAllocate);
@@ -330,12 +329,11 @@ TEST(DeviceMemoryAllocatorTest,
   ASSERT_EQ(2, reservedBlock2.GetMemoryObjectAs<MemoryObjectWithId>().id);
 }
 
-TEST(DeviceMemoryAllocatorTest,
-     MultipleReallocationsReturnCorrectMemoryObjectReference) {
+TEST(DeviceHeapTest, MultipleReallocationsReturnCorrectMemoryObjectReference) {
   MemoryObjectWithId* const allocation1 = new MemoryObjectWithId(1);
   MemoryObjectWithId* const allocation2 = new MemoryObjectWithId(2);
   MemoryObjectWithId* const allocation3 = new MemoryObjectWithId(3);
-  std::queue<MemoryObject*> objectsToAllocate;
+  std::queue<Allocator::MemoryObject*> objectsToAllocate;
   objectsToAllocate.emplace(allocation1);
   objectsToAllocate.emplace(allocation2);
   objectsToAllocate.emplace(allocation3);
@@ -362,7 +360,7 @@ TEST(DeviceMemoryAllocatorTest,
   ASSERT_EQ(3, reservedBlock3.GetMemoryObjectAs<MemoryObjectWithId>().id);
 }
 
-TEST(DeviceMemoryAllocatorTest, IncreasesAllocationSizeBy150Percent) {
+TEST(DeviceHeapTest, IncreasesAllocationSizeBy150Percent) {
   TestAllocator allocator;
   DeviceHeap heap(2, &allocator);
 
@@ -382,7 +380,7 @@ TEST(DeviceMemoryAllocatorTest, IncreasesAllocationSizeBy150Percent) {
   ASSERT_EQ(5, reservedBlock3.GetMemoryBlock().size);
 }
 
-TEST(DeviceMemoryAllocatorTest, EnlargesHeapHeavilyToAccomodateLargeObject) {
+TEST(DeviceHeapTest, EnlargesHeapHeavilyToAccomodateLargeObject) {
   TestAllocator allocator;
   DeviceHeap heap(/* initialAllocationSize= */ 4, /* enlargementFactor= */ 2.0f,
                   &allocator);
@@ -403,7 +401,7 @@ TEST(DeviceMemoryAllocatorTest, EnlargesHeapHeavilyToAccomodateLargeObject) {
   ASSERT_EQ(TWO_MEGABYTES, allocator.allocations[3].size);
 }
 
-TEST(DeviceMemoryAllocatorTest, AlignsAllocations) {
+TEST(DeviceHeapTest, AlignsAllocations) {
   TestAllocator allocator;
   DeviceHeap heap(1024, &allocator);
 
@@ -416,7 +414,7 @@ TEST(DeviceMemoryAllocatorTest, AlignsAllocations) {
   ASSERT_EQ(8, alignedBlock.GetMemoryBlock().size);
 }
 
-TEST(DeviceMemoryAllocatorTest, GivesUpAlignmentFragmentsSmallerThan128Bytes) {
+TEST(DeviceHeapTest, GivesUpAlignmentFragmentsSmallerThan128Bytes) {
   TestAllocator allocator;
   DeviceHeap heap(1024, &allocator);
 
@@ -432,7 +430,7 @@ TEST(DeviceMemoryAllocatorTest, GivesUpAlignmentFragmentsSmallerThan128Bytes) {
   ASSERT_EQ(1, smallBlockAllocatableBeforeAlignedBlock.GetMemoryBlock().size);
 }
 
-TEST(DeviceMemoryAllocatorTest, RetainsAlignmentFragmentsBiggerThan127Bytes) {
+TEST(DeviceHeapTest, RetainsAlignmentFragmentsBiggerThan127Bytes) {
   TestAllocator allocator;
   DeviceHeap heap(1024, &allocator);
 
@@ -447,7 +445,7 @@ TEST(DeviceMemoryAllocatorTest, RetainsAlignmentFragmentsBiggerThan127Bytes) {
   ASSERT_EQ(1, smallBlockAllocatableBeforeAlignedBlock.GetMemoryBlock().size);
 }
 
-TEST(DeviceMemoryAllocatorTest, AlignedAllocationsReturnedCorrectly) {
+TEST(DeviceHeapTest, AlignedAllocationsReturnedCorrectly) {
   TestAllocator allocator;
   DeviceHeap heap(1024, &allocator);
 
@@ -473,9 +471,9 @@ TEST(DeviceMemoryAllocatorTest, AlignedAllocationsReturnedCorrectly) {
   ASSERT_EQ(1, allocator.allocations.size());
 }
 
-TEST(DeviceMemoryAllocatorTest, ReservedBlockCanBeMoveConstructed) {
+TEST(DeviceHeapTest, ReservedBlockCanBeMoveConstructed) {
   MemoryObjectWithId* const allocation = new MemoryObjectWithId();
-  std::queue<MemoryObject*> objectsToAllocate;
+  std::queue<Allocator::MemoryObject*> objectsToAllocate;
   objectsToAllocate.emplace(allocation);
   TestAllocator allocator(objectsToAllocate);
   DeviceHeap heap(1, &allocator);
@@ -486,9 +484,9 @@ TEST(DeviceMemoryAllocatorTest, ReservedBlockCanBeMoveConstructed) {
   ASSERT_EQ(allocation, &reservedBlock.GetMemoryObjectAs<MemoryObjectWithId>());
 }
 
-TEST(DeviceMemoryAllocatorTest, ReservedBlockCanBeMoveAssigned) {
+TEST(DeviceHeapTest, ReservedBlockCanBeMoveAssigned) {
   MemoryObjectWithId* const allocation = new MemoryObjectWithId();
-  std::queue<MemoryObject*> objectsToAllocate;
+  std::queue<Allocator::MemoryObject*> objectsToAllocate;
   objectsToAllocate.emplace(allocation);
   TestAllocator allocator(objectsToAllocate);
   DeviceHeap heap(1, &allocator);

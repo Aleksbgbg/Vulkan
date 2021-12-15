@@ -1,11 +1,11 @@
 #ifndef VULKAN_SRC_MEMORY_MEMORYBLOCK_H_
 #define VULKAN_SRC_MEMORY_MEMORYBLOCK_H_
 
-#include <vulkan/vulkan.h>
+#include "util/types.h"
 
 struct MemoryBlock {
-  VkDeviceSize offset;
-  VkDeviceSize size;
+  u64 offset;
+  u64 size;
 };
 
 #endif  // VULKAN_SRC_MEMORY_MEMORYBLOCK_H_

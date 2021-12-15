@@ -2,10 +2,10 @@
 #define VULKAN_SRC_RENDERER_VULKAN_SWAPCHAINWITHRESOURCES_H_
 
 #include "ImageWithMemory.h"
-#include "memory/DeviceMemoryAllocator.h"
 #include "renderer/vulkan/api/Surface.h"
 #include "renderer/vulkan/api/Swapchain.h"
 #include "renderer/vulkan/api/VirtualDevice.h"
+#include "renderer/vulkan/api/memory/DeviceMemoryAllocator.h"
 
 class SwapchainWithResources {
  public:

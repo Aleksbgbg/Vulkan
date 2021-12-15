@@ -1,13 +1,20 @@
 #ifndef VULKAN_SRC_MEMORY_ALLOCATOR_H_
 #define VULKAN_SRC_MEMORY_ALLOCATOR_H_
 
-#include <vulkan/vulkan.h>
+#include <memory>
 
-#include "MemoryObject.h"
+#include "util/types.h"
 
 class Allocator {
  public:
-  virtual std::unique_ptr<MemoryObject> Allocate(VkDeviceSize size) = 0;
+  class MemoryObject {
+   public:
+    virtual ~MemoryObject() = default;
+  };
+
+  virtual ~Allocator() = default;
+
+  virtual std::unique_ptr<MemoryObject> Allocate(u64 size) = 0;
 };
 
 #endif  // VULKAN_SRC_MEMORY_ALLOCATOR_H_

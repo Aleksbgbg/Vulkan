@@ -4,33 +4,33 @@
 #include "MemoryBlock.h"
 
 MemoryBlock ReservedBlock::GetMemoryBlock() const {
-  return MemoryBlock{.offset = info.availableOffset,
-                     .size = info.availableSize};
+  return MemoryBlock{.offset = info_.availableOffset,
+                     .size = info_.availableSize};
 }
 
-ReservedBlock::ReservedBlock() : heap(nullptr) {}
+ReservedBlock::ReservedBlock() : heap_(nullptr) {}
 
-ReservedBlock::ReservedBlock(DeviceHeap* heap, MemoryObject* memory,
+ReservedBlock::ReservedBlock(DeviceHeap* heap, Allocator::MemoryObject* memory,
                              AllocationInfo info)
-    : heap(heap), memory(memory), info(info) {}
+    : heap_(heap), memory_(memory), info_(info) {}
 
 ReservedBlock::~ReservedBlock() {
-  if (heap != nullptr) {
-    heap->Return({.allocationIndex = info.allocationIndex,
-                  .offset = info.allocationOffset,
-                  .size = info.allocationSize});
+  if (heap_ != nullptr) {
+    heap_->Return({.allocationIndex = info_.allocationIndex,
+                   .offset = info_.allocationOffset,
+                   .size = info_.allocationSize});
   }
 }
 
 ReservedBlock::ReservedBlock(ReservedBlock&& other) noexcept
-    : heap(other.heap), memory(other.memory), info(other.info) {
-  other.heap = nullptr;
+    : heap_(other.heap_), memory_(other.memory_), info_(other.info_) {
+  other.heap_ = nullptr;
 }
 
 ReservedBlock& ReservedBlock::operator=(ReservedBlock&& other) noexcept {
-  heap = other.heap;
-  memory = other.memory;
-  info = other.info;
-  other.heap = nullptr;
+  heap_ = other.heap_;
+  memory_ = other.memory_;
+  info_ = other.info_;
+  other.heap_ = nullptr;
   return *this;
 }

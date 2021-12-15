@@ -45,18 +45,18 @@ class DeviceHeap {
   struct AllocatedMemory {
     u64 allocationIndex;
     AllocationList list;
-    std::unique_ptr<MemoryObject> memory;
+    std::unique_ptr<Allocator::MemoryObject> memory;
   };
 
   void Return(const AllocatedBlock block);
 
  private:
-  u64 initialAllocationSize;
-  float enlargementFactor;
-  Allocator* allocator;
+  u64 initialAllocationSize_;
+  float enlargementFactor_;
+  Allocator* allocator_;
 
-  u32 enlargementIndex;
-  std::vector<AllocatedMemory> allocations;
+  u32 enlargementIndex_;
+  std::vector<AllocatedMemory> allocations_;
 };
 
 #endif  // VULKAN_SRC_MEMORY_DEVICEHEAP_H_

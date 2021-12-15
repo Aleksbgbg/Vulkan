@@ -2,33 +2,33 @@
 
 DeviceMemorySubAllocation::DeviceMemorySubAllocation(
     const DeviceMemory* const memory, ReservedBlock reservedBlock)
-    : memory(memory),
-      reservedBlock(std::move(reservedBlock)),
-      allocatedMemoryOffset(reservedBlock.GetMemoryBlock().offset) {}
+    : memory_(memory),
+      reservedBlock_(std::move(reservedBlock)),
+      allocatedMemoryOffset_(reservedBlock.GetMemoryBlock().offset) {}
 
 void DeviceMemorySubAllocation::Bind(const Buffer& buffer) const {
-  memory->Bind(buffer, allocatedMemoryOffset);
+  memory_->Bind(buffer, allocatedMemoryOffset_);
 }
 
 void DeviceMemorySubAllocation::Bind(const Image& image) const {
-  memory->Bind(image, allocatedMemoryOffset);
+  memory_->Bind(image, allocatedMemoryOffset_);
 }
 
 void* DeviceMemorySubAllocation::Map(const VkDeviceSize offset,
                                      const VkDeviceSize size) const {
-  return memory->Map(allocatedMemoryOffset + offset, size);
+  return memory_->Map(allocatedMemoryOffset_ + offset, size);
 }
 
 void DeviceMemorySubAllocation::Unmap() const {
-  memory->Unmap();
+  memory_->Unmap();
 }
 
 void DeviceMemorySubAllocation::MapCopy(const void* const data,
                                         const VkDeviceSize size) const {
-  memory->MapCopy(data, allocatedMemoryOffset, size);
+  memory_->MapCopy(data, allocatedMemoryOffset_, size);
 }
 
 void DeviceMemorySubAllocation::FlushMappedMemoryRange(
     const VkDeviceSize offset, const VkDeviceSize size) const {
-  memory->FlushMappedMemoryRange(allocatedMemoryOffset + offset, size);
+  memory_->FlushMappedMemoryRange(allocatedMemoryOffset_ + offset, size);
 }

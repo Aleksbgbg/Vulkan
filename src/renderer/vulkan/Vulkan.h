@@ -16,9 +16,9 @@
 #include "game/Transformable.h"
 #include "general/algorithms/RandomNumberGenerator.h"
 #include "general/geometry/Rect.h"
-#include "memory/DeviceMemoryAllocator.h"
 #include "renderer/vulkan/api/Swapchain.h"
 #include "renderer/vulkan/api/VulkanInstance.h"
+#include "renderer/vulkan/api/memory/DeviceMemoryAllocator.h"
 #include "system/windowing/Window.h"
 
 // TODO: Lots of cleanup since this file has been through a lot of evolution

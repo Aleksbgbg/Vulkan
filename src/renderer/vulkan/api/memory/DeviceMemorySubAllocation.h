@@ -1,7 +1,7 @@
-#ifndef VULKAN_SRC_MEMORY_DEVICEMEMORYSUBALLOCATION_H_
-#define VULKAN_SRC_MEMORY_DEVICEMEMORYSUBALLOCATION_H_
+#ifndef VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYSUBALLOCATION_H_
+#define VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYSUBALLOCATION_H_
 
-#include "ReservedBlock.h"
+#include "memory/ReservedBlock.h"
 #include "renderer/vulkan/api/DeviceMemory.h"
 
 class DeviceMemorySubAllocation {
@@ -26,10 +26,10 @@ class DeviceMemorySubAllocation {
   void Bind(const Image& image) const;
 
  private:
-  const DeviceMemory* memory;
-  ReservedBlock reservedBlock;
+  const DeviceMemory* memory_;
+  ReservedBlock reservedBlock_;
 
-  VkDeviceSize allocatedMemoryOffset;
+  VkDeviceSize allocatedMemoryOffset_;
 };
 
-#endif  // VULKAN_SRC_MEMORY_DEVICEMEMORYSUBALLOCATION_H_
+#endif  // VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYSUBALLOCATION_H_

@@ -1,11 +1,11 @@
-#ifndef VULKAN_SRC_MEMORY_DEVICEMEMORYALLOCATOR_H_
-#define VULKAN_SRC_MEMORY_DEVICEMEMORYALLOCATOR_H_
+#ifndef VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYALLOCATOR_H_
+#define VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYALLOCATOR_H_
 
 #include <memory>
 #include <vector>
 
-#include "DeviceHeap.h"
 #include "DeviceMemorySubAllocation.h"
+#include "memory/DeviceHeap.h"
 #include "renderer/vulkan/api/Buffer.h"
 #include "renderer/vulkan/api/DeviceMemory.h"
 #include "renderer/vulkan/api/Image.h"
@@ -37,8 +37,8 @@ class DeviceMemoryAllocator {
     std::unique_ptr<MemoryObject> Allocate(VkDeviceSize size) override;
 
    private:
-    VirtualDevice* virtualDevice;
-    u32 memoryTypeIndex;
+    VirtualDevice* virtualDevice_;
+    u32 memoryTypeIndex_;
   };
 
   struct Heap {
@@ -46,10 +46,10 @@ class DeviceMemoryAllocator {
     DeviceHeap deviceHeap;
   };
 
-  VirtualDevice* virtualDevice;
-  const VkPhysicalDeviceMemoryProperties* memoryProperties;
+  VirtualDevice* virtualDevice_;
+  const VkPhysicalDeviceMemoryProperties* memoryProperties_;
 
-  std::vector<Heap> heapsPerMemoryIndex;
+  std::vector<Heap> heapsPerMemoryIndex_;
 };
 
-#endif  // VULKAN_SRC_MEMORY_DEVICEMEMORYALLOCATOR_H_
+#endif  // VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYALLOCATOR_H_
