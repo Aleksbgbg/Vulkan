@@ -27,6 +27,188 @@ std::vector<std::string> Split(const std::string& string,
   return parts;
 }
 
+float AsFloat(const std::string_view string) {
+  return std::stof(string.data());
+}
+
+u32 AsUnsigned(const std::string_view string) {
+  return std::stoul(string.data());
+}
+
+u32 AsIndex(const std::string_view string) {
+  return AsUnsigned(string) - 1;
+}
+
+class LineHandler {
+ public:
+  virtual ~LineHandler() = default;
+
+  virtual bool CanHandle(const std::string_view line) const = 0;
+  virtual void Handle(const std::vector<std::string>& splitLineParts) = 0;
+};
+
+class VertexHandler : public LineHandler {
+ public:
+  VertexHandler(Model& model) : model_(model) {}
+
+  bool CanHandle(const std::string_view line) const override {
+    return line.starts_with("v ");
+  }
+
+  void Handle(const std::vector<std::string>& splitLineParts) override {
+    const float x = AsFloat(splitLineParts[0]);
+    const float y = AsFloat(splitLineParts[1]);
+    const float z = AsFloat(splitLineParts[2]);
+    model_.vertices.push_back({.x = x, .y = y, .z = z});
+  }
+
+ private:
+  Model& model_;
+};
+
+class NormalHandler : public LineHandler {
+ public:
+  NormalHandler(Model& model) : model_(model) {}
+
+  bool CanHandle(const std::string_view line) const override {
+    return line.starts_with("vn ");
+  }
+
+  void Handle(const std::vector<std::string>& splitLineParts) override {
+    const float x = AsFloat(splitLineParts[0]);
+    const float y = AsFloat(splitLineParts[1]);
+    const float z = AsFloat(splitLineParts[2]);
+    model_.normalVertices.push_back({.x = x, .y = y, .z = z});
+  }
+
+ private:
+  Model& model_;
+};
+
+class TextureHandler : public LineHandler {
+ public:
+  TextureHandler(Model& model) : model_(model) {}
+
+  bool CanHandle(const std::string_view line) const override {
+    return line.starts_with("vt ");
+  }
+
+  void Handle(const std::vector<std::string>& splitLineParts) override {
+    const float u = AsFloat(splitLineParts[0]);
+    const float v = AsFloat(splitLineParts[1]);
+    model_.textureVertices.push_back({.u = u, .v = v});
+  }
+
+ private:
+  Model& model_;
+};
+
+class FaceHandler : public LineHandler {
+ public:
+  FaceHandler(Model& model) : model_(model) {}
+
+  bool CanHandle(const std::string_view line) const override {
+    return line.starts_with("f ");
+  }
+
+  void Handle(const std::vector<std::string>& splitLineParts) override {
+    if (splitLineParts.size() == 3) {
+      HandleTriangularFace(splitLineParts);
+    } else {
+      HandleSquareFace(splitLineParts);
+    }
+  }
+
+ private:
+  void HandleTriangularFace(const std::vector<std::string>& splitLineParts) {
+    ModelFace modelFace;
+    for (u32 index = 0; index < splitLineParts.size(); ++index) {
+      modelFace.faceVertices[index] = AsFace(Split(splitLineParts[index], "/"));
+    }
+    model_.faces.push_back(modelFace);
+  }
+
+  void HandleSquareFace(const std::vector<std::string>& splitLineParts) {
+    const std::vector<std::string>& partsVertex1 =
+        Split(splitLineParts[0], "/");
+    const std::vector<std::string>& partsVertex2 =
+        Split(splitLineParts[1], "/");
+    const std::vector<std::string>& partsVertex3 =
+        Split(splitLineParts[2], "/");
+    const std::vector<std::string>& partsVertex4 =
+        Split(splitLineParts[3], "/");
+
+    std::array<ModelFaceVertex, 3> triangle1;
+    triangle1[0] = AsFace(partsVertex1);
+    triangle1[1] = AsFace(partsVertex2);
+    triangle1[2] = AsFace(partsVertex3);
+    model_.faces.push_back(ModelFace{.faceVertices = triangle1});
+
+    std::array<ModelFaceVertex, 3> triangle2;
+    triangle2[0] = AsFace(partsVertex1);
+    triangle2[1] = AsFace(partsVertex3);
+    triangle2[2] = AsFace(partsVertex4);
+    model_.faces.push_back(ModelFace{.faceVertices = triangle2});
+  }
+
+  static ModelFaceVertex AsFace(const std::vector<std::string>& parts) {
+    const u32 vertexIndex = AsIndex(parts[0]);
+    const u32 normalVertexIndex = parts[2].empty() ? 0 : AsIndex(parts[2]);
+    const u32 textureVertexIndex = parts[1].empty() ? 0 : AsIndex(parts[1]);
+    return {
+        .vertexIndex = vertexIndex,
+        .normalVertexIndex = normalVertexIndex,
+        .textureVertexIndex = textureVertexIndex,
+    };
+  }
+
+ private:
+  Model& model_;
+};
+
+Model ModelFromStream(std::istream& stream) {
+  Model model;
+
+  VertexHandler vertexHandler(model);
+  NormalHandler normalHandler(model);
+  TextureHandler textureHandler(model);
+  FaceHandler faceHandler(model);
+
+  std::array<LineHandler*, 4> lineHandlers{
+      &vertexHandler,
+      &normalHandler,
+      &textureHandler,
+      &faceHandler,
+  };
+
+  std::string line;
+
+  while (true) {
+    const auto nextChar = stream.get();
+
+    if (nextChar == '\n' || stream.eof()) {
+      for (LineHandler* handler : lineHandlers) {
+        if (handler->CanHandle(line)) {
+          const std::vector<std::string> lineParts =
+              Split(line.substr(line.find(' ') + 1), " ");
+          handler->Handle(lineParts);
+          break;
+        }
+      }
+
+      line.clear();
+    } else {
+      line.push_back(nextChar);
+    }
+
+    if (stream.eof()) {
+      break;
+    }
+  }
+
+  return model;
+}
+
 Model ModelFromObjFile(const std::string_view name) {
   std::ifstream file(name.data());
 
@@ -35,123 +217,43 @@ Model ModelFromObjFile(const std::string_view name) {
                                  name.data());
   }
 
-  std::string line;
-  Model model;
+  return ModelFromStream(file);
+}
 
-  while (!file.eof()) {
-    const auto nextChar = file.get();
-
-    if (nextChar == '\n') {
-      if (line[0] != '#') {
-        const std::vector<std::string> parts = Split(line, " ");
-
-        if (line.starts_with("vn ")) {
-          model.normalVertices.push_back(
-              ModelNormalVertex{.x = std::stof(parts[1]),
-                                .y = std::stof(parts[2]),
-                                .z = std::stof(parts[3])});
-        } else if (line.starts_with("v ")) {
-          model.vertices.push_back(ModelVertex{.x = std::stof(parts[1]),
-                                               .y = std::stof(parts[2]),
-                                               .z = std::stof(parts[3])});
-        } else if (line.starts_with("vt ")) {
-          model.textureVertices.push_back(ModelTextureVertex{
-              .u = std::stof(parts[1]), .v = std::stof(parts[2])});
-        } else if (line.starts_with("f ")) {
-          ModelFace modelFace;
-
-          if (parts.size() <= 4) {
-            for (u32 index = 1; index < parts.size(); ++index) {
-              const std::vector<std::string> components =
-                  Split(parts[index], "/");
-
-              const u32 vertexIndex =
-                  static_cast<u32>(std::stoi(components[0])) - 1;
-              const u32 normalVertexIndex =
-                  static_cast<u32>(std::stoi(components[2])) - 1;
-              const u32 textureVertexIndex =
-                  components[1].size() == 0
-                      ? 0
-                      : static_cast<u32>(std::stoi(components[1])) - 1;
-
-              modelFace.faceVertices[index - 1] = ModelFaceVertex{
-                  .vertexIndex = vertexIndex,
-                  .normalVertexIndex = normalVertexIndex,
-                  .textureVertexIndex = textureVertexIndex,
-              };
-            }
-
-            model.faces.push_back(modelFace);
-          } else {
-            for (u32 index = 1; index <= 3; ++index) {
-              const std::vector<std::string> components =
-                  Split(parts[index], "/");
-
-              const u32 vertexIndex =
-                  static_cast<u32>(std::stoi(components[0])) - 1;
-              const u32 normalVertexIndex =
-                  static_cast<u32>(std::stoi(components[2])) - 1;
-              const u32 textureVertexIndex =
-                  components[1].size() == 0
-                      ? 0
-                      : static_cast<u32>(std::stoi(components[1])) - 1;
-
-              modelFace.faceVertices[index - 1] = ModelFaceVertex{
-                  .vertexIndex = vertexIndex,
-                  .normalVertexIndex = normalVertexIndex,
-                  .textureVertexIndex = textureVertexIndex,
-              };
-            }
-
-            model.faces.push_back(modelFace);
-
-            u32 i = 0;
-            u32 j = 0;
-
-            for (; i <= 3;) {
-              if (i == 1) {
-                ++i;
-                continue;
-              }
-
-              const std::vector<std::string> components =
-                  Split(parts[i + 1], "/");
-
-              const u32 vertexIndex =
-                  static_cast<u32>(std::stoi(components[0])) - 1;
-              const u32 normalVertexIndex =
-                  static_cast<u32>(std::stoi(components[2])) - 1;
-              const u32 textureVertexIndex =
-                  components[1].size() == 0
-                      ? 0
-                      : static_cast<u32>(std::stoi(components[1])) - 1;
-
-              modelFace.faceVertices[j] =ModelFaceVertex{
-                  .vertexIndex = vertexIndex,
-                  .normalVertexIndex = normalVertexIndex,
-                  .textureVertexIndex = textureVertexIndex,
-              };
-
-              ++i;
-              ++j;
-            }
-
-            model.faces.push_back(modelFace);
-          }
-        }
-      }
-
-      line.clear();
-    } else {
-      line.push_back(nextChar);
+bool ModelFaceVertex::operator==(const ModelFaceVertex other) const {
+  return (vertexIndex == other.vertexIndex) &&
+         (normalVertexIndex == other.normalVertexIndex) &&
+         (textureVertexIndex == other.textureVertexIndex);
+}
+bool ModelFace::operator==(const ModelFace& other) const {
+  for (u32 index = 0; index < faceVertices.size(); ++index) {
+    if (faceVertices[index] != other.faceVertices[index]) {
+      return false;
     }
   }
 
-  if (model.textureVertices.size() == 0) {
-    model.textureVertices.push_back(ModelTextureVertex{.u = 0, .v = 0});
-  }
-
-  return model;
+  return true;
 }
 
 }  // namespace file
+
+namespace std {
+
+size_t hash<file::ModelFaceVertex>::operator()(
+    const file::ModelFaceVertex faceVertex) const {
+  return std::hash<u32>()(faceVertex.vertexIndex) ^
+         std::hash<u32>()(faceVertex.normalVertexIndex) ^
+         std::hash<u32>()(faceVertex.textureVertexIndex);
+}
+
+size_t hash<file::ModelFace>::operator()(const file::ModelFace& face) const {
+  size_t hash = 0;
+
+  for (u32 index = 0; index < face.faceVertices.size(); ++index) {
+    hash ^= std::hash<file::ModelFaceVertex>()(face.faceVertices[index]);
+  }
+
+  return hash;
+}
+
+}  // namespace std

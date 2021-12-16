@@ -22,8 +22,12 @@ DrawVertices<TVertex> LoadDrawVertices(const std::string_view filename,
 
       const TVertex vertex = vertexProducer(
           model.vertices[modelFaceVertex.vertexIndex],
-          model.normalVertices[modelFaceVertex.normalVertexIndex],
-          model.textureVertices[modelFaceVertex.textureVertexIndex]);
+          model.normalVertices.empty()
+              ? file::ModelNormalVertex()
+              : model.normalVertices[modelFaceVertex.normalVertexIndex],
+          model.textureVertices.empty()
+              ? file::ModelTextureVertex()
+              : model.textureVertices[modelFaceVertex.textureVertexIndex]);
 
       if (uniqueVertices.contains(vertex)) {
         drawVertices.indices.push_back(uniqueVertices[vertex]);

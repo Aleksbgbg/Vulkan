@@ -2,6 +2,7 @@
 #define VULKAN_SRC_GENERAL_FILES_OBJ_H_
 
 #include <array>
+#include <istream>
 #include <string_view>
 #include <vector>
 
@@ -27,11 +28,7 @@ struct ModelTextureVertex {
 };
 
 struct ModelFaceVertex {
-  bool operator==(const ModelFaceVertex other) const {
-    return (vertexIndex == other.vertexIndex) &&
-           (normalVertexIndex == other.normalVertexIndex) &&
-           (textureVertexIndex == other.textureVertexIndex);
-  }
+  bool operator==(const ModelFaceVertex other) const;
 
   u32 vertexIndex;
   u32 normalVertexIndex;
@@ -39,15 +36,7 @@ struct ModelFaceVertex {
 };
 
 struct ModelFace {
-  bool operator==(const ModelFace& other) const {
-    for (u32 index = 0; index < faceVertices.size(); ++index) {
-      if (faceVertices[index] != other.faceVertices[index]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
+  bool operator==(const ModelFace& other) const;
 
   std::array<ModelFaceVertex, 3> faceVertices;
 };
@@ -62,6 +51,8 @@ struct Model {
 
 Model ModelFromObjFile(const std::string_view name);
 
+Model ModelFromStream(std::istream& stream);
+
 }  // namespace file
 
 namespace std {
@@ -69,25 +60,13 @@ namespace std {
 template <>
 class hash<file::ModelFaceVertex> {
  public:
-  size_t operator()(const file::ModelFaceVertex faceVertex) const {
-    return std::hash<u32>()(faceVertex.vertexIndex) ^
-           std::hash<u32>()(faceVertex.normalVertexIndex) ^
-           std::hash<u32>()(faceVertex.textureVertexIndex);
-  }
+  size_t operator()(const file::ModelFaceVertex faceVertex) const;
 };
 
 template <>
 class hash<file::ModelFace> {
  public:
-  size_t operator()(const file::ModelFace& face) const {
-    size_t hash = 0;
-
-    for (u32 index = 0; index < face.faceVertices.size(); ++index) {
-      hash ^= std::hash<file::ModelFaceVertex>()(face.faceVertices[index]);
-    }
-
-    return hash;
-  }
+  size_t operator()(const file::ModelFace& face) const;
 };
 
 }  // namespace std
