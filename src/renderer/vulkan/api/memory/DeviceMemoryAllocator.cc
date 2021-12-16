@@ -15,9 +15,13 @@ DeviceMemoryAllocator::HeapAllocator::HeapAllocator(
     VirtualDevice* virtualDevice, u32 memoryTypeIndex)
     : virtualDevice_(virtualDevice), memoryTypeIndex_(memoryTypeIndex) {}
 
-std::unique_ptr<Allocator::MemoryObject>
-DeviceMemoryAllocator::HeapAllocator::Allocate(const VkDeviceSize size) {
-  return std::make_unique<DeviceMemoryObject>(
+u64 DeviceMemoryAllocator::HeapAllocator::MemoryObjectSize() const {
+  return sizeof(DeviceMemoryObject);
+}
+
+Allocator::MemoryObject* DeviceMemoryAllocator::HeapAllocator::Allocate(
+    void* memoryObjectMemory, u64 size) {
+  return new (memoryObjectMemory) DeviceMemoryObject(
       virtualDevice_->AllocateDeviceMemory(memoryTypeIndex_, size));
 }
 

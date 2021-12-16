@@ -6,6 +6,7 @@
 
 #include "AllocatedBlock.h"
 #include "Allocator.h"
+#include "BlockBasedAllocator.h"
 #include "MemoryAllocation.h"
 #include "MemoryBlock.h"
 #include "ReservedBlock.h"
@@ -23,14 +24,99 @@ class DeviceHeap {
   ReservedBlock ReserveMemory(const MemoryAllocation requestedAllocation);
 
  private:
+  template <typename T>
+  class DestructorCaller {
+   public:
+    DestructorCaller(T* value) : value_(value) {}
+
+    DestructorCaller(DestructorCaller&) = delete;
+    DestructorCaller(DestructorCaller&& other) noexcept : value_(other.value_) {
+      other.value_ = nullptr;
+    }
+
+    DestructorCaller& operator=(DestructorCaller&) = delete;
+    DestructorCaller& operator=(DestructorCaller&& other) noexcept {
+      std::swap(value_, other.value_);
+      return *this;
+    }
+
+    ~DestructorCaller() {
+      if (value_ != nullptr) {
+        value_->~T();
+      }
+    }
+
+    T* get() {
+      return value_;
+    }
+
+   private:
+    T* value_;
+  };
+
+  template <typename T>
+  class AllocationReturner {
+   public:
+    AllocationReturner() : value_(nullptr) {}
+    AllocationReturner(BlockBasedAllocator* allocator, T&& value)
+        : allocator_(allocator),
+          block_(allocator->ConsumeBlock()),
+          value_(new (block_.memory) T(std::forward<T>(value))) {}
+
+    AllocationReturner(AllocationReturner&) = delete;
+    AllocationReturner(AllocationReturner&& other) noexcept
+        : allocator_(other.allocator_),
+          block_(other.block_),
+          value_(other.value_) {
+      other.value_ = nullptr;
+    }
+
+    ~AllocationReturner() {
+      if (value_ != nullptr) {
+        value_->~T();
+        allocator_->ReturnBlock(block_);
+      }
+    }
+
+    AllocationReturner& operator=(AllocationReturner&) = delete;
+    AllocationReturner& operator=(AllocationReturner&& other) noexcept {
+      this->~AllocationReturner();
+      allocator_ = other.allocator_;
+      block_ = other.block_;
+      value_ = other.value_;
+      other.value_ = nullptr;
+      return *this;
+    }
+
+    bool operator==(const T* const other) const {
+      return value_ == other;
+    }
+
+    T* operator->() const {
+      return value_;
+    }
+
+    T* get() {
+      return value_;
+    }
+
+   private:
+    BlockBasedAllocator* allocator_;
+    BlockBasedAllocator::Block block_;
+    T* value_;
+  };
+
   struct AllocationChain {
     AllocatedBlock block;
 
-    std::unique_ptr<AllocationChain> next;
+    AllocationReturner<AllocationChain> next;
   };
 
   class AllocationList {
    public:
+    AllocationList(BlockBasedAllocator& memory)
+        : first(), last(nullptr), memory(&memory) {}
+
     AllocationChain* First();
 
     void Add(const AllocatedBlock block);
@@ -38,14 +124,15 @@ class DeviceHeap {
     void Remove(AllocationChain* block, AllocationChain* previous);
 
    private:
-    std::unique_ptr<AllocationChain> first;
+    BlockBasedAllocator* memory;
+    AllocationReturner<AllocationChain> first;
     AllocationChain* last;
   };
 
   struct AllocatedMemory {
     u64 allocationIndex;
     AllocationList list;
-    std::unique_ptr<Allocator::MemoryObject> memory;
+    DestructorCaller<Allocator::MemoryObject> memory;
   };
 
   void Return(const AllocatedBlock block);
@@ -54,6 +141,9 @@ class DeviceHeap {
   u64 initialAllocationSize_;
   float enlargementFactor_;
   Allocator* allocator_;
+
+  BlockBasedAllocator memoryObjectBlocks_;
+  BlockBasedAllocator allocationChainBlocks_;
 
   u32 enlargementIndex_;
   std::vector<AllocatedMemory> allocations_;

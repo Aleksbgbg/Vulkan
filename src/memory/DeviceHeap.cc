@@ -8,7 +8,7 @@
 constexpr float DefaultEnlargementFactor = 1.5f;
 constexpr u32 PaddingAbsorbtionThreshold = 128;
 
-DeviceHeap::DeviceHeap() : DeviceHeap(0, nullptr) {}
+DeviceHeap::DeviceHeap() {}
 
 DeviceHeap::DeviceHeap(u64 initialAllocationSize, Allocator* allocator)
     : DeviceHeap(initialAllocationSize, DefaultEnlargementFactor, allocator) {}
@@ -18,6 +18,10 @@ DeviceHeap::DeviceHeap(u64 initialAllocationSize, float enlargementFactor,
     : initialAllocationSize_(initialAllocationSize),
       enlargementFactor_(enlargementFactor),
       allocator_(allocator),
+      memoryObjectBlocks_(std::make_unique<u8[]>(4u * 1024u * 1024u),
+                          4u * 1024u * 1024u, allocator->MemoryObjectSize()),
+      allocationChainBlocks_(std::make_unique<u8[]>(4u * 1024u * 1024u),
+                             4u * 1024u * 1024u, sizeof(AllocationChain)),
       enlargementIndex_(0),
       allocations_() {}
 
@@ -96,13 +100,14 @@ ReservedBlock DeviceHeap::ReserveMemory(
       ++enlargementIndex_;
     }
 
-    AllocationList allocationList;
+    AllocationList allocationList(allocationChainBlocks_);
     allocationList.Add(AllocatedBlock{.allocationIndex = allocations_.size(),
                                       .offset = 0,
                                       .size = allocationSize});
-    allocations_.emplace_back(AllocatedMemory{
+    allocations_.push_back(AllocatedMemory{
         .list = std::move(allocationList),
-        .memory = std::move(allocator_->Allocate(allocationSize))});
+        .memory = DestructorCaller(allocator_->Allocate(
+            memoryObjectBlocks_.ConsumeBlock().memory, allocationSize))});
   }
 }
 
@@ -153,12 +158,14 @@ DeviceHeap::AllocationChain* DeviceHeap::AllocationList::First() {
 
 void DeviceHeap::AllocationList::Add(const AllocatedBlock block) {
   if (first == nullptr) {
-    first = std::make_unique<AllocationChain>(
-        AllocationChain{.block = block, .next = nullptr});
+    first = AllocationReturner<AllocationChain>(
+        memory, AllocationChain{.block = block,
+                                .next = AllocationReturner<AllocationChain>()});
     last = first.get();
   } else {
-    last->next = std::make_unique<AllocationChain>(
-        AllocationChain{.block = block, .next = nullptr});
+    last->next = AllocationReturner<AllocationChain>(
+        memory, AllocationChain{.block = block,
+                                .next = AllocationReturner<AllocationChain>()});
     last = last->next.get();
   }
 }
@@ -166,10 +173,11 @@ void DeviceHeap::AllocationList::Add(const AllocatedBlock block) {
 void DeviceHeap::AllocationList::InsertAfter(
     DeviceHeap::AllocationChain* previous, const AllocatedBlock block) {
   if (previous == nullptr) {
-    first = std::make_unique<AllocationChain>(
-        AllocationChain{.block = block, .next = std::move(first)});
+    first = AllocationReturner<AllocationChain>(
+        memory, AllocationChain{.block = block, .next = std::move(first)});
   } else {
-    previous->next = std::make_unique<AllocationChain>(
+    previous->next = AllocationReturner<AllocationChain>(
+        memory,
         AllocationChain{.block = block, .next = std::move(previous->next)});
     if (last == previous) {
       last = previous->next.get();

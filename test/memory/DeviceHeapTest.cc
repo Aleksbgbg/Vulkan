@@ -54,22 +54,27 @@ struct Allocation {
   u64 size;
 };
 
+template <typename T>
 class TestAllocator : public Allocator {
  public:
   TestAllocator() = default;
-  TestAllocator(std::queue<MemoryObject*> objectsToAllocate)
+  TestAllocator(std::queue<T*> objectsToAllocate)
       : objectsToAllocate(objectsToAllocate) {}
 
-  std::unique_ptr<MemoryObject> Allocate(const u64 size) override {
+  u64 MemoryObjectSize() const override {
+    return sizeof(T);
+  }
+
+  MemoryObject* Allocate(void* memoryObjectMemory, u64 size) override {
     allocations.emplace_back(Allocation{.size = size});
 
     if (objectsToAllocate.empty()) {
       return nullptr;
     }
 
-    MemoryObject* allocatedMemoryObject = objectsToAllocate.front();
+    T* allocatedMemoryObject = objectsToAllocate.front();
     objectsToAllocate.pop();
-    return std::unique_ptr<MemoryObject>(allocatedMemoryObject);
+    return allocatedMemoryObject;
   }
 
   std::vector<Allocation> allocations;
@@ -78,8 +83,10 @@ class TestAllocator : public Allocator {
   std::queue<MemoryObject*> objectsToAllocate;
 };
 
+typedef TestAllocator<Allocator::MemoryObject> PlainTestAllocator;
+
 TEST(DeviceHeapTest, ReservesRequestedMemory) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(ONE_MEGABYTE, &allocator);
 
   const ReservedBlock reservedBlock =
@@ -90,7 +97,7 @@ TEST(DeviceHeapTest, ReservesRequestedMemory) {
 }
 
 TEST(DeviceHeapTest, HonoursConsecutiveReservations) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(ONE_MEGABYTE, &allocator);
 
   const ReservedBlock firstReservedBlock =
@@ -103,7 +110,7 @@ TEST(DeviceHeapTest, HonoursConsecutiveReservations) {
 }
 
 TEST(DeviceHeapTest, FirstReservationCausesInitialAllocation) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(THREE_MEGABYTES, &allocator);
 
   heap.ReserveMemory({.size = 128, .alignment = 1});
@@ -114,7 +121,7 @@ TEST(DeviceHeapTest, FirstReservationCausesInitialAllocation) {
 
 TEST(DeviceHeapTest,
      SubReservationsExceedingAllocationCauseFurtherAllocations) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(FOUR_MEGABYTES, &allocator);
 
   const ReservedBlock reservedBlock1 =
@@ -129,7 +136,7 @@ TEST(DeviceHeapTest,
 
 TEST(DeviceHeapTest,
      SubReservationsNotExceedingAllocationDoNotCauseFurtherAllocations) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(FOUR_MEGABYTES, &allocator);
 
   const ReservedBlock reservedBlock1 =
@@ -141,7 +148,7 @@ TEST(DeviceHeapTest,
 }
 
 TEST(DeviceHeapTest, AllocateEntireHeapPossible) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(1, &allocator);
 
   const ReservedBlock reservedBlock =
@@ -153,7 +160,7 @@ TEST(DeviceHeapTest, AllocateEntireHeapPossible) {
 }
 
 TEST(DeviceHeapTest, ReleasedMemoryCanBeReserved) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(THREE_MEGABYTES, &allocator);
 
   {
@@ -171,7 +178,7 @@ TEST(DeviceHeapTest, ReleasedMemoryCanBeReserved) {
 
 TEST(DeviceHeapTest, HeapDoesNotGetFragmented) {
   // Arrange
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(6, &allocator);
 
   // Act
@@ -206,7 +213,7 @@ TEST(DeviceHeapTest, HeapDoesNotGetFragmented) {
 
 TEST(DeviceHeapTest, HeapDoesNotGetFragmentedForBigAllocations) {
   // Arrange
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(ONE_MEGABYTE, &allocator);
 
   // Act
@@ -278,7 +285,7 @@ TEST(DeviceHeapTest, DestroyesAllocationsWhenDestroyed) {
 
 TEST(DeviceHeapTest, ReturnsAllocationsToCorrectHeaps) {
   // Arrange
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(3, &allocator);
 
   // Act
@@ -361,7 +368,7 @@ TEST(DeviceHeapTest, MultipleReallocationsReturnCorrectMemoryObjectReference) {
 }
 
 TEST(DeviceHeapTest, IncreasesAllocationSizeBy150Percent) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(2, &allocator);
 
   const ReservedBlock reservedBlock1 =
@@ -381,7 +388,7 @@ TEST(DeviceHeapTest, IncreasesAllocationSizeBy150Percent) {
 }
 
 TEST(DeviceHeapTest, EnlargesHeapHeavilyToAccomodateLargeObject) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(/* initialAllocationSize= */ 4, /* enlargementFactor= */ 2.0f,
                   &allocator);
 
@@ -402,7 +409,7 @@ TEST(DeviceHeapTest, EnlargesHeapHeavilyToAccomodateLargeObject) {
 }
 
 TEST(DeviceHeapTest, AlignsAllocations) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(1024, &allocator);
 
   const ReservedBlock forcedUnalignmentBlock =
@@ -415,7 +422,7 @@ TEST(DeviceHeapTest, AlignsAllocations) {
 }
 
 TEST(DeviceHeapTest, GivesUpAlignmentFragmentsSmallerThan128Bytes) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(1024, &allocator);
 
   const ReservedBlock forcedUnalignmentBlock =
@@ -431,7 +438,7 @@ TEST(DeviceHeapTest, GivesUpAlignmentFragmentsSmallerThan128Bytes) {
 }
 
 TEST(DeviceHeapTest, RetainsAlignmentFragmentsBiggerThan127Bytes) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(1024, &allocator);
 
   const ReservedBlock forcedUnalignmentBlock =
@@ -446,7 +453,7 @@ TEST(DeviceHeapTest, RetainsAlignmentFragmentsBiggerThan127Bytes) {
 }
 
 TEST(DeviceHeapTest, AlignedAllocationsReturnedCorrectly) {
-  TestAllocator allocator;
+  PlainTestAllocator allocator;
   DeviceHeap heap(1024, &allocator);
 
   {
@@ -495,4 +502,14 @@ TEST(DeviceHeapTest, ReservedBlockCanBeMoveAssigned) {
   reservedBlock = heap.ReserveMemory({.size = 1, .alignment = 1});
 
   ASSERT_EQ(allocation, &reservedBlock.GetMemoryObjectAs<MemoryObjectWithId>());
+}
+
+TEST(DeviceHeapTest, ContinuousReallocationWorks) {
+  PlainTestAllocator allocator;
+  DeviceHeap heap(1, &allocator);
+
+  for (u32 iteration = 0; iteration < 100'000u; ++iteration) {
+    const ReservedBlock reservedBlock =
+        heap.ReserveMemory({.size = 1, .alignment = 1});
+  }
 }

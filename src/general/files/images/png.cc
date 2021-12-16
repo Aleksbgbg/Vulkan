@@ -7,6 +7,7 @@
 
 #include "general/algorithms/HuffmanTree.h"
 #include "general/files/file.h"
+#include "memory/std_allocator.h"
 
 namespace file {
 
@@ -613,10 +614,21 @@ class PngDefilter {
   UnboundedScanlineReadWriter scanlineReadWriter;
 };
 
+template <typename TZ>
+using vector = std::vector<TZ, Mallocator<TZ>>;
+
+vector<u8> Read2(std::string_view path) {
+  const Mallocator<u8> a = GetAllocator<u8>();
+  std::vector<u8, Mallocator<u8>> m(a);
+  std::vector<u8> z = ReadFile(path);
+  std::copy(z.begin(), z.end(), std::back_inserter(m));
+  return m;
+}
+
 class PngReader {
  public:
   PngReader(const std::string_view path)
-      : pngData(ReadFile(path)),
+      : pngData(Read2(path)),
         streamReader(pngData.data()),
         image(),
         compressedData() {}
@@ -757,7 +769,7 @@ class PngReader {
   }
 
  private:
-  std::vector<u8> pngData;
+  std::vector<u8, Mallocator<u8>> pngData;
   ByteStreamReader streamReader;
   std::vector<u8> compressedData;
   Image image;

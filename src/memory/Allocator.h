@@ -14,7 +14,8 @@ class Allocator {
 
   virtual ~Allocator() = default;
 
-  virtual std::unique_ptr<MemoryObject> Allocate(u64 size) = 0;
+  virtual u64 MemoryObjectSize() const = 0;
+  virtual MemoryObject* Allocate(void* memoryObjectMemory, u64 size) = 0;
 };
 
 #endif  // VULKAN_SRC_MEMORY_ALLOCATOR_H_

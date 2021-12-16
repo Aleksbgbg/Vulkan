@@ -34,7 +34,8 @@ class DeviceMemoryAllocator {
     HeapAllocator() = default;
     HeapAllocator(VirtualDevice* virtualDevice, u32 memoryTypeIndex);
 
-    std::unique_ptr<MemoryObject> Allocate(VkDeviceSize size) override;
+    u64 MemoryObjectSize() const override;
+    MemoryObject* Allocate(void* memoryObjectMemory, u64 size) override;
 
    private:
     VirtualDevice* virtualDevice_;
