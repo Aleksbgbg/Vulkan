@@ -3,10 +3,16 @@
 
 #include "game/actor/behaviour/Behaviour.h"
 #include "game/actor/property/Transform.h"
+#include "game/composition/parameter_utils.h"
 
 class ConstantMovement : public Behaviour {
  public:
-  ConstantMovement(Transform& transform, const glm::vec3 velocity);
+  PARAMETER_PACK_BEGIN
+  PARAMETER_TYPE(Transform, Transform)
+  PARAMETER_VALUE(float, ForwardVelocity)
+  PARAMETER_PACK_END
+
+  ConstantMovement(const ParameterPack& parameters);
 
   void UpdateModel(const UpdateContext& context) override;
 

@@ -1,6 +1,7 @@
 #include "SceneComposer.h"
 
 #include "game/behaviours/CameraController.h"
+#include "game/composition/behaviour_utils.h"
 
 SceneComposer::SceneComposer(game::Camera& camera,
                              const SpawnDependencies spawnDependencies)

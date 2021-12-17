@@ -11,19 +11,6 @@
 #include "game/actor/Actor.h"
 #include "game/actor/behaviour/Behaviour.h"
 
-// class BehaviourFactory {
-//  public:
-//   virtual ~BehaviourFactory() = default;
-//
-//   virtual std::unique_ptr<Behaviour> operator()(const game::Actor* parent,
-//                                                 game::Actor& actor) = 0;
-// };
-
-#define BEHAVIOUR(type, ...)                           \
-  [&](const game::Actor* parent, game::Actor& actor) { \
-    return std::make_unique<type>(__VA_ARGS__);        \
-  }
-
 class CompositionBuilder {
  private:
   struct Composition_T;

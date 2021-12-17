@@ -8,6 +8,7 @@
 #include "game/behaviours/SunMovement.h"
 #include "game/composition/ParticleBehaviour.h"
 #include "game/composition/SceneComposer.h"
+#include "game/composition/behaviour_utils.h"
 #include "general/math/math.h"
 #include "util/filenames.h"
 
@@ -87,15 +88,21 @@ Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
       .Child(scene_.Actor().Mesh(npcMesh))
       .Spawn();
   scene_.Actor()
-      .Attach(BEHAVIOUR(ConstantMovement, actor.RetrieveProperty<Transform>(),
-                        glm::vec3(0.0f, 0.0f, 1.0f)))
+      .Attach(BEHAVIOUR(ConstantMovement,
+                        ConstantMovement::ParameterPack()
+                            .SetTransform(actor.RetrieveProperty<Transform>())
+                            .SetForwardVelocity(1.0f)))
       .Mesh(npcMesh)
       .Child(spaceshipExhaust)
       .Spawn();
   scene_.Actor()
       .Attach(BEHAVIOUR(PlayerMovement, actor.RetrieveProperty<Transform>()))
-      .Attach(BEHAVIOUR(LaserEmitter, actor.RetrieveProperty<Transform>(),
-                        scene_, laserMesh))
+      .Attach(
+          BEHAVIOUR(LaserEmitter,
+                    LaserEmitter::ParameterPack()
+                        .SetParentTransform(actor.RetrieveProperty<Transform>())
+                        .SetScene(scene_)
+                        .SetLaserMesh(laserMesh)))
       .Mesh(playerMesh)
       .Child(scene_.Camera())
       .Child(spaceshipExhaust)
