@@ -32,6 +32,19 @@ struct ModelTransform {
   alignas(16) glm::mat4 transform;
 };
 
+VulkanResource::VulkanResource(ResourceDisposer* const disposer,
+                               const ResourceKey key)
+    : resourceDisposer_(disposer), key_(key) {}
+
+VulkanResource::~VulkanResource() {
+  resourceDisposer_->DisposeResource(key_);
+}
+
+ResourceKey GenerateResourceKey() {
+  static u32 currentKey = 0;
+  return ++currentKey;
+}
+
 VulkanInstance CreateVulkanInstance(const VulkanSystem& vulkanSystem) {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
@@ -1071,7 +1084,8 @@ MeshHandle Vulkan::LoadMesh(const RenderType renderType,
   return meshes_.size() - 1;
 }
 
-void Vulkan::SpawnParticleSystem(const ParticleSystemInfo& particleSystemInfo) {
+std::unique_ptr<Resource> Vulkan::SpawnParticleSystem(
+    const ParticleSystemInfo& particleSystemInfo) {
   constexpr u32 PARTICLES = 64;
 
   VulkanMesh& mesh = meshes_[particleSystemInfo.meshHandle];
@@ -1143,11 +1157,16 @@ void Vulkan::SpawnParticleSystem(const ParticleSystemInfo& particleSystemInfo) {
   computeInstance.particleBuffer = std::move(particleBuffer);
   computeInstance.particleRenderBuffer = std::move(renderBuffer);
   draw.drawBuffer = std::move(indirectDrawBuffer);
-  render.indirectDraws.push_back(std::move(draw));
-  compute.instances.push_back(std::move(computeInstance));
+
+  const ResourceKey key = GenerateResourceKey();
+
+  render.indirectDraws.insert(std::make_pair(key, std::move(draw)));
+  compute.instances.insert(std::make_pair(key, std::move(computeInstance)));
+
+  return std::make_unique<VulkanResource>(this, key);
 }
 
-void Vulkan::SpawnRenderable(RenderInfo renderInfo) {
+std::unique_ptr<Resource> Vulkan::SpawnRenderable(RenderInfo renderInfo) {
   VulkanMesh& mesh = meshes_[renderInfo.meshHandle];
   Render& render = renders_[mesh.renderType];
 
@@ -1169,7 +1188,10 @@ void Vulkan::SpawnRenderable(RenderInfo renderInfo) {
 
   virtualDevice.UpdateDescriptorSets(descriptorSetWrites);
 
-  render.instances.push_back(std::move(instance));
+  const ResourceKey key = GenerateResourceKey();
+  render.instances.insert(std::make_pair(key, std::move(instance)));
+
+  return std::make_unique<VulkanResource>(this, key);
 }
 
 void Vulkan::ScheduleCompute(const ComputeContext& context) {
@@ -1193,7 +1215,9 @@ void Vulkan::ScheduleCompute(const ComputeContext& context) {
     const Compute& compute = pair.second;
 
     computeCommandBuffer_.CmdBindComputePipeline(compute.pipeline);
-    for (const ComputeInstance& instance : compute.instances) {
+    for (const auto& value : compute.instances) {
+      const ComputeInstance& instance = value.second;
+
       const ParticleSpawnParams particleSpawnParams{
           .randomSeed = randomNumberGenerator_.RandomUint(0, UINT32_MAX),
           .enableRespawn =
@@ -1216,6 +1240,11 @@ void Vulkan::ScheduleCompute(const ComputeContext& context) {
 
 void Vulkan::ScheduleRender(const game::Camera& camera,
                             const sys::Window& window) {
+  for (const ResourceKey key : resourcesToDispose_) {
+    ReleaseResources(key);
+  }
+  resourcesToDispose_.clear();
+
   const SwapchainWithResources::AcquireNextImageResult nextImageResult =
       swapchain.AcquireNextImage();
 
@@ -1293,7 +1322,9 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
     commandBuffer.CmdSetViewport(viewport);
     commandBuffer.CmdSetScissor(scissor);
 
-    for (const Instance& instance : render.instances) {
+    for (const auto& value : render.instances) {
+      const Instance& instance = value.second;
+
       commandBuffer.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS,
                                          layout, 1, instance.descriptorSet);
       const ModelTransform transform =
@@ -1306,7 +1337,9 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
       commandBuffer.CmdDrawIndexed(instance.indexCount);
     }
 
-    for (const IndirectDraw& instance : render.indirectDraws) {
+    for (const auto& value : render.indirectDraws) {
+      const IndirectDraw& instance = value.second;
+
       commandBuffer.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS,
                                          layout, 1, instance.descriptorSet);
       const ModelTransform transform =
@@ -1331,4 +1364,36 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
                                &swapchainRender.renderCompleteSemaphore));
 
   swapchain.MoveToNextFrame();
+}
+
+void Vulkan::DisposeResource(ResourceKey key) {
+  resourcesToDispose_.push_back(key);
+}
+
+void Vulkan::ReleaseResources(ResourceKey key) {
+  for (auto& pair : particleComputes_) {
+    Compute& compute = pair.second;
+
+    const auto iterator = compute.instances.find(key);
+
+    if (iterator != compute.instances.end()) {
+      compute.instances.erase(iterator);
+    }
+  }
+
+  for (auto& pair : renders_) {
+    Render& render = pair.second;
+
+    const auto iterator = render.instances.find(key);
+
+    if (iterator != render.instances.end()) {
+      render.instances.erase(iterator);
+    }
+
+    const auto indirectDrawIterator = render.indirectDraws.find(key);
+
+    if (indirectDrawIterator != render.indirectDraws.end()) {
+      render.indirectDraws.erase(indirectDrawIterator);
+    }
+  }
 }

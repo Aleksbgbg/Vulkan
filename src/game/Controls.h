@@ -12,10 +12,10 @@ enum class Control {
   Accelerate = 1,
   Decelerate,
   ReverseView,
-  MoveNpc,
   SpawnPlayer,
   TiltLeft,
   TiltRight,
+  Shoot,
 };
 
 enum class Axis {

@@ -3,6 +3,7 @@
 
 #include "SpawnControllable.h"
 #include "Transformable.h"
+#include "game/actor/Resource.h"
 #include "game/composition/MeshHandle.h"
 #include "game/composition/MeshLoadParams.h"
 #include "game/composition/ParticleBehaviour.h"
@@ -19,7 +20,7 @@ class Renderer {
     MeshHandle meshHandle;
     const Transformable* transformable;
   };
-  virtual void SpawnRenderable(RenderInfo renderInfo) = 0;
+  virtual std::unique_ptr<Resource> SpawnRenderable(RenderInfo renderInfo) = 0;
 
   struct ParticleSystemInfo {
     MeshHandle meshHandle;
@@ -29,7 +30,7 @@ class Renderer {
     glm::vec3 spawnRegionLow;
     glm::vec3 spawnRegionHigh;
   };
-  virtual void SpawnParticleSystem(
+  virtual std::unique_ptr<Resource> SpawnParticleSystem(
       const ParticleSystemInfo& particleSystemInfo) = 0;
 };
 

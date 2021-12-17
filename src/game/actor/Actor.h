@@ -1,9 +1,12 @@
 #ifndef VULKAN_SRC_GAME_ACTOR_ACTOR_H_
 #define VULKAN_SRC_GAME_ACTOR_ACTOR_H_
 
+#include <list>
 #include <memory>
 #include <unordered_map>
 
+#include "ActorOwner.h"
+#include "Resource.h"
 #include "game/UpdateContext.h"
 #include "game/actor/behaviour/Behaviour.h"
 #include "game/actor/property/Property.h"
@@ -13,9 +16,11 @@ namespace game {
 
 class Actor {
  public:
-  Actor(std::unordered_map<PropertyKey, std::unique_ptr<Property>> properties);
+  Actor(ActorKey key, ActorOwner& owner,
+        std::list<std::unique_ptr<Resource>> resources,
+        std::unordered_map<PropertyKey, std::unique_ptr<Property>> properties);
 
-  void AttachScript(std::unique_ptr<Behaviour> script);
+  void AttachBehaviour(std::unique_ptr<Behaviour> behaviour);
 
   void UpdateModel(const UpdateContext& context);
 
@@ -24,9 +29,14 @@ class Actor {
     return *reinterpret_cast<T*>(properties_.at(T::Key()).get());
   }
 
+  void Despawn();
+
  private:
+  ActorKey key_;
+  ActorOwner& owner_;
+  std::list<std::unique_ptr<Resource>> resources_;
   std::unordered_map<PropertyKey, std::unique_ptr<Property>> properties_;
-  std::vector<std::unique_ptr<Behaviour>> scripts_;
+  std::list<std::unique_ptr<Behaviour>> behaviours_;
 };
 
 }  // namespace game

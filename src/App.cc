@@ -96,7 +96,7 @@ void App::UpdateModel(const float deltaTime) {
   const UpdateContext updateContext{.deltaTime = deltaTime,
                                     .controls = controls_};
   vulkan_.ScheduleCompute({.deltaTime = deltaTime});
-  scene_.UpdateModel(updateContext);
+  scene_.Update(updateContext);
 }
 
 void App::Render() {

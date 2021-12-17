@@ -41,9 +41,29 @@ class RenderConfiguration {
   ConfigureVertexAttributes() const = 0;
 };
 
+typedef u32 ResourceKey;
+
+class ResourceDisposer {
+ public:
+  virtual ~ResourceDisposer() = default;
+
+  virtual void DisposeResource(ResourceKey key) = 0;
+};
+
+class VulkanResource : public Resource {
+ public:
+  VulkanResource(ResourceDisposer* disposer, ResourceKey key);
+  ~VulkanResource() override;
+
+ private:
+  ResourceDisposer* resourceDisposer_;
+  ResourceKey key_;
+};
+
 class Vulkan : public SwapchainWithResources::Initializer,
                public DynamicUniformBufferInitializer,
-               public Renderer {
+               public Renderer,
+               public ResourceDisposer {
  public:
   Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window);
   ~Vulkan();
@@ -80,15 +100,17 @@ class Vulkan : public SwapchainWithResources::Initializer,
 
   MeshHandle LoadMesh(const RenderType renderType,
                       const MeshLoadParams& meshLoadParams) override;
-  void SpawnParticleSystem(
+  std::unique_ptr<Resource> SpawnParticleSystem(
       const ParticleSystemInfo& particleSystemInfo) override;
-  void SpawnRenderable(RenderInfo renderInfo) override;
+  std::unique_ptr<Resource> SpawnRenderable(RenderInfo renderInfo) override;
 
   struct ComputeContext {
     float deltaTime;
   };
   void ScheduleCompute(const ComputeContext& context);
   void ScheduleRender(const game::Camera& camera, const sys::Window& window);
+
+  void DisposeResource(ResourceKey key) override;
 
  private:
   static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -110,6 +132,8 @@ class Vulkan : public SwapchainWithResources::Initializer,
   RenderPass CreateRenderPass() const;
 
   SwapchainCreateInfoBuilder SwapchainCreateInfo() const;
+
+  void ReleaseResources(ResourceKey key);
 
  private:
   VulkanInstance instance;
@@ -198,8 +222,8 @@ class Vulkan : public SwapchainWithResources::Initializer,
     DescriptorSetLayout descriptorSetLayout;
     Pipeline pipeline;
 
-    std::vector<Instance> instances;
-    std::vector<IndirectDraw> indirectDraws;
+    std::unordered_map<ResourceKey, Instance> instances;
+    std::unordered_map<ResourceKey, IndirectDraw> indirectDraws;
   };
 
   std::unordered_map<RenderType, Render> renders_;
@@ -250,11 +274,13 @@ class Vulkan : public SwapchainWithResources::Initializer,
     DescriptorSetLayout descriptorSetLayout;
     ComputePipeline pipeline;
 
-    std::vector<ComputeInstance> instances;
+    std::unordered_map<ResourceKey, ComputeInstance> instances;
   };
   std::unordered_map<ParticleBehaviour, Compute> particleComputes_;
 
   RandomNumberGenerator randomNumberGenerator_;
+
+  std::list<ResourceKey> resourcesToDispose_;
 
  private:
   Render CreateRender(const RenderConfiguration& configuration) const;

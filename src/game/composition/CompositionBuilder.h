@@ -5,32 +5,23 @@
 #include <optional>
 #include <vector>
 
-#include "ActorConsumer.h"
 #include "MeshHandle.h"
 #include "ParticleBehaviour.h"
-#include "game/Renderer.h"
+#include "SpawnDependencies.h"
 #include "game/actor/Actor.h"
 #include "game/actor/behaviour/Behaviour.h"
-#include "system/sound/Sound.h"
 
-class BehaviourFactory {
- public:
-  virtual ~BehaviourFactory() = default;
+// class BehaviourFactory {
+//  public:
+//   virtual ~BehaviourFactory() = default;
+//
+//   virtual std::unique_ptr<Behaviour> operator()(const game::Actor* parent,
+//                                                 game::Actor& actor) = 0;
+// };
 
-  virtual std::unique_ptr<Behaviour> operator()(const game::Actor* parent,
-                                                game::Actor& actor) = 0;
-};
-
-#define BEHAVIOUR(type, ...)                                               \
-  []() {                                                                   \
-    class Factory : public BehaviourFactory {                              \
-     public:                                                               \
-      std::unique_ptr<Behaviour> operator()(const game::Actor* parent,     \
-                                            game::Actor& actor) override { \
-        return std::make_unique<type>(__VA_ARGS__);                        \
-      }                                                                    \
-    };                                                                     \
-    return std::make_unique<Factory>();                                    \
+#define BEHAVIOUR(type, ...)                           \
+  [&](const game::Actor* parent, game::Actor& actor) { \
+    return std::make_unique<type>(__VA_ARGS__);        \
   }
 
 class CompositionBuilder {
@@ -38,10 +29,14 @@ class CompositionBuilder {
   struct Composition_T;
   typedef std::shared_ptr<Composition_T> Composition;
 
+  typedef std::function<std::unique_ptr<Behaviour>(const game::Actor*,
+                                                   game::Actor&)>
+      BehaviourFactory;
+
   struct Composition_T {
     std::optional<MeshHandle> meshHandle;
     std::vector<Composition> children;
-    std::vector<std::unique_ptr<BehaviourFactory>> scripts;
+    std::vector<BehaviourFactory> behaviourFactories;
 
     enum class Type {
       Actor,
@@ -64,14 +59,11 @@ class CompositionBuilder {
   };
 
  public:
-  static CompositionBuilder ForActor(ActorConsumer& actorConsumer,
-                                     Renderer& renderer, sys::Sound& sound);
-  static CompositionBuilder ForParticleSystem(
-      ActorConsumer& actorConsumer, Renderer& renderer, sys::Sound& sound,
-      const ParticleBehaviour particleBehaviour);
+  static CompositionBuilder Actor(SpawnDependencies spawnDependencies);
+  static CompositionBuilder ParticleSystem(SpawnDependencies spawnDependencies,
+                                           ParticleBehaviour particleBehaviour);
 
-  CompositionBuilder& Attach(
-      const std::function<std::unique_ptr<BehaviourFactory>()> scriptFactory);
+  CompositionBuilder& Attach(BehaviourFactory scriptFactory);
 
   CompositionBuilder& Mesh(const MeshHandle meshHandle);
 
@@ -83,17 +75,15 @@ class CompositionBuilder {
   void Spawn() const;
 
  private:
-  CompositionBuilder(ActorConsumer& actorConsumer, Renderer& renderer,
-                     sys::Sound& sound, Composition composition);
+  CompositionBuilder(SpawnDependencies spawnDependencies,
+                     Composition composition);
 
   void SpawnComposition(const Composition& composition,
-                        const game::Actor* parent) const;
+                        const game::Actor* parent,
+                        const ActorKey parentKey) const;
 
  private:
-  ActorConsumer* actorConsumer_;
-  Renderer* renderer_;
-  sys::Sound* sound_;
-
+  SpawnDependencies spawnDependencies_;
   Composition composition_;
 };
 

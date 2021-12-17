@@ -7,12 +7,12 @@ Controls::Controls()
           {Control::Accelerate, SDLK_w},
           {Control::Decelerate, SDLK_s},
           {Control::ReverseView, SDLK_c},
-          {Control::MoveNpc, SDLK_f},
           {Control::TiltLeft, SDLK_e},
           {Control::TiltRight, SDLK_q},
       }),
       singleKeyControls_({
           {Control::SpawnPlayer, SDLK_g},
+          {Control::Shoot, SDLK_f},
       }),
       activeControls_(),
       normalizedAxisValues_() {}

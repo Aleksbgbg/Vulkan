@@ -14,6 +14,14 @@ glm::vec3 Transform::GetPosition() const {
   return position_;
 }
 
+glm::vec3 Transform::GetScale() const {
+  return scale_;
+}
+
+glm::quat Transform::GetRotation() const {
+  return rotation_;
+}
+
 glm::mat4 Transform::GetTransform() const {
   glm::mat4 transform(1.0f);
   transform = glm::translate(transform, position_);
@@ -27,18 +35,22 @@ glm::mat4 Transform::GetTransform() const {
   return transform * parent_->GetTransform();
 }
 
-void Transform::Move(const glm::vec3 position) {
+Transform& Transform::Move(const glm::vec3 position) {
   position_ = position;
+  return *this;
 }
 
-void Transform::Scale(const glm::vec3 scale) {
+Transform& Transform::Scale(const glm::vec3 scale) {
   scale_ = scale;
+  return *this;
 }
 
-void Transform::Rotate(const glm::quat rotation) {
+Transform& Transform::Rotate(const glm::quat rotation) {
   rotation_ = rotation;
+  return *this;
 }
 
-void Transform::MoveBy(const glm::vec3 amount) {
+Transform& Transform::MoveBy(const glm::vec3 amount) {
   position_ += amount;
+  return *this;
 }

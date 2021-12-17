@@ -11,8 +11,7 @@
 
 class SceneComposer {
  public:
-  SceneComposer(ActorConsumer& actorConsumer, Renderer& renderer,
-                sys::Sound& sound, game::Camera& camera);
+  SceneComposer(game::Camera& camera, SpawnDependencies spawnDependencies);
 
   MeshHandle LoadMesh(const RenderType renderType,
                       const MeshLoadParams& meshLoadParams);
@@ -22,10 +21,8 @@ class SceneComposer {
   CompositionBuilder ParticleSystem(const ParticleBehaviour behaviour);
 
  private:
-  ActorConsumer& actorConsumer_;
-  Renderer& renderer_;
-  sys::Sound& sound_;
   game::Camera& camera_;
+  SpawnDependencies spawnDependencies_;
 };
 
 #endif  // VULKAN_SRC_GAME_COMPOSITION_SCENECOMPOSER_H_

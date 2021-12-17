@@ -13,13 +13,16 @@ class Transform : public Property, public Transformable {
   Transform(const Transformable* parent);
 
   glm::vec3 GetPosition() const;
+  glm::vec3 GetScale() const;
+  glm::quat GetRotation() const;
+
   glm::mat4 GetTransform() const override;
 
-  void Move(const glm::vec3 position);
-  void Scale(const glm::vec3 scale);
-  void Rotate(const glm::quat rotation);
+  Transform& Move(const glm::vec3 position);
+  Transform& Scale(const glm::vec3 scale);
+  Transform& Rotate(const glm::quat rotation);
 
-  void MoveBy(const glm::vec3 amount);
+  Transform& MoveBy(const glm::vec3 amount);
 
  private:
   const Transformable* parent_;
