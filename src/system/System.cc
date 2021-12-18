@@ -2,12 +2,15 @@
 
 namespace sys {
 
-System::System() : sound_() {}
+Sound CreateSound() {
+  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO);
+  return Sound();
+}
+
+System::System() : sound_(CreateSound()) {}
 
 std::unique_ptr<Window> System::SpawnWindow(const u32 width,
                                             const u32 height) const {
-  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO);
-
   const Recti windowRect = Recti::FromRegion(50, 50, width, height);
 
   SDL_Window* window = SDL_CreateWindow(

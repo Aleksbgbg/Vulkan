@@ -1,10 +1,8 @@
 #include "BackgroundMusic.h"
 
-#include "util/filenames.h"
-
-BackgroundMusic::BackgroundMusic(SoundEmitter& soundEmitter)
-    : soundEmitter_(soundEmitter) {}
+BackgroundMusic::BackgroundMusic(SoundEmitter& soundEmitter, SoundHandle sound)
+    : soundEmitter_(soundEmitter), sound_(sound) {}
 
 void BackgroundMusic::OnSpawn() {
-  soundEmitter_.LoopSound(BACKGROUND_MUSIC_FILENAME);
+  soundEmitter_.Loop(sound_);
 }

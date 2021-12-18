@@ -69,6 +69,10 @@ Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
       RenderType::Sun,
       {.model = LASER_MODEL_FILENAME, .texture = LASER_TEXTURE_FILENAME});
 
+  const SoundHandle backgroundMusic =
+      sound.LoadSound(BACKGROUND_MUSIC_FILENAME);
+  const SoundHandle laserSoundEffect = sound.LoadSound(LASER_SOUND_FILENAME);
+
   const CompositionBuilder spaceshipExhaust = std::move(
       scene_.ParticleSystem(ParticleBehaviour::SpaceshipExhaust)
           .Attach(BEHAVIOUR(ExhaustParticleController,
@@ -78,8 +82,8 @@ Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
           .SpawnRegion(glm::vec3(x1, y1, z1), glm::vec3(x2, y2, z2)));
 
   scene_.Actor()
-      .Attach(
-          BEHAVIOUR(BackgroundMusic, actor.RetrieveProperty<SoundEmitter>()))
+      .Attach(BEHAVIOUR(BackgroundMusic, actor.RetrieveProperty<SoundEmitter>(),
+                        backgroundMusic))
       .Spawn();
   scene_.Actor().Mesh(skyboxMesh).Spawn();
   scene_.Actor()
@@ -101,8 +105,10 @@ Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
           BEHAVIOUR(LaserEmitter,
                     LaserEmitter::ParameterPack()
                         .SetParentTransform(actor.RetrieveProperty<Transform>())
+                        .SetSoundEmitter(actor.RetrieveProperty<SoundEmitter>())
                         .SetScene(scene_)
-                        .SetLaserMesh(laserMesh)))
+                        .SetLaserMesh(laserMesh)
+                        .SetSoundEffect(laserSoundEffect)))
       .Mesh(playerMesh)
       .Child(scene_.Camera())
       .Child(spaceshipExhaust)

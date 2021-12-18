@@ -1,8 +1,6 @@
 #ifndef VULKAN_SRC_GAME_ACTOR_PROPERTY_SOUNDEMITTER_H_
 #define VULKAN_SRC_GAME_ACTOR_PROPERTY_SOUNDEMITTER_H_
 
-#include <string_view>
-
 #include "Property.h"
 #include "PropertyKey.h"
 #include "system/sound/Sound.h"
@@ -13,7 +11,8 @@ class SoundEmitter : public Property {
 
   SoundEmitter(sys::Sound& sound);
 
-  void LoopSound(const std::string_view filename);
+  void Loop(SoundHandle sound);
+  void Play(SoundHandle sound);
 
  private:
   sys::Sound& sound_;

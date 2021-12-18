@@ -38,6 +38,8 @@ inline constexpr const char* KOREAN_FONT_FILENAME =
 inline constexpr const char* UI_FONT_FILENAME = "resources/SegoeUI.ttf";
 
 inline constexpr const char* BACKGROUND_MUSIC_FILENAME =
-    "resources/background.wav";
+    "resources/background.ogg";
+
+inline constexpr const char* LASER_SOUND_FILENAME = "resources/laser.ogg";
 
 #endif  // VULKAN_SRC_UTIL_FILENAMES_H_

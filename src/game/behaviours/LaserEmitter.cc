@@ -7,8 +7,10 @@
 
 LaserEmitter::LaserEmitter(const ParameterPack& parameters)
     : parentTransform_(parameters.GetParentTransform()),
+      soundEmitter_(parameters.GetSoundEmitter()),
       scene_(parameters.GetScene()),
-      laserMesh_(parameters.GetLaserMesh()) {}
+      laserMesh_(parameters.GetLaserMesh()),
+      soundEffect_(parameters.GetSoundEffect()) {}
 
 void LaserEmitter::UpdateModel(const UpdateContext& context) {
   if (context.controls.IsControlActive(Control::Shoot)) {
@@ -24,5 +26,7 @@ void LaserEmitter::UpdateModel(const UpdateContext& context) {
         .Attach(BEHAVIOUR(DespawnAfterPeriod, actor, 5.0f))
         .Mesh(laserMesh_)
         .Spawn();
+
+    soundEmitter_.Play(soundEffect_);
   }
 }
