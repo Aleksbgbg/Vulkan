@@ -5,9 +5,11 @@
 #include <optional>
 #include <vector>
 
+#include "LightSourceComposition.h"
 #include "MeshHandle.h"
 #include "ParticleBehaviour.h"
 #include "SpawnDependencies.h"
+#include "game/LightSource.h"
 #include "game/actor/Actor.h"
 #include "game/actor/behaviour/Behaviour.h"
 
@@ -22,8 +24,9 @@ class CompositionBuilder {
 
   struct Composition_T {
     std::optional<MeshHandle> meshHandle;
-    std::vector<Composition> children;
+    std::optional<LightSource> lightSource;
     std::vector<BehaviourFactory> behaviourFactories;
+    std::vector<Composition> children;
 
     enum class Type {
       Actor,
@@ -50,13 +53,14 @@ class CompositionBuilder {
   static CompositionBuilder ParticleSystem(SpawnDependencies spawnDependencies,
                                            ParticleBehaviour particleBehaviour);
 
+  CompositionBuilder Copy() const;
+
   CompositionBuilder& Attach(BehaviourFactory scriptFactory);
-
+  CompositionBuilder& LightSource(
+      const LightSourceComposition& lightSourceComposition);
   CompositionBuilder& Mesh(const MeshHandle meshHandle);
-
   CompositionBuilder& SpawnRegion(const glm::vec3 spawnRegionLow,
                                   const glm::vec3 spawnRegionHigh);
-
   CompositionBuilder& Child(const CompositionBuilder child);
 
   void Spawn() const;
@@ -65,9 +69,10 @@ class CompositionBuilder {
   CompositionBuilder(SpawnDependencies spawnDependencies,
                      Composition composition);
 
-  void SpawnComposition(const Composition& composition,
-                        const game::Actor* parent,
-                        const ActorKey parentKey) const;
+  static void SpawnComposition(const SpawnDependencies& dependencies,
+                               const Composition& composition,
+                               const game::Actor* parent,
+                               const ActorKey parentKey);
 
  private:
   SpawnDependencies spawnDependencies_;

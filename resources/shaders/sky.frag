@@ -7,5 +7,5 @@ layout(location = 0) in vec2 in_fragTextureCoordinate;
 layout(location = 0) out vec4 out_color;
 
 void main() {
-    out_color = texture(textureSampler, in_fragTextureCoordinate);
+  out_color = texture(textureSampler, in_fragTextureCoordinate);
 }

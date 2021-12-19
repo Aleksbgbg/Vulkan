@@ -29,7 +29,7 @@
     return name##_;                   \
   }
 
-#define PARAMETER_PACK_BEGIN struct ParameterPack {
+#define PARAMETER_PACK_BEGIN class ParameterPack {
 #define PARAMETER_PACK_END \
   }                        \
   ;

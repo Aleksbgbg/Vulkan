@@ -731,17 +731,6 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
   virtualDevice.UpdateDescriptorSets(descriptorSetWrites);
 
   WindowResized();
-  PerFrameData& frame = sceneUniformBuffer_.Value();
-  frame.lightingPosition = glm::vec3(0.0f, 0.0f, 100000.0f);
-  frame.material = {.ambient = glm::vec3(1.0f),
-                    .diffuse = glm::vec3(1.0f),
-                    .specular = glm::vec3(1.0f),
-                    .shininess = 32.0f};
-  const glm::vec3 lightColor(77.0f / 255.0f, 77.0f / 255.0f, 1.0f);
-  frame.light = {.position = glm::vec3(0.0f, 0.0f, 10000.0f),
-                 .ambient = lightColor * 0.02f,
-                 .diffuse = lightColor,
-                 .specular = lightColor};
 
   renders_.insert(std::move(
       std::make_pair(RenderType::Skybox,
@@ -810,7 +799,7 @@ void Vulkan::WindowResized() {
                            static_cast<float>(swapchainExtent.height),
                        0.1f, 3000.0f);
   projection[1][1] *= -1.0f;
-  PerFrameData& sceneData = sceneUniformBuffer_.Value();
+  FrameUniform& sceneData = sceneUniformBuffer_.Value();
   sceneData.projection = projection;
 }
 
@@ -1084,6 +1073,16 @@ MeshHandle Vulkan::LoadMesh(const RenderType renderType,
   return meshes_.size() - 1;
 }
 
+std::unique_ptr<Resource> Vulkan::SpawnLightSource(
+    const Renderer::LightSourceInfo& lightSourceInfo) {
+  const ResourceKey key = GenerateResourceKey();
+  pointLights_.insert(std::make_pair(
+      key,
+      PointLightSource{.transform = lightSourceInfo.transformable,
+                       .info = lightSourceInfo.lightSource.info.pointLight}));
+  return std::make_unique<VulkanResource>(this, key);
+}
+
 std::unique_ptr<Resource> Vulkan::SpawnParticleSystem(
     const ParticleSystemInfo& particleSystemInfo) {
   constexpr u32 PARTICLES = 64;
@@ -1286,11 +1285,33 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
                                               .SetHeight(windowSizeInt.y));
 
   {
-    PerFrameData& frame = sceneUniformBuffer_.Value();
+    FrameUniform& frame = sceneUniformBuffer_.Value();
     frame.view = camera.GetViewMatrix();
-    // TODO: Lighting should be calculated in view space so camera position is
-    // not necessary
-    frame.cameraPosition = glm::vec3(0.0f);
+
+    frame.material = {.ambient = glm::vec3(1.0f),
+                      .diffuse = glm::vec3(1.0f),
+                      .specular = glm::vec3(1.0f),
+                      .shininess = 32.0f};
+
+    u32 index = 0;
+    for (const auto& pair : pointLights_) {
+      const PointLightSource& light = pair.second;
+      FrameUniform::PointLight& pointLight = frame.pointLights[index];
+
+      pointLight.position =
+          light.transform->GetTransform() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+      pointLight.ambient = light.info.ambient;
+      pointLight.diffuse = light.info.diffuse;
+      pointLight.specular = light.info.specular;
+      pointLight.attenuation.constant = light.info.attenuation.constant;
+      pointLight.attenuation.linear = light.info.attenuation.linear;
+      pointLight.attenuation.quadratic = light.info.attenuation.quadratic;
+
+      ++index;
+    }
+
+    frame.pointLightCount = pointLights_.size();
+
     sceneUniformBuffer_.Flush(imageIndex);
   }
 
@@ -1371,6 +1392,12 @@ void Vulkan::DisposeResource(ResourceKey key) {
 }
 
 void Vulkan::ReleaseResources(ResourceKey key) {
+  const auto pointLightIterator = pointLights_.find(key);
+
+  if (pointLightIterator != pointLights_.end()) {
+    pointLights_.erase(pointLightIterator);
+  }
+
   for (auto& pair : particleComputes_) {
     Compute& compute = pair.second;
 

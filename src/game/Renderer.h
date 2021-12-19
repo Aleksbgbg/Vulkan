@@ -1,6 +1,7 @@
 #ifndef VULKAN_SRC_GAME_RENDERER_H_
 #define VULKAN_SRC_GAME_RENDERER_H_
 
+#include "LightSource.h"
 #include "SpawnControllable.h"
 #include "Transformable.h"
 #include "game/actor/Resource.h"
@@ -15,6 +16,13 @@ class Renderer {
 
   virtual MeshHandle LoadMesh(const RenderType renderType,
                               const MeshLoadParams& meshLoadParams) = 0;
+
+  struct LightSourceInfo {
+    LightSource lightSource;
+    const Transformable* transformable;
+  };
+  virtual std::unique_ptr<Resource> SpawnLightSource(
+      const LightSourceInfo& lightSourceInfo) = 0;
 
   struct RenderInfo {
     MeshHandle meshHandle;

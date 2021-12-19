@@ -7,7 +7,7 @@
 
 CompositionBuilder CompositionBuilder::Actor(
     const SpawnDependencies spawnDependencies) {
-  Composition composition = std::make_unique<Composition_T>();
+  Composition composition = std::make_shared<Composition_T>();
   composition->type = Composition_T::Type::Actor;
 
   return CompositionBuilder(spawnDependencies, std::move(composition));
@@ -16,15 +16,27 @@ CompositionBuilder CompositionBuilder::Actor(
 CompositionBuilder CompositionBuilder::ParticleSystem(
     const SpawnDependencies spawnDependencies,
     const ParticleBehaviour particleBehaviour) {
-  Composition composition = std::make_unique<Composition_T>();
+  Composition composition = std::make_shared<Composition_T>();
   composition->type = Composition_T::Type::ParticleSystem;
   composition->infoForType.particleSystem.behaviour = particleBehaviour;
 
   return CompositionBuilder(spawnDependencies, std::move(composition));
 }
 
+CompositionBuilder CompositionBuilder::Copy() const {
+  Composition copy = std::make_shared<Composition_T>();
+  *copy = *composition_;
+  return CompositionBuilder(spawnDependencies_, std::move(copy));
+}
+
 CompositionBuilder& CompositionBuilder::Attach(BehaviourFactory scriptFactory) {
   composition_->behaviourFactories.push_back(std::move(scriptFactory));
+  return *this;
+}
+
+CompositionBuilder& CompositionBuilder::LightSource(
+    const LightSourceComposition& lightSourceComposition) {
+  composition_->lightSource = lightSourceComposition.GetLightSource();
   return *this;
 }
 
@@ -46,7 +58,7 @@ CompositionBuilder& CompositionBuilder::Child(const CompositionBuilder child) {
 }
 
 void CompositionBuilder::Spawn() const {
-  SpawnComposition(composition_, nullptr, 0);
+  SpawnComposition(spawnDependencies_, composition_, nullptr, 0);
 }
 
 CompositionBuilder::CompositionBuilder(SpawnDependencies spawnDependencies,
@@ -54,9 +66,10 @@ CompositionBuilder::CompositionBuilder(SpawnDependencies spawnDependencies,
     : spawnDependencies_(spawnDependencies),
       composition_(std::move(composition)) {}
 
-void CompositionBuilder::SpawnComposition(const Composition& composition,
+void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
+                                          const Composition& composition,
                                           const game::Actor* parent,
-                                          const ActorKey parentKey) const {
+                                          const ActorKey parentKey) {
   const Transformable* parentTransform;
 
   if (parent == nullptr) {
@@ -70,17 +83,25 @@ void CompositionBuilder::SpawnComposition(const Composition& composition,
   std::unordered_map<PropertyKey, std::unique_ptr<Property>> properties;
   properties.insert(
       {Transform::Key(), std::make_unique<Transform>(parentTransform)});
-  properties.insert({SoundEmitter::Key(), std::make_unique<SoundEmitter>(
-                                              *spawnDependencies_.sound)});
+  properties.insert({SoundEmitter::Key(),
+                     std::make_unique<SoundEmitter>(*dependencies.sound)});
+
+  const Transformable* selfTransform =
+      reinterpret_cast<Transform*>(properties.at(Transform::Key()).get());
+
+  if (composition->lightSource.has_value()) {
+    resources.push_back(dependencies.renderer->SpawnLightSource(
+        {.lightSource = composition->lightSource.value(),
+         .transformable = selfTransform}));
+  }
 
   switch (composition->type) {
     case Composition_T::Type::Actor: {
       const bool isRenderable = composition->meshHandle.has_value();
       if (isRenderable) {
-        resources.push_back(spawnDependencies_.renderer->SpawnRenderable({
+        resources.push_back(dependencies.renderer->SpawnRenderable({
             .meshHandle = composition->meshHandle.value(),
-            .transformable = reinterpret_cast<Transform*>(
-                properties.at(Transform::Key()).get()),
+            .transformable = selfTransform,
         }));
       }
     } break;
@@ -89,12 +110,11 @@ void CompositionBuilder::SpawnComposition(const Composition& composition,
       properties.insert(
           {ParticleController::Key(), std::make_unique<ParticleController>()});
 
-      resources.push_back(spawnDependencies_.renderer->SpawnParticleSystem({
+      resources.push_back(dependencies.renderer->SpawnParticleSystem({
           .meshHandle = composition->meshHandle.value(),
           .particleBehaviour =
               composition->infoForType.particleSystem.behaviour,
-          .transformable = reinterpret_cast<Transform*>(
-              properties.at(Transform::Key()).get()),
+          .transformable = selfTransform,
           .spawnControllable = reinterpret_cast<ParticleController*>(
               properties.at(ParticleController::Key()).get()),
           .spawnRegionLow =
@@ -108,17 +128,17 @@ void CompositionBuilder::SpawnComposition(const Composition& composition,
   const ActorKey key = GenerateActorKey();
 
   std::unique_ptr<game::Actor> actor = std::make_unique<game::Actor>(
-      key, *spawnDependencies_.actorOwner, std::move(resources),
+      key, *dependencies.actorOwner, std::move(resources),
       std::move(properties));
   for (const auto& scriptFactory : composition->behaviourFactories) {
     actor->AttachBehaviour(scriptFactory(parent, *actor));
   }
 
   parent = actor.get();
-  spawnDependencies_.actorConsumer->Consume(
+  dependencies.actorConsumer->Consume(
       {.parent = parentKey, .key = key, .actor = std::move(actor)});
 
   for (const Composition& subComposition : composition->children) {
-    SpawnComposition(subComposition, parent, key);
+    SpawnComposition(dependencies, subComposition, parent, key);
   }
 }

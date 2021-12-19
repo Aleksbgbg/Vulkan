@@ -1,19 +1,17 @@
 #version 450
 
-layout(set = 0, binding = 0) uniform PerFrameData {
-  mat4 projection;
+layout(set = 0, binding = 0) uniform SceneUniform {
   mat4 view;
-  vec3 cameraPosition;
-  vec3 lightingPosition;
-} frame;
+  mat4 projection;
+} scene;
 
 struct ParticleRender {
   mat4 model;
   float fractionOfLife;
 };
 
-layout(set = 1, binding = 0) buffer ParticleRenderData {
-  ParticleRender particleRender[];
+layout(set = 1, binding = 0) buffer InstanceUniform {
+  ParticleRender particleRenders[];
 } instance;
 
 layout(location = 0) in vec3 in_position;
@@ -27,10 +25,10 @@ vec3 bias(vec3 a, vec3 b, float fraction) {
 
 void main() {
   gl_Position =
-  frame.projection *
-  frame.view *
-  instance.particleRender[gl_InstanceIndex].model *
+  scene.projection *
+  scene.view *
+  instance.particleRenders[gl_InstanceIndex].model *
   vec4(in_position, 1.0);
 
-  out_color = bias(vec3(1.0, 0.0, 0.0), vec3(1.0, 0.404, 0.0), instance.particleRender[gl_InstanceIndex].fractionOfLife);
+  out_color = bias(vec3(1.0, 0.0, 0.0), vec3(1.0, 0.404, 0.0), instance.particleRenders[gl_InstanceIndex].fractionOfLife);
 }

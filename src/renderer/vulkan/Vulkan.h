@@ -100,6 +100,9 @@ class Vulkan : public SwapchainWithResources::Initializer,
 
   MeshHandle LoadMesh(const RenderType renderType,
                       const MeshLoadParams& meshLoadParams) override;
+
+  std::unique_ptr<Resource> SpawnLightSource(
+      const LightSourceInfo& lightSourceInfo) override;
   std::unique_ptr<Resource> SpawnParticleSystem(
       const ParticleSystemInfo& particleSystemInfo) override;
   std::unique_ptr<Resource> SpawnRenderable(RenderInfo renderInfo) override;
@@ -200,7 +203,7 @@ class Vulkan : public SwapchainWithResources::Initializer,
   DescriptorPool descriptorPool_;
   DescriptorSetLayout sceneDescriptorSetLayout_;
   DescriptorSet sceneDescriptorSet_;
-  DynamicUniformBuffer<PerFrameData> sceneUniformBuffer_;
+  DynamicUniformBuffer<FrameUniform> sceneUniformBuffer_;
 
   struct Instance {
     DescriptorSet descriptorSet;
@@ -279,6 +282,12 @@ class Vulkan : public SwapchainWithResources::Initializer,
   std::unordered_map<ParticleBehaviour, Compute> particleComputes_;
 
   RandomNumberGenerator randomNumberGenerator_;
+
+  struct PointLightSource {
+    const Transformable* transform;
+    LightSource::PointLightInfo info;
+  };
+  std::unordered_map<ResourceKey, PointLightSource> pointLights_;
 
   std::list<ResourceKey> resourcesToDispose_;
 

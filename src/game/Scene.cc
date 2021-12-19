@@ -2,11 +2,13 @@
 
 #include "game/behaviours/BackgroundMusic.h"
 #include "game/behaviours/ConstantMovement.h"
+#include "game/behaviours/DespawnAfterPeriod.h"
 #include "game/behaviours/ExhaustParticleController.h"
 #include "game/behaviours/LaserEmitter.h"
 #include "game/behaviours/PlayerMovement.h"
 #include "game/behaviours/SunMovement.h"
 #include "game/composition/ParticleBehaviour.h"
+#include "game/composition/PointLight.h"
 #include "game/composition/SceneComposer.h"
 #include "game/composition/behaviour_utils.h"
 #include "general/math/math.h"
@@ -87,8 +89,13 @@ Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
       .Spawn();
   scene_.Actor().Mesh(skyboxMesh).Spawn();
   scene_.Actor()
-      .Attach(BEHAVIOUR(SunMovement, actor.RetrieveProperty<Transform>()))
+      .LightSource(PointLight()
+                       .Color(glm::vec3(77.0f / 255.0f, 77.0f / 255.0f, 1.0f))
+                       .AmbientFactor(0.02f)
+                       .AttenuationLinear(0.0014f)
+                       .AttenuationQuadratic(0.0f))
       .Mesh(sunMesh)
+      .Attach(BEHAVIOUR(SunMovement, actor.RetrieveProperty<Transform>()))
       .Child(scene_.Actor().Mesh(npcMesh))
       .Spawn();
   scene_.Actor()
@@ -101,14 +108,21 @@ Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
       .Spawn();
   scene_.Actor()
       .Attach(BEHAVIOUR(PlayerMovement, actor.RetrieveProperty<Transform>()))
-      .Attach(
-          BEHAVIOUR(LaserEmitter,
-                    LaserEmitter::ParameterPack()
-                        .SetParentTransform(actor.RetrieveProperty<Transform>())
-                        .SetSoundEmitter(actor.RetrieveProperty<SoundEmitter>())
-                        .SetScene(scene_)
-                        .SetLaserMesh(laserMesh)
-                        .SetSoundEffect(laserSoundEffect)))
+      .Attach(BEHAVIOUR(
+          LaserEmitter,
+          LaserEmitter::ParameterPack()
+              .SetParentTransform(actor.RetrieveProperty<Transform>())
+              .SetLaserComposition(
+                  scene_.Actor()
+                      .Attach(BEHAVIOUR(DespawnAfterPeriod, actor, 5.0f))
+                      .LightSource(PointLight()
+                                       .Color(glm::vec3(1.0f, 0.0f, 0.0f))
+                                       .AmbientFactor(0.02f)
+                                       .AttenuationLinear(0.35f)
+                                       .AttenuationQuadratic(0.44f))
+                      .Mesh(laserMesh))
+              .SetSoundEmitter(actor.RetrieveProperty<SoundEmitter>())
+              .SetSoundEffect(laserSoundEffect)))
       .Mesh(playerMesh)
       .Child(scene_.Camera())
       .Child(spaceshipExhaust)
