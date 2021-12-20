@@ -51,16 +51,15 @@ vec3 CalculatePointLight(PointLight light, Material material) {
   vec3 ambient = light.ambient * material.ambient;
 
   // Diffuse
-  vec3 lightPositionRelativeToFragment = lightPositionView - in_fragPosition;
-  vec3 lightNormal = normalize(lightPositionRelativeToFragment);
+  vec3 lightNormal = normalize(lightPositionView - in_fragPosition);
   vec3 surfaceNormal = normalize(in_normal);
   float diffuseStrength = max(dot(lightNormal, surfaceNormal), 0.0);
   vec3 diffuse = light.diffuse * diffuseStrength * material.diffuse;
 
   // Specular
-  vec3 reflection = reflect(-lightNormal, surfaceNormal);
   vec3 viewDirection = normalize(-in_fragPosition);
-  float specularAngleStrength = max(dot(viewDirection, reflection), 0.0);
+  vec3 halfwayDirection = normalize(lightNormal + viewDirection);
+  float specularAngleStrength = max(dot(in_normal, halfwayDirection), 0.0);
   float specularity = pow(specularAngleStrength, material.shininess);
   vec3 specular = light.specular * specularity * material.specular;
 
