@@ -24,7 +24,7 @@ class Image {
 
   VkMemoryRequirements GetMemoryRequirements() const;
 
-  ImageView CreateView(ImageViewCreateInfoBuilder& infoBuilder);
+  ImageView CreateView(ImageViewCreateInfoBuilder infoBuilder) const;
 
  private:
   VkDevice device;

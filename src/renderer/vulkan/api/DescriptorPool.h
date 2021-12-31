@@ -7,7 +7,7 @@
 
 #include "DescriptorSet.h"
 #include "DescriptorSetLayout.h"
-#include "Pipeline.h"
+#include "GraphicsPipeline.h"
 #include "renderer/vulkan/api/structures/DescriptorPoolCreateInfo.h"
 
 class DescriptorPool {

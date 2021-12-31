@@ -11,8 +11,8 @@
 #include "DescriptorPool.h"
 #include "DescriptorSetLayout.h"
 #include "DeviceMemory.h"
+#include "GraphicsPipeline.h"
 #include "Image.h"
-#include "Pipeline.h"
 #include "PipelineCache.h"
 #include "PipelineLayout.h"
 #include "Queue.h"
@@ -75,7 +75,7 @@ class VirtualDevice {
       const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
       const PipelineLayoutCreateInfoBuilder& infoBuilder) const;
   RenderPass CreateRenderPass(RenderPassCreateInfoBuilder& infoBuilder) const;
-  Pipeline CreateGraphicsPipeline(
+  GraphicsPipeline CreateGraphicsPipeline(
       const PipelineCache& pipelineCache,
       const std::vector<ShaderModule>& shaders, PipelineLayout pipelineLayout,
       const SubpassReference subpassReference,

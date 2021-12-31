@@ -1,14 +1,15 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_VULKAN_H_
 #define VULKAN_SRC_RENDERER_VULKAN_VULKAN_H_
 
+#include <renderer/vertices/StructuredVertexData.h>
 #include <vulkan/vulkan.h>
 
 #include <unordered_map>
 
-#include "DynamicUniformBuffer.h"
+#include "BoundBuffer.h"
+#include "IndexedVertexBuffer.h"
 #include "SwapchainWithResources.h"
 #include "Texture.h"
-#include "ViewTransform.h"
 #include "Vulkan.h"
 #include "VulkanSystem.h"
 #include "game/Renderer.h"
@@ -19,6 +20,7 @@
 #include "renderer/vulkan/api/Swapchain.h"
 #include "renderer/vulkan/api/VulkanInstance.h"
 #include "renderer/vulkan/api/memory/DeviceMemoryAllocator.h"
+#include "renderer/vulkan/buffer_structures/GlobalRenderUniform.h"
 #include "system/windowing/Window.h"
 
 // TODO: Lots of cleanup since this file has been through a lot of evolution
@@ -60,43 +62,27 @@ class VulkanResource : public Resource {
   ResourceKey key_;
 };
 
-class Vulkan : public SwapchainWithResources::Initializer,
-               public DynamicUniformBufferInitializer,
+class Vulkan : private SwapchainWithResources::Initializer,
                public Renderer,
                public ResourceDisposer {
  public:
   Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window);
   ~Vulkan();
 
-  void WindowResized();
+  void RecreateSwapchain();
+  void CalculateProjection();
 
   CommandBuffer AllocatePrimaryRenderCommandBuffer() const;
   Fence CreateFence(const VkFenceCreateFlags flags) const;
-
-  Texture LoadTexture(const std::string_view filename);
-  BufferWithMemory AllocateLocalBuffer(const std::size_t size,
-                                       const VkBufferUsageFlags usage);
-  BufferWithMemory AllocateDeviceBuffer(const void* const data,
-                                        const std::size_t size,
-                                        const VkBufferUsageFlags usage);
 
   Swapchain CreateSwapchain() const override;
   Swapchain CreateSwapchain(const Swapchain& oldSwapchain) const override;
   std::vector<Framebuffer> GetFramebuffers(
       const Swapchain& swapchain,
       const std::vector<const ImageView*>& attachments) const override;
-  ImageWithMemory CreateDepthStencilAttachment(
-      const Swapchain& swapchain) override;
-  ImageWithMemory CreateMultisamplingAttachment(
-      const Swapchain& swapchain) override;
+  BoundImage CreateDepthStencilAttachment(const Swapchain& swapchain) override;
+  BoundImage CreateMultisamplingAttachment(const Swapchain& swapchain) override;
   Semaphore CreateSemaphore() const override;
-
-  u32 PaddedSize(const u32 elementSize) const override;
-  BufferWithMemory CreateBuffer(const u32 elementPaddedSize) override;
-
-  DescriptorSet::WriteDescriptorSet CreateImageSamplerWrite(
-      const DescriptorSet& descriptorSet, const ImageView& imageView,
-      const u32 binding) const;
 
   MeshHandle LoadMesh(const RenderType renderType,
                       const MeshLoadParams& meshLoadParams) override;
@@ -133,6 +119,15 @@ class Vulkan : public SwapchainWithResources::Initializer,
   VkSampleCountFlagBits SelectMsaaSamples(
       const VkSampleCountFlagBits preferred) const;
   RenderPass CreateRenderPass() const;
+
+  Texture LoadTexture(const std::string_view filename);
+  BoundBuffer AllocateLocalBuffer(const std::size_t size,
+                                  const VkBufferUsageFlags usage);
+  BoundBuffer AllocateDeviceBuffer(const void* const data,
+                                   const std::size_t size,
+                                   const VkBufferUsageFlags usage);
+  IndexedVertexBuffer AllocateDrawBuffer(
+      const StructuredVertexData::RawVertexData& vertexData);
 
   SwapchainCreateInfoBuilder SwapchainCreateInfo() const;
 
@@ -193,9 +188,7 @@ class Vulkan : public SwapchainWithResources::Initializer,
 
   struct VulkanMesh {
     RenderType renderType;
-    BufferWithMemory vertexBuffer;
-    BufferWithMemory indexBuffer;
-    u32 indexCount;
+    IndexedVertexBuffer drawBuffer;
     std::vector<Texture> textures;
   };
   std::vector<VulkanMesh> meshes_;
@@ -203,30 +196,21 @@ class Vulkan : public SwapchainWithResources::Initializer,
   DescriptorPool descriptorPool_;
   DescriptorSetLayout sceneDescriptorSetLayout_;
   DescriptorSet sceneDescriptorSet_;
-  DynamicUniformBuffer<FrameUniform> sceneUniformBuffer_;
+  GlobalRenderUniform sceneData_;
+  BoundBuffer sceneUniformBuffer_;
 
-  struct Instance {
+  struct Draw {
     DescriptorSet descriptorSet;
     const Transformable* transformable;
-    const Buffer* vertexBuffer;
-    const Buffer* indexBuffer;
-    u32 indexCount;
-  };
-
-  struct IndirectDraw {
-    DescriptorSet descriptorSet;
-    const Transformable* transformable;
-    const Buffer* vertexBuffer;
-    const Buffer* indexBuffer;
-    BufferWithMemory drawBuffer;
+    const IndexedVertexBuffer* drawBuffer;
+    u32 instances;
   };
 
   struct Render {
     DescriptorSetLayout descriptorSetLayout;
-    Pipeline pipeline;
+    GraphicsPipeline pipeline;
 
-    std::unordered_map<ResourceKey, Instance> instances;
-    std::unordered_map<ResourceKey, IndirectDraw> indirectDraws;
+    std::unordered_map<ResourceKey, Draw> draws;
   };
 
   std::unordered_map<RenderType, Render> renders_;
@@ -234,33 +218,7 @@ class Vulkan : public SwapchainWithResources::Initializer,
   DescriptorSetLayout computeDescriptorSetLayout_;
   DescriptorSet computeDescriptorSet_;
 
-  BufferWithMemory computeRootBuffer_;
-
-  struct SceneUniform {
-    alignas(4) float deltaTime;
-  };
-
-  struct ParticleSpawnParams {
-    alignas(4) u32 randomSeed;
-    alignas(4) u32 enableRespawn;
-    alignas(16) glm::mat4 baseTransform;
-    alignas(16) glm::vec3 spawnRegionLow;
-    alignas(16) glm::vec3 spawnRegionHigh;
-  };
-
-  struct ParticleRender {
-    alignas(16) glm::mat4 transform;
-    alignas(4) float fractionOfLife;
-  };
-
-  struct Particle {
-    alignas(16) glm::mat4 baseTransform;
-    alignas(16) glm::vec3 position;
-    alignas(4) float velocity;
-    alignas(4) float totalLife;
-    alignas(4) float timeToLive;
-    alignas(4) u32 isRendering;
-  };
+  BoundBuffer computeRootBuffer_;
 
   struct ComputeInstance {
     DescriptorSet descriptorSet;
@@ -268,9 +226,9 @@ class Vulkan : public SwapchainWithResources::Initializer,
     const SpawnControllable* spawn;
     glm::vec3 spawnRegionLow;
     glm::vec3 spawnRegionHigh;
-    BufferWithMemory particleSpawnParamsBuffer;
-    BufferWithMemory particleBuffer;
-    BufferWithMemory particleRenderBuffer;
+    BoundBuffer particleSpawnParamsBuffer;
+    BoundBuffer particleBuffer;
+    BoundBuffer particleRenderBuffer;
   };
 
   struct Compute {

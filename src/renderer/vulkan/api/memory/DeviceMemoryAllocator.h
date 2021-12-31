@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include "DeviceMemorySubAllocation.h"
+#include "BoundDeviceMemory.h"
 #include "memory/DeviceHeap.h"
 #include "renderer/vulkan/api/Buffer.h"
 #include "renderer/vulkan/api/DeviceMemory.h"
@@ -18,13 +18,13 @@ class DeviceMemoryAllocator {
       VirtualDevice* virtualDevice,
       const VkPhysicalDeviceMemoryProperties* const memoryProperties);
 
-  DeviceMemorySubAllocation BindMemory(
-      const Buffer& buffer, const VkMemoryPropertyFlags requiredProperties);
-  DeviceMemorySubAllocation BindMemory(
-      const Image& image, const VkMemoryPropertyFlags requiredProperties);
+  BoundDeviceMemory BindMemory(const Buffer& buffer,
+                               const VkMemoryPropertyFlags requiredProperties);
+  BoundDeviceMemory BindMemory(const Image& image,
+                               const VkMemoryPropertyFlags requiredProperties);
 
  private:
-  DeviceMemorySubAllocation ReserveMemoryBlock(
+  BoundDeviceMemory ReserveMemoryBlock(
       const VkMemoryRequirements& memoryRequirements,
       const VkMemoryPropertyFlags requiredProperties);
 

@@ -72,7 +72,7 @@ std::optional<u32> DeviceMemory::FindSuitableMemoryTypeIndex(
 
 void DeviceMemory::Bind(const Buffer& buffer, const VkDeviceSize offset) const {
   PROCEED_ON_VALID_RESULT(
-      vkBindBufferMemory(device, buffer.buffer, memory, offset));
+      vkBindBufferMemory(device, buffer.buffer_, memory, offset));
 }
 
 void DeviceMemory::Bind(const Image& image, const VkDeviceSize offset) const {

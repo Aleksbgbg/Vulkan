@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_SWAPCHAINWITHRESOURCES_H_
 #define VULKAN_SRC_RENDERER_VULKAN_SWAPCHAINWITHRESOURCES_H_
 
-#include "ImageWithMemory.h"
+#include "BoundImage.h"
 #include "renderer/vulkan/api/Surface.h"
 #include "renderer/vulkan/api/Swapchain.h"
 #include "renderer/vulkan/api/VirtualDevice.h"
@@ -16,9 +16,9 @@ class SwapchainWithResources {
     virtual Swapchain CreateSwapchain() const = 0;
     virtual Swapchain CreateSwapchain(const Swapchain& oldSwapchain) const = 0;
 
-    virtual ImageWithMemory CreateDepthStencilAttachment(
+    virtual BoundImage CreateDepthStencilAttachment(
         const Swapchain& swapchain) = 0;
-    virtual ImageWithMemory CreateMultisamplingAttachment(
+    virtual BoundImage CreateMultisamplingAttachment(
         const Swapchain& swapchain) = 0;
 
     virtual std::vector<Framebuffer> GetFramebuffers(
@@ -32,6 +32,7 @@ class SwapchainWithResources {
     u32 imageIndex;
     VkResult status;
     const Semaphore& semaphore;
+    const Framebuffer& framebuffer;
   };
 
   SwapchainWithResources() = default;
@@ -44,12 +45,8 @@ class SwapchainWithResources {
 
   AcquireNextImageResult AcquireNextImage();
 
-  const Framebuffer& CurrentFramebuffer() const;
-
   void Present(const Queue& queue,
                const SynchronisationPack& synchronisation) const;
-
-  void MoveToNextFrame();
 
  private:
   SwapchainWithResources(Swapchain inSwapchain, Initializer& initializer);
@@ -57,10 +54,10 @@ class SwapchainWithResources {
  private:
   Swapchain swapchain;
 
-  ImageWithMemory depthStencil;
+  BoundImage depthStencil;
   ImageView depthStencilView;
 
-  ImageWithMemory multisampling;
+  BoundImage multisampling;
   ImageView multisamplingImageView;
 
   std::vector<Framebuffer> swapchainFramebuffers;

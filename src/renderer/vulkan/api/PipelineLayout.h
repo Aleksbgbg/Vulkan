@@ -9,7 +9,7 @@
 #include "renderer/vulkan/api/structures/PipelineLayoutCreateInfo.h"
 
 class PipelineLayout {
-  friend class Pipeline;
+  friend class GraphicsPipeline;
   friend class ComputePipeline;
   friend class CommandBuffer;
 

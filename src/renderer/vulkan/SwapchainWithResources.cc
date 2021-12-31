@@ -7,7 +7,7 @@ SwapchainWithResources::SwapchainWithResources(Swapchain inSwapchain,
                                                Initializer& initializer)
     : swapchain(std::move(inSwapchain)),
       depthStencil(initializer.CreateDepthStencilAttachment(swapchain)),
-      depthStencilView(depthStencil.image.CreateView(
+      depthStencilView(depthStencil.CreateView(
           ImageViewCreateInfoBuilder()
               .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
               .SetSubresourceRange(ImageSubresourceRangeBuilder()
@@ -15,7 +15,7 @@ SwapchainWithResources::SwapchainWithResources(Swapchain inSwapchain,
                                        .SetLevelCount(1)
                                        .SetLayerCount(1)))),
       multisampling(initializer.CreateMultisamplingAttachment(swapchain)),
-      multisamplingImageView(multisampling.image.CreateView(
+      multisamplingImageView(multisampling.CreateView(
           ImageViewCreateInfoBuilder()
               .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
               .SetSubresourceRange(ImageSubresourceRangeBuilder()
@@ -50,28 +50,25 @@ VkExtent2D SwapchainWithResources::GetImageExtent() const {
 
 SwapchainWithResources::AcquireNextImageResult
 SwapchainWithResources::AcquireNextImage() {
+  const u32 inFlightImage = currentInFlightImage;
+  currentInFlightImage = (currentInFlightImage + 1) % imagesInFlight;
+
   const Semaphore& acquireImageSemaphore =
-      imagesInFlightSynchronisation[currentInFlightImage].acquireImageSemaphore;
+      imagesInFlightSynchronisation[inFlightImage].acquireImageSemaphore;
 
   const Swapchain::AcquireNextImageResult acquireNextImageResult =
       swapchain.AcquireNextImage(
           SynchronisationPack().SetSignalSemaphore(&acquireImageSemaphore));
   currentImageIndex = acquireNextImageResult.imageIndex;
 
-  return AcquireNextImageResult{.imageIndex = acquireNextImageResult.imageIndex,
-                                .status = acquireNextImageResult.status,
-                                .semaphore = acquireImageSemaphore};
-}
-
-const Framebuffer& SwapchainWithResources::CurrentFramebuffer() const {
-  return swapchainFramebuffers[currentInFlightImage];
+  return AcquireNextImageResult{
+      .imageIndex = acquireNextImageResult.imageIndex,
+      .status = acquireNextImageResult.status,
+      .semaphore = acquireImageSemaphore,
+      .framebuffer = swapchainFramebuffers[inFlightImage]};
 }
 
 void SwapchainWithResources::Present(
     const Queue& queue, const SynchronisationPack& synchronisation) const {
   queue.Present(swapchain, currentImageIndex, synchronisation);
-}
-
-void SwapchainWithResources::MoveToNextFrame() {
-  currentInFlightImage = (currentInFlightImage + 1) % imagesInFlight;
 }

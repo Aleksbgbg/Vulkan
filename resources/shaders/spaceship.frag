@@ -1,6 +1,6 @@
 #version 450
 
-const uint MAX_LIGHTS = 1024;
+const uint MAX_LIGHTS = 128;
 
 struct Material {
   vec3 ambient;

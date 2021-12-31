@@ -147,7 +147,7 @@ void Scene::Update(const UpdateContext& context) {
   }
   actorsToSpawn_.clear();
 
-  for (const auto& pair : sceneGraph_) {
-    pair.second->UpdateModel(context);
+  for (const auto& actor : sceneGraph_) {
+    actor->UpdateModel(context);
   }
 }

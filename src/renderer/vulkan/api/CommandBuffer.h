@@ -8,8 +8,8 @@
 #include "DescriptorSet.h"
 #include "Fence.h"
 #include "Framebuffer.h"
+#include "GraphicsPipeline.h"
 #include "Image.h"
-#include "Pipeline.h"
 #include "Semaphore.h"
 #include "SynchronisationPack.h"
 #include "renderer/vulkan/api/structures/BufferImageCopy.h"
@@ -75,14 +75,14 @@ class CommandBuffer {
                           const RenderPass& renderPass,
                           const Framebuffer& framebuffer) const;
   void CmdBindPipeline(const VkPipelineBindPoint bindPoint,
-                       const Pipeline& pipeline) const;
+                       const GraphicsPipeline& pipeline) const;
   void CmdPushConstants(const PipelineLayout& pipelineLayout,
                         const VkShaderStageFlags shaderStageFlags,
                         const u32 offset, const u32 size,
                         const void* const values) const;
-  void CmdBindVertexBuffers(const Buffer& buffer, const u32 binding) const;
-  void CmdBindIndexBuffer(const Buffer& buffer,
-                          const VkIndexType indexType) const;
+  void CmdBindVertexBuffers(const Buffer& buffer) const;
+  void CmdBindIndexBuffer(const Buffer& buffer, VkDeviceSize offset,
+                          VkIndexType indexType) const;
 
   void CmdBindDescriptorSet(const VkPipelineBindPoint bindPoint,
                             const PipelineLayout& pipelineLayout,

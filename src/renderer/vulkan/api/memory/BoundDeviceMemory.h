@@ -1,14 +1,14 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYSUBALLOCATION_H_
-#define VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYSUBALLOCATION_H_
+#ifndef VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_BOUNDDEVICEMEMORY_H_
+#define VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_BOUNDDEVICEMEMORY_H_
 
 #include "memory/ReservedBlock.h"
 #include "renderer/vulkan/api/DeviceMemory.h"
 
-class DeviceMemorySubAllocation {
+class BoundDeviceMemory {
   friend class DeviceMemoryAllocator;
 
  public:
-  DeviceMemorySubAllocation() = default;
+  BoundDeviceMemory() = default;
 
   void* Map(const VkDeviceSize offset, const VkDeviceSize size) const;
   void Unmap() const;
@@ -19,8 +19,8 @@ class DeviceMemorySubAllocation {
                               const VkDeviceSize size) const;
 
  private:
-  DeviceMemorySubAllocation(const DeviceMemory* const memory,
-                            ReservedBlock reservedBlock);
+  BoundDeviceMemory(const DeviceMemory* const memory,
+                    ReservedBlock reservedBlock);
 
   void Bind(const Buffer& buffer) const;
   void Bind(const Image& image) const;
@@ -32,4 +32,4 @@ class DeviceMemorySubAllocation {
   VkDeviceSize allocatedMemoryOffset_;
 };
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYSUBALLOCATION_H_
+#endif  // VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_BOUNDDEVICEMEMORY_H_

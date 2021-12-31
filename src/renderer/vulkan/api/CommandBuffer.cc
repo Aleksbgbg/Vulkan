@@ -112,18 +112,18 @@ void CommandBuffer::CmdDispatch(const u32 groupCountX, const u32 groupCountY,
 }
 
 void CommandBuffer::CmdCopyBufferFull(Buffer& source, Buffer& dest) const {
-  CmdCopyBuffer(source, dest, {.size = source.size});
+  CmdCopyBuffer(source, dest, {.size = source.size_});
 }
 
 void CommandBuffer::CmdCopyBuffer(Buffer& source, Buffer& dest,
                                   const VkBufferCopy& copyRegion) const {
-  vkCmdCopyBuffer(commandBuffer, source.buffer, dest.buffer, 1, &copyRegion);
+  vkCmdCopyBuffer(commandBuffer, source.buffer_, dest.buffer_, 1, &copyRegion);
 }
 
 void CommandBuffer::CmdCopyBufferToImage(
     const Buffer& source, const Image& dest, const VkImageLayout destLayout,
     const BufferImageCopyBuilder& infoBuilder) const {
-  vkCmdCopyBufferToImage(commandBuffer, source.buffer, dest.image, destLayout,
+  vkCmdCopyBufferToImage(commandBuffer, source.buffer_, dest.image, destLayout,
                          1, infoBuilder.Build());
 }
 
@@ -140,7 +140,7 @@ void CommandBuffer::CmdBufferMemoryBarrier(
     const VkPipelineStageFlags dstStageMask,
     BufferMemoryBarrierBuilder& infoBuilder) const {
   vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, 0, 0, nullptr,
-                       1, infoBuilder.SetBuffer(buffer.buffer).Build(), 0,
+                       1, infoBuilder.SetBuffer(buffer.buffer_).Build(), 0,
                        nullptr);
 }
 
@@ -173,7 +173,7 @@ void CommandBuffer::CmdBeginRenderPass(RenderPassBeginInfoBuilder infoBuilder,
 }
 
 void CommandBuffer::CmdBindPipeline(const VkPipelineBindPoint bindPoint,
-                                    const Pipeline& pipeline) const {
+                                    const GraphicsPipeline& pipeline) const {
   vkCmdBindPipeline(commandBuffer, bindPoint, pipeline.pipeline);
 }
 
@@ -185,15 +185,15 @@ void CommandBuffer::CmdPushConstants(const PipelineLayout& pipelineLayout,
                      shaderStageFlags, offset, size, values);
 }
 
-void CommandBuffer::CmdBindVertexBuffers(const Buffer& buffer,
-                                         const u32 binding) const {
+void CommandBuffer::CmdBindVertexBuffers(const Buffer& buffer) const {
   const VkDeviceSize offset = 0;
-  vkCmdBindVertexBuffers(commandBuffer, binding, 1, &buffer.buffer, &offset);
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, &buffer.buffer_, &offset);
 }
 
 void CommandBuffer::CmdBindIndexBuffer(const Buffer& buffer,
+                                       const VkDeviceSize offset,
                                        const VkIndexType indexType) const {
-  vkCmdBindIndexBuffer(commandBuffer, buffer.buffer, 0, indexType);
+  vkCmdBindIndexBuffer(commandBuffer, buffer.buffer_, offset, indexType);
 }
 
 void CommandBuffer::CmdBindDescriptorSet(
@@ -224,7 +224,7 @@ void CommandBuffer::CmdDrawIndexedInstanced(const u32 indexCount,
 }
 
 void CommandBuffer::CmdDrawIndexedIndirect(const Buffer& buffer) const {
-  vkCmdDrawIndexedIndirect(commandBuffer, buffer.buffer, 0, 1, 0);
+  vkCmdDrawIndexedIndirect(commandBuffer, buffer.buffer_, 0, 1, 0);
 }
 
 void CommandBuffer::CmdEndRenderPass() const {

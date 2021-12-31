@@ -6,7 +6,7 @@
 #include "renderer/vulkan/api/structures/ShaderModuleCreateInfo.h"
 
 class ShaderModule {
-  friend class Pipeline;
+  friend class GraphicsPipeline;
   friend class ComputePipeline;
 
  public:

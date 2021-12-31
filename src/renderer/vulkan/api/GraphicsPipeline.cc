@@ -1,16 +1,16 @@
-#include "Pipeline.h"
+#include "GraphicsPipeline.h"
 
 #include <algorithm>
 
 #include "error.h"
 
-Pipeline::Pipeline() : pipeline(nullptr) {}
+GraphicsPipeline::GraphicsPipeline() : pipeline(nullptr) {}
 
-Pipeline::Pipeline(VkDevice device, const PipelineCache& pipelineCache,
-                   const std::vector<ShaderModule>& shaderModules,
-                   PipelineLayout pipelineLayout,
-                   const SubpassReference subpassReference,
-                   GraphicsPipelineCreateInfoBuilder infoBuilder)
+GraphicsPipeline::GraphicsPipeline(
+    VkDevice device, const PipelineCache& pipelineCache,
+    const std::vector<ShaderModule>& shaderModules,
+    PipelineLayout pipelineLayout, const SubpassReference subpassReference,
+    GraphicsPipelineCreateInfoBuilder infoBuilder)
     : device(device), pipelineLayout(std::move(pipelineLayout)) {
   std::vector<VkPipelineShaderStageCreateInfo> shaderCreateInfos(
       shaderModules.size());
@@ -33,26 +33,27 @@ Pipeline::Pipeline(VkDevice device, const PipelineCache& pipelineCache,
       nullptr, &pipeline));
 }
 
-Pipeline::Pipeline(Pipeline&& other) noexcept
+GraphicsPipeline::GraphicsPipeline(GraphicsPipeline&& other) noexcept
     : device(other.device),
       pipeline(other.pipeline),
       pipelineLayout(std::move(other.pipelineLayout)) {
   other.pipeline = nullptr;
 }
 
-Pipeline::~Pipeline() {
+GraphicsPipeline::~GraphicsPipeline() {
   if (pipeline != nullptr) {
     vkDestroyPipeline(device, pipeline, nullptr);
   }
 }
 
-Pipeline& Pipeline::operator=(Pipeline&& other) noexcept {
+GraphicsPipeline& GraphicsPipeline::operator=(
+    GraphicsPipeline&& other) noexcept {
   std::swap(device, other.device);
   std::swap(pipeline, other.pipeline);
   pipelineLayout = std::move(other.pipelineLayout);
   return *this;
 }
 
-const PipelineLayout& Pipeline::GetLayout() const {
+const PipelineLayout& GraphicsPipeline::GetLayout() const {
   return pipelineLayout;
 }

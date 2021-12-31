@@ -7,7 +7,7 @@
 
 class RenderPass {
   friend class Swapchain;
-  friend class Pipeline;
+  friend class GraphicsPipeline;
   friend class CommandBuffer;
   friend class ImGuiInstance;
 

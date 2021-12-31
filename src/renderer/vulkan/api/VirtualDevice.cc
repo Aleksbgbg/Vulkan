@@ -96,13 +96,14 @@ RenderPass VirtualDevice::CreateRenderPass(
   return RenderPass(device, infoBuilder);
 }
 
-Pipeline VirtualDevice::CreateGraphicsPipeline(
+GraphicsPipeline VirtualDevice::CreateGraphicsPipeline(
     const PipelineCache& pipelineCache,
     const std::vector<ShaderModule>& shaders, PipelineLayout pipelineLayout,
     const SubpassReference subpassReference,
     const GraphicsPipelineCreateInfoBuilder& infoBuilder) const {
-  return Pipeline(device, pipelineCache, shaders, std::move(pipelineLayout),
-                  subpassReference, infoBuilder);
+  return GraphicsPipeline(device, pipelineCache, shaders,
+                          std::move(pipelineLayout), subpassReference,
+                          infoBuilder);
 }
 
 Semaphore VirtualDevice::CreateSemaphore() const {

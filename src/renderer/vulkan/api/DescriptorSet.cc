@@ -74,12 +74,12 @@ DescriptorSet::DescriptorSet(VkDescriptorSet descriptorSet)
     : descriptorSet(descriptorSet) {}
 
 DescriptorSet::WriteDescriptorSet DescriptorSet::CreateBufferWrite(
-    const Buffer& buffer, const VkDeviceSize range,
-    const VkDescriptorType descriptorType, const u32 binding) const {
+    const Buffer& buffer, const VkDescriptorType descriptorType,
+    const u32 binding) const {
   return WriteDescriptorSet(DescriptorBufferInfoBuilder()
-                                .SetBuffer(buffer.buffer)
+                                .SetBuffer(buffer.buffer_)
                                 .SetOffset(0)
-                                .SetRange(range),
+                                .SetRange(buffer.size_),
                             WriteDescriptorSetBuilder()
                                 .SetDstSet(descriptorSet)
                                 .SetDescriptorType(descriptorType)

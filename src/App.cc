@@ -61,7 +61,7 @@ void App::RenderThread() {
             break;
 
           case EventNotification::Resized:
-            vulkan_.WindowResized();
+            vulkan_.RecreateSwapchain();
             break;
         }
       }

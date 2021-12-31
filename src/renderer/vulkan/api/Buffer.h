@@ -27,9 +27,9 @@ class Buffer {
   VkMemoryRequirements GetMemoryRequirements() const;
 
  private:
-  VkDevice device;
-  VkBuffer buffer;
-  VkDeviceSize size;
+  VkDevice device_;
+  VkBuffer buffer_;
+  VkDeviceSize size_;
 };
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_BUFFER_H_

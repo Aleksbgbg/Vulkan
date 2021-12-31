@@ -34,7 +34,7 @@ VkMemoryRequirements Image::GetMemoryRequirements() const {
   return memoryRequirements;
 }
 
-ImageView Image::CreateView(ImageViewCreateInfoBuilder& infoBuilder) {
+ImageView Image::CreateView(ImageViewCreateInfoBuilder infoBuilder) const {
   return ImageView(device,
                    infoBuilder.SetImage(image).SetFormat(createInfo.format));
 }

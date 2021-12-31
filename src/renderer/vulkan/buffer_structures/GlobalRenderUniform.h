@@ -1,12 +1,12 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_VIEWTRANSFORM_H_
-#define VULKAN_SRC_RENDERER_VULKAN_VIEWTRANSFORM_H_
+#ifndef VULKAN_SRC_RENDERER_VULKAN_BUFFER_STRUCTURES_GLOBALRENDERUNIFORM_H_
+#define VULKAN_SRC_RENDERER_VULKAN_BUFFER_STRUCTURES_GLOBALRENDERUNIFORM_H_
 
 #include "util/include/glm.h"
 #include "util/types.h"
 
-inline constexpr u32 MAX_LIGHTS = 1024;
+inline constexpr u32 MAX_LIGHTS = 128;
 
-struct FrameUniform {
+struct GlobalRenderUniform {
   struct Material {
     alignas(16) glm::vec3 ambient;
     alignas(16) glm::vec3 diffuse;
@@ -39,4 +39,4 @@ struct FrameUniform {
   alignas(4) u32 pointLightCount;
 };
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_VIEWTRANSFORM_H_
+#endif  // VULKAN_SRC_RENDERER_VULKAN_BUFFER_STRUCTURES_GLOBALRENDERUNIFORM_H_

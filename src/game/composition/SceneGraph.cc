@@ -21,10 +21,10 @@ void SceneGraph::Remove(const ActorKey key) {
   actors_.erase(actors_.find(key));
 }
 
-SceneGraph::IteratorType SceneGraph::begin() {
-  return actors_.begin();
+SceneGraph::IteratorType SceneGraph::begin() const {
+  return IterateValues(actors_).begin();
 }
 
-SceneGraph::IteratorType SceneGraph::end() {
-  return actors_.end();
+SceneGraph::IteratorType SceneGraph::end() const {
+  return IterateValues(actors_).end();
 }

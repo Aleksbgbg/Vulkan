@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include "general/adapters/MapValueIterator.h"
 #include "general/files/file.h"
 #include "general/files/images/png.h"
 #include "general/logging/log.h"
@@ -23,14 +24,15 @@
 #include "renderer/vulkan/api/structures/SubpassDescription.h"
 #include "renderer/vulkan/api/structures/default.h"
 #include "renderer/vulkan/api/util.h"
+#include "renderer/vulkan/buffer_structures/GlobalComputeUniform.h"
+#include "renderer/vulkan/buffer_structures/ModelTransform.h"
+#include "renderer/vulkan/buffer_structures/Particle.h"
+#include "renderer/vulkan/buffer_structures/ParticleRender.h"
+#include "renderer/vulkan/buffer_structures/ParticleSpawnParams.h"
 #include "util/build_definition.h"
 #include "util/filenames.h"
 
 static constexpr u32 WANTED_SWAPCHAIN_IMAGES = 3u;
-
-struct ModelTransform {
-  alignas(16) glm::mat4 transform;
-};
 
 VulkanResource::VulkanResource(ResourceDisposer* const disposer,
                                const ResourceKey key)
@@ -302,40 +304,23 @@ RenderPass Vulkan::CreateRenderPass() const {
           .SetPColorAttachments(&colorAttachment)
           .SetPDepthStencilAttachment(&depthStencilAttachment),
   };
-  constexpr const std::array<VkSubpassDependency, 1> subpassDependencies{
-      SubpassDependencyBuilder()
-          .SetSrcSubpass(VK_SUBPASS_EXTERNAL)
-          .SetDstSubpass(0)
-          .SetSrcStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                           VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
-          .SetDstStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                           VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
-          .SetSrcAccessMask(0)
-          .SetDstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT),
-  };
 
   return virtualDevice.CreateRenderPass(
       RenderPassCreateInfoBuilder()
           .SetAttachmentCount(attachmentDescriptions.size())
           .SetPAttachments(attachmentDescriptions.data())
           .SetSubpassCount(subpasses.size())
-          .SetPSubpasses(subpasses.data())
-          .SetDependencyCount(subpassDependencies.size())
-          .SetPDependencies(subpassDependencies.data()));
+          .SetPSubpasses(subpasses.data()));
 }
 
 DescriptorPool MakeDescriptorPool(const VirtualDevice& virtualDevice) {
-  constexpr std::array<VkDescriptorPoolSize, 4> descriptorPoolSizes{
+  constexpr std::array<VkDescriptorPoolSize, 3> descriptorPoolSizes{
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
           .SetDescriptorCount(1000),
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
           .SetDescriptorCount(1000),
-      DescriptorPoolSizeBuilder()
-          .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
-          .SetDescriptorCount(1),
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
           .SetDescriptorCount(1000),
@@ -683,16 +668,17 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
       sceneDescriptorSetLayout_(virtualDevice.CreateDescriptorSetLayout(
           DescriptorSetLayoutCreateInfoBuilder()
               .SetBindingCount(1)
-              .SetPBindings(DescriptorSetLayoutBindingBuilder()
-                                .SetBinding(0)
-                                .SetDescriptorCount(1)
-                                .SetDescriptorType(
-                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
-                                .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT |
-                                               VK_SHADER_STAGE_FRAGMENT_BIT)))),
+              .SetPBindings(
+                  DescriptorSetLayoutBindingBuilder()
+                      .SetBinding(0)
+                      .SetDescriptorCount(1)
+                      .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                      .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT |
+                                     VK_SHADER_STAGE_FRAGMENT_BIT)))),
       sceneDescriptorSet_(
           descriptorPool_.AllocateDescriptorSet(sceneDescriptorSetLayout_)),
-      sceneUniformBuffer_(*this, sceneDescriptorSet_),
+      sceneUniformBuffer_(AllocateLocalBuffer(
+          sizeof(sceneData_), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)),
       renders_(),
       computeDescriptorSetLayout_(virtualDevice.CreateDescriptorSetLayout(
           DescriptorSetLayoutCreateInfoBuilder()
@@ -722,15 +708,14 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
   }
 
   std::vector<DescriptorSet::WriteDescriptorSet> descriptorSetWrites;
-  descriptorSetWrites.push_back(
-      sceneUniformBuffer_.CreateWriteDescriptorSet(0));
-  descriptorSetWrites.push_back(computeDescriptorSet_.CreateBufferWrite(
-      computeRootBuffer_.buffer, computeRootBuffer_.buffer.Size(),
-      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0));
+  descriptorSetWrites.push_back(sceneUniformBuffer_.WriteBuffer(
+      sceneDescriptorSet_, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0));
+  descriptorSetWrites.push_back(computeRootBuffer_.WriteBuffer(
+      computeDescriptorSet_, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0));
 
   virtualDevice.UpdateDescriptorSets(descriptorSetWrites);
 
-  WindowResized();
+  CalculateProjection();
 
   renders_.insert(std::move(
       std::make_pair(RenderType::Skybox,
@@ -789,9 +774,14 @@ Vulkan::~Vulkan() {
                   pipelineCache.GetPipelineCacheData());
 }
 
-void Vulkan::WindowResized() {
+void Vulkan::RecreateSwapchain() {
   oldSwapchain = std::move(swapchain);
   swapchain = oldSwapchain.RecreateSwapchain(*this);
+
+  CalculateProjection();
+}
+
+void Vulkan::CalculateProjection() {
   const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
   glm::mat4 projection =
       glm::perspective(glm::radians(55.0f),
@@ -799,8 +789,7 @@ void Vulkan::WindowResized() {
                            static_cast<float>(swapchainExtent.height),
                        0.1f, 3000.0f);
   projection[1][1] *= -1.0f;
-  FrameUniform& sceneData = sceneUniformBuffer_.Value();
-  sceneData.projection = projection;
+  sceneData_.projection = projection;
 }
 
 VkBool32 Vulkan::DebugCallback(
@@ -832,10 +821,9 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(image.size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  const DeviceMemorySubAllocation stagingBufferMemory =
-      deviceAllocator.BindMemory(stagingBuffer,
-                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  const BoundDeviceMemory stagingBufferMemory = deviceAllocator.BindMemory(
+      stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
   stagingBufferMemory.MapCopy(image.data.data(), stagingBuffer.Size());
 
   Image textureImage =
@@ -847,7 +835,7 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
                                                    .SetDepth(1))
                                     .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                                               VK_IMAGE_USAGE_SAMPLED_BIT));
-  DeviceMemorySubAllocation textureImageMemory = deviceAllocator.BindMemory(
+  BoundDeviceMemory textureImageMemory = deviceAllocator.BindMemory(
       textureImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   shortExecutionCommandBuffer.BeginOneTimeSubmit();
@@ -884,30 +872,29 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
           .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
           .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
 
-  return Texture{.image = {.image = std::move(textureImage),
-                           .memory = std::move(textureImageMemory)},
+  return Texture{.image = BoundImage(std::move(textureImage),
+                                     std::move(textureImageMemory)),
                  .view = std::move(textureView)};
 }
 
-BufferWithMemory Vulkan::AllocateLocalBuffer(const std::size_t size,
-                                             const VkBufferUsageFlags usage) {
-  BufferWithMemory bufferWithMemory;
-  bufferWithMemory.buffer = virtualDevice.CreateBuffer(
+BoundBuffer Vulkan::AllocateLocalBuffer(const std::size_t size,
+                                        const VkBufferUsageFlags usage) {
+  Buffer buffer = virtualDevice.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE).SetSize(size).SetUsage(usage));
-  bufferWithMemory.memory = deviceAllocator.BindMemory(
-      bufferWithMemory.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  return bufferWithMemory;
+  BoundDeviceMemory memory = deviceAllocator.BindMemory(
+      buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  return BoundBuffer(std::move(buffer), std::move(memory));
 }
 
-BufferWithMemory Vulkan::AllocateDeviceBuffer(const void* const data,
-                                              const std::size_t size,
-                                              const VkBufferUsageFlags usage) {
+BoundBuffer Vulkan::AllocateDeviceBuffer(const void* const data,
+                                         const std::size_t size,
+                                         const VkBufferUsageFlags usage) {
   Buffer stagingBuffer = virtualDevice.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  DeviceMemorySubAllocation stagingBufferMemory = deviceAllocator.BindMemory(
+  BoundDeviceMemory stagingBufferMemory = deviceAllocator.BindMemory(
       stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
   stagingBufferMemory.MapCopy(data, stagingBuffer.Size());
@@ -916,15 +903,50 @@ BufferWithMemory Vulkan::AllocateDeviceBuffer(const void* const data,
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage));
-  DeviceMemorySubAllocation finalBufferMemory = deviceAllocator.BindMemory(
+  BoundDeviceMemory finalBufferMemory = deviceAllocator.BindMemory(
       finalBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   shortExecutionCommandBuffer.BeginOneTimeSubmit();
   shortExecutionCommandBuffer.CmdCopyBufferFull(stagingBuffer, finalBuffer);
   shortExecutionCommandBuffer.End().Submit(fence).Wait().Reset();
 
-  return {.buffer = std::move(finalBuffer),
-          .memory = std::move(finalBufferMemory)};
+  return BoundBuffer(std::move(finalBuffer), std::move(finalBufferMemory));
+}
+
+IndexedVertexBuffer Vulkan::AllocateDrawBuffer(
+    const StructuredVertexData::RawVertexData& vertexData) {
+  const VkDeviceSize size =
+      vertexData.verticesMemorySize + vertexData.indicesMemorySize;
+
+  Buffer stagingBuffer = virtualDevice.CreateBuffer(
+      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
+          .SetSize(size)
+          .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
+  BoundDeviceMemory stagingBufferMemory = deviceAllocator.BindMemory(
+      stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  void* memory = stagingBufferMemory.Map(0, stagingBuffer.Size());
+  std::memcpy(memory, vertexData.vertices, vertexData.verticesMemorySize);
+  std::memcpy(reinterpret_cast<u8*>(memory) + vertexData.verticesMemorySize,
+              vertexData.indices, vertexData.indicesMemorySize);
+  stagingBufferMemory.Unmap();
+
+  Buffer finalBuffer = virtualDevice.CreateBuffer(
+      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
+          .SetSize(size)
+          .SetUsage(VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT));
+  BoundDeviceMemory finalBufferMemory = deviceAllocator.BindMemory(
+      finalBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+  shortExecutionCommandBuffer.BeginOneTimeSubmit();
+  shortExecutionCommandBuffer.CmdCopyBufferFull(stagingBuffer, finalBuffer);
+  shortExecutionCommandBuffer.End().Submit(fence).Wait().Reset();
+
+  return IndexedVertexBuffer(
+      BoundBuffer(std::move(finalBuffer), std::move(finalBufferMemory)),
+      vertexData.verticesMemorySize, vertexData.indexCount);
 }
 
 SwapchainCreateInfoBuilder Vulkan::SwapchainCreateInfo() const {
@@ -954,32 +976,28 @@ Swapchain Vulkan::CreateSwapchain(const Swapchain& oldSwapchain) const {
                                        SwapchainCreateInfo());
 }
 
-ImageWithMemory Vulkan::CreateDepthStencilAttachment(
-    const Swapchain& swapchain) {
-  ImageWithMemory depthStencil;
-  depthStencil.image = virtualDevice.CreateImage(
+BoundImage Vulkan::CreateDepthStencilAttachment(const Swapchain& swapchain) {
+  Image image = virtualDevice.CreateImage(
       ImageCreateInfoBuilder(IMAGE_2D)
           .SetFormat(depthStencilFormat)
           .SetSamples(samples)
           .SetExtent(Extent3DBuilder(swapchain.GetImageExtent()).SetDepth(1))
           .SetUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
-  depthStencil.memory = deviceAllocator.BindMemory(
-      depthStencil.image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  return depthStencil;
+  BoundDeviceMemory memory =
+      deviceAllocator.BindMemory(image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  return BoundImage(std::move(image), std::move(memory));
 }
 
-ImageWithMemory Vulkan::CreateMultisamplingAttachment(
-    const Swapchain& swapchain) {
-  ImageWithMemory multisampling;
-  multisampling.image = virtualDevice.CreateImage(
+BoundImage Vulkan::CreateMultisamplingAttachment(const Swapchain& swapchain) {
+  Image image = virtualDevice.CreateImage(
       ImageCreateInfoBuilder(IMAGE_2D)
           .SetFormat(swapchain.GetImageFormat())
           .SetExtent(Extent3DBuilder(swapchain.GetImageExtent()).SetDepth(1))
           .SetSamples(samples)
           .SetUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT));
-  multisampling.memory = deviceAllocator.BindMemory(
-      multisampling.image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  return multisampling;
+  BoundDeviceMemory memory =
+      deviceAllocator.BindMemory(image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  return BoundImage(std::move(image), std::move(memory));
 }
 
 std::vector<Framebuffer> Vulkan::GetFramebuffers(
@@ -990,38 +1008,6 @@ std::vector<Framebuffer> Vulkan::GetFramebuffers(
 
 Semaphore Vulkan::CreateSemaphore() const {
   return virtualDevice.CreateSemaphore();
-}
-
-u32 Vulkan::PaddedSize(const u32 elementSize) const {
-  const u32 minimumSize = physicalDeviceProperties.limits.nonCoherentAtomSize;
-  const u32 alignment =
-      physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
-
-  const float ratio =
-      static_cast<float>(minimumSize) / static_cast<float>(alignment);
-  const u32 requiredAlignment = alignment * static_cast<u32>(std::ceil(ratio));
-  return Align(elementSize, requiredAlignment);
-}
-
-BufferWithMemory Vulkan::CreateBuffer(const u32 elementPaddedSize) {
-  const u32 objectCount = swapchainImages;
-
-  BufferWithMemory bufferWithMemory;
-  bufferWithMemory.buffer = virtualDevice.CreateBuffer(
-      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
-          .SetSize(elementPaddedSize * objectCount)
-          .SetUsage(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT));
-  bufferWithMemory.memory = deviceAllocator.BindMemory(
-      bufferWithMemory.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  return bufferWithMemory;
-}
-
-DescriptorSet::WriteDescriptorSet Vulkan::CreateImageSamplerWrite(
-    const DescriptorSet& descriptorSet, const ImageView& imageView,
-    const u32 binding) const {
-  return descriptorSet.CreateImageSamplerWrite(
-      imageView, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-      binding);
 }
 
 MeshHandle Vulkan::LoadMesh(const RenderType renderType,
@@ -1048,9 +1034,6 @@ MeshHandle Vulkan::LoadMesh(const RenderType renderType,
     vertexData->Apply(meshLoadParams.meshTransform.value());
   }
 
-  const StructuredVertexData::RawVertexData rawVertexData =
-      vertexData->GetRawVertexData();
-
   std::vector<Texture> textures;
   if (meshLoadParams.texture.has_value()) {
     textures.push_back(std::move(LoadTexture(meshLoadParams.texture.value())));
@@ -1061,13 +1044,7 @@ MeshHandle Vulkan::LoadMesh(const RenderType renderType,
 
   meshes_.push_back(std::move(VulkanMesh{
       .renderType = renderType,
-      .vertexBuffer = AllocateDeviceBuffer(rawVertexData.vertices,
-                                           rawVertexData.verticesMemorySize,
-                                           VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
-      .indexBuffer = AllocateDeviceBuffer(rawVertexData.indices,
-                                          rawVertexData.indicesMemorySize,
-                                          VK_BUFFER_USAGE_INDEX_BUFFER_BIT),
-      .indexCount = rawVertexData.indexCount,
+      .drawBuffer = AllocateDrawBuffer(vertexData->GetRawVertexData()),
       .textures = std::move(textures)}));
 
   return meshes_.size() - 1;
@@ -1091,61 +1068,43 @@ std::unique_ptr<Resource> Vulkan::SpawnParticleSystem(
   Render& render = renders_[mesh.renderType];
   Compute& compute = particleComputes_[particleSystemInfo.particleBehaviour];
 
-  const VkDrawIndexedIndirectCommand command{.indexCount = mesh.indexCount,
-                                             .instanceCount = PARTICLES,
-                                             .firstIndex = 0,
-                                             .vertexOffset = 0,
-                                             .firstInstance = 0};
-  BufferWithMemory indirectDrawBuffer = AllocateDeviceBuffer(
-      &command, sizeof(command),
-      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
-
-  BufferWithMemory spawnParamsBuffer = AllocateLocalBuffer(
+  BoundBuffer spawnParamsBuffer = AllocateLocalBuffer(
       sizeof(ParticleSpawnParams), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
   ParticleSpawnParams particleSpawnParams;
   memset(&particleSpawnParams, 0, sizeof(particleSpawnParams));
-  spawnParamsBuffer.memory.MapCopy(&particleSpawnParams,
-                                   sizeof(particleSpawnParams));
+  spawnParamsBuffer.MapCopy(&particleSpawnParams, sizeof(particleSpawnParams));
 
-  BufferWithMemory particleBuffer = AllocateLocalBuffer(
-      sizeof(Particle) * PARTICLES, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
   Particle particles[PARTICLES];
   memset(particles, 0, sizeof(particles));
-  particleBuffer.memory.MapCopy(&particles, sizeof(particles));
+  BoundBuffer particleBuffer =
+      AllocateDeviceBuffer(particles, sizeof(Particle) * PARTICLES,
+                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
 
-  BufferWithMemory renderBuffer = AllocateLocalBuffer(
-      sizeof(ParticleRender) * PARTICLES, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
   ParticleRender renders[PARTICLES];
   memset(renders, 0, sizeof(renders));
-  renderBuffer.memory.MapCopy(&renders, sizeof(renders));
+  BoundBuffer renderBuffer =
+      AllocateDeviceBuffer(renders, sizeof(ParticleRender) * PARTICLES,
+                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
 
-  IndirectDraw draw;
-  draw.descriptorSet =
-      descriptorPool_.AllocateDescriptorSet(render.descriptorSetLayout);
-  draw.transformable = particleSystemInfo.transformable;
-  draw.vertexBuffer = &mesh.vertexBuffer.buffer;
-  draw.indexBuffer = &mesh.indexBuffer.buffer;
+  Draw draw{.descriptorSet = descriptorPool_.AllocateDescriptorSet(
+                render.descriptorSetLayout),
+            .transformable = particleSystemInfo.transformable,
+            .drawBuffer = &mesh.drawBuffer,
+            .instances = PARTICLES};
 
   ComputeInstance computeInstance;
   computeInstance.descriptorSet =
       descriptorPool_.AllocateDescriptorSet(compute.descriptorSetLayout);
 
   std::vector<DescriptorSet::WriteDescriptorSet> descriptorSetWrites;
-  descriptorSetWrites.push_back(draw.descriptorSet.CreateBufferWrite(
-      renderBuffer.buffer, renderBuffer.buffer.Size(),
-      VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 0));
-  descriptorSetWrites.push_back(computeInstance.descriptorSet.CreateBufferWrite(
-      spawnParamsBuffer.buffer, spawnParamsBuffer.buffer.Size(),
-      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0));
-  descriptorSetWrites.push_back(computeInstance.descriptorSet.CreateBufferWrite(
-      particleBuffer.buffer, particleBuffer.buffer.Size(),
-      VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1));
-  descriptorSetWrites.push_back(computeInstance.descriptorSet.CreateBufferWrite(
-      renderBuffer.buffer, renderBuffer.buffer.Size(),
-      VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2));
-  descriptorSetWrites.push_back(computeInstance.descriptorSet.CreateBufferWrite(
-      indirectDrawBuffer.buffer, indirectDrawBuffer.buffer.Size(),
-      VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3));
+  descriptorSetWrites.push_back(renderBuffer.WriteBuffer(
+      draw.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 0));
+  descriptorSetWrites.push_back(spawnParamsBuffer.WriteBuffer(
+      computeInstance.descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0));
+  descriptorSetWrites.push_back(particleBuffer.WriteBuffer(
+      computeInstance.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1));
+  descriptorSetWrites.push_back(renderBuffer.WriteBuffer(
+      computeInstance.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2));
   virtualDevice.UpdateDescriptorSets(descriptorSetWrites);
 
   computeInstance.base = particleSystemInfo.transformable;
@@ -1155,11 +1114,10 @@ std::unique_ptr<Resource> Vulkan::SpawnParticleSystem(
   computeInstance.particleSpawnParamsBuffer = std::move(spawnParamsBuffer);
   computeInstance.particleBuffer = std::move(particleBuffer);
   computeInstance.particleRenderBuffer = std::move(renderBuffer);
-  draw.drawBuffer = std::move(indirectDrawBuffer);
 
   const ResourceKey key = GenerateResourceKey();
 
-  render.indirectDraws.insert(std::make_pair(key, std::move(draw)));
+  render.draws.insert(std::make_pair(key, std::move(draw)));
   compute.instances.insert(std::make_pair(key, std::move(computeInstance)));
 
   return std::make_unique<VulkanResource>(this, key);
@@ -1169,26 +1127,24 @@ std::unique_ptr<Resource> Vulkan::SpawnRenderable(RenderInfo renderInfo) {
   VulkanMesh& mesh = meshes_[renderInfo.meshHandle];
   Render& render = renders_[mesh.renderType];
 
-  Instance instance;
-
-  instance.descriptorSet =
-      descriptorPool_.AllocateDescriptorSet(render.descriptorSetLayout);
-  instance.transformable = renderInfo.transformable;
-  instance.vertexBuffer = &mesh.vertexBuffer.buffer;
-  instance.indexBuffer = &mesh.indexBuffer.buffer;
-  instance.indexCount = mesh.indexCount;
+  Draw draw{.descriptorSet = descriptorPool_.AllocateDescriptorSet(
+                render.descriptorSetLayout),
+            .transformable = renderInfo.transformable,
+            .drawBuffer = &mesh.drawBuffer,
+            .instances = 1};
 
   std::vector<DescriptorSet::WriteDescriptorSet> descriptorSetWrites;
 
   for (const Texture& texture : mesh.textures) {
-    descriptorSetWrites.push_back(std::move(CreateImageSamplerWrite(
-        instance.descriptorSet, texture.view, descriptorSetWrites.size())));
+    descriptorSetWrites.push_back(draw.descriptorSet.CreateImageSamplerWrite(
+        texture.view, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        descriptorSetWrites.size()));
   }
 
   virtualDevice.UpdateDescriptorSets(descriptorSetWrites);
 
   const ResourceKey key = GenerateResourceKey();
-  render.instances.insert(std::make_pair(key, std::move(instance)));
+  render.draws.insert(std::make_pair(key, std::move(draw)));
 
   return std::make_unique<VulkanResource>(this, key);
 }
@@ -1202,21 +1158,17 @@ void Vulkan::ScheduleCompute(const ComputeContext& context) {
     fence.Wait().Reset();
   }
 
-  const SceneUniform sceneUniform = {.deltaTime = context.deltaTime};
-  computeRootBuffer_.memory.MapCopy(&sceneUniform, sizeof(sceneUniform));
+  const GlobalComputeUniform sceneUniform = {.deltaTime = context.deltaTime};
+  computeRootBuffer_.MapCopy(&sceneUniform, sizeof(sceneUniform));
 
   computeCommandBuffer_.Begin();
   computeCommandBuffer_.CmdBindDescriptorSet(
       VK_PIPELINE_BIND_POINT_COMPUTE,
-      particleComputes_.begin()->second.pipeline.GetLayout(), 0,
+      FirstValue(particleComputes_).pipeline.GetLayout(), 0,
       computeDescriptorSet_);
-  for (const auto& pair : particleComputes_) {
-    const Compute& compute = pair.second;
-
+  for (const Compute& compute : IterateValues(particleComputes_)) {
     computeCommandBuffer_.CmdBindComputePipeline(compute.pipeline);
-    for (const auto& value : compute.instances) {
-      const ComputeInstance& instance = value.second;
-
+    for (const ComputeInstance& instance : IterateValues(compute.instances)) {
       const ParticleSpawnParams particleSpawnParams{
           .randomSeed = randomNumberGenerator_.RandomUint(0, UINT32_MAX),
           .enableRespawn =
@@ -1225,8 +1177,8 @@ void Vulkan::ScheduleCompute(const ComputeContext& context) {
           .spawnRegionLow = instance.spawnRegionLow,
           .spawnRegionHigh = instance.spawnRegionHigh,
       };
-      instance.particleSpawnParamsBuffer.memory.MapCopy(
-          &particleSpawnParams, sizeof(particleSpawnParams));
+      instance.particleSpawnParamsBuffer.MapCopy(&particleSpawnParams,
+                                                 sizeof(particleSpawnParams));
 
       computeCommandBuffer_.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_COMPUTE,
                                                  compute.pipeline.GetLayout(),
@@ -1272,20 +1224,8 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
       depthClear,
   };
 
-  const glm::vec2 windowSizeFloat = window.GetRect().Size();
-  const glm::ivec2 windowSizeInt = glm::ivec2(windowSizeFloat);
-
-  const VkViewport viewport = ViewportBuilder(VIEWPORT_BASE)
-                                  .SetWidth(windowSizeFloat.x)
-                                  .SetHeight(windowSizeFloat.y);
-  const VkRect2D scissor = Rect2DBuilder()
-                               .SetOffset(OFFSET2D_ZERO)
-                               .SetExtent(Extent2DBuilder()
-                                              .SetWidth(windowSizeInt.x)
-                                              .SetHeight(windowSizeInt.y));
-
   {
-    FrameUniform& frame = sceneUniformBuffer_.Value();
+    GlobalRenderUniform& frame = sceneData_;
     frame.view = camera.GetViewMatrix();
 
     frame.material = {.ambient = glm::vec3(1.0f),
@@ -1294,9 +1234,8 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
                       .shininess = 32.0f};
 
     u32 index = 0;
-    for (const auto& pair : pointLights_) {
-      const PointLightSource& light = pair.second;
-      FrameUniform::PointLight& pointLight = frame.pointLights[index];
+    for (const PointLightSource& light : IterateValues(pointLights_)) {
+      GlobalRenderUniform::PointLight& pointLight = frame.pointLights[index];
 
       pointLight.position =
           light.transform->GetTransform() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1312,65 +1251,48 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
 
     frame.pointLightCount = pointLights_.size();
 
-    sceneUniformBuffer_.Flush(imageIndex);
+    sceneUniformBuffer_.MapCopy(&sceneData_, sizeof(sceneData_));
   }
 
   commandBuffer.Begin();
-  commandBuffer.CmdGlobalMemoryBarrier(
-      VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-      MemoryBarrierBuilder()
-          .SetSrcAccessMask(VK_ACCESS_SHADER_WRITE_BIT)
-          .SetDstAccessMask(VK_ACCESS_SHADER_READ_BIT));
+  {
+    const glm::vec2 windowSizeFloat = window.GetRect().Size();
+    const glm::ivec2 windowSizeInt = glm::ivec2(windowSizeFloat);
+    commandBuffer.CmdSetViewport(ViewportBuilder(VIEWPORT_BASE)
+                                     .SetWidth(windowSizeFloat.x)
+                                     .SetHeight(windowSizeFloat.y));
+    commandBuffer.CmdSetScissor(
+        Rect2DBuilder()
+            .SetOffset(OFFSET2D_ZERO)
+            .SetExtent(Extent2DBuilder()
+                           .SetWidth(windowSizeInt.x)
+                           .SetHeight(windowSizeInt.y)));
+  }
   commandBuffer.CmdBeginRenderPass(
       RenderPassBeginInfoBuilder()
           .SetRenderArea(Rect2DBuilder().SetExtent(swapchain.GetImageExtent()))
           .SetClearValueCount(clearValues.size())
           .SetPClearValues(clearValues.data()),
-      VK_SUBPASS_CONTENTS_INLINE, renderPass, swapchain.CurrentFramebuffer());
-  commandBuffer.CmdBindDescriptorSet(
-      VK_PIPELINE_BIND_POINT_GRAPHICS,
-      renders_.begin()->second.pipeline.GetLayout(), 0, sceneDescriptorSet_,
-      sceneUniformBuffer_.CalculateDynamicOffset(imageIndex));
+      VK_SUBPASS_CONTENTS_INLINE, renderPass, nextImageResult.framebuffer);
+  commandBuffer.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                     FirstValue(renders_).pipeline.GetLayout(),
+                                     0, sceneDescriptorSet_);
 
-  for (const auto& pair : renders_) {
-    const Render& render = pair.second;
-
-    const Pipeline& pipeline = render.pipeline;
+  for (const Render& render : IterateValues(renders_)) {
+    const GraphicsPipeline& pipeline = render.pipeline;
     const PipelineLayout& layout = pipeline.GetLayout();
 
     commandBuffer.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS,
                                   render.pipeline);
-    commandBuffer.CmdSetViewport(viewport);
-    commandBuffer.CmdSetScissor(scissor);
 
-    for (const auto& value : render.instances) {
-      const Instance& instance = value.second;
-
+    for (const Draw& draw : IterateValues(render.draws)) {
       commandBuffer.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                         layout, 1, instance.descriptorSet);
+                                         layout, 1, draw.descriptorSet);
       const ModelTransform transform =
-          ModelTransform{instance.transformable->GetTransform()};
+          ModelTransform{draw.transformable->GetTransform()};
       commandBuffer.CmdPushConstants(layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                                      sizeof(transform), &transform);
-      commandBuffer.CmdBindVertexBuffers(*instance.vertexBuffer, 0);
-      commandBuffer.CmdBindIndexBuffer(*instance.indexBuffer,
-                                       VK_INDEX_TYPE_UINT16);
-      commandBuffer.CmdDrawIndexed(instance.indexCount);
-    }
-
-    for (const auto& value : render.indirectDraws) {
-      const IndirectDraw& instance = value.second;
-
-      commandBuffer.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                         layout, 1, instance.descriptorSet);
-      const ModelTransform transform =
-          ModelTransform{instance.transformable->GetTransform()};
-      commandBuffer.CmdPushConstants(layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                                     sizeof(transform), &transform);
-      commandBuffer.CmdBindVertexBuffers(*instance.vertexBuffer, 0);
-      commandBuffer.CmdBindIndexBuffer(*instance.indexBuffer,
-                                       VK_INDEX_TYPE_UINT16);
-      commandBuffer.CmdDrawIndexedIndirect(instance.drawBuffer.buffer);
+      draw.drawBuffer->DrawInstanced(commandBuffer, draw.instances);
     }
   }
 
@@ -1383,24 +1305,20 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
           .SetSignalFence(&swapchainRender.submitCompleteFence));
   swapchain.Present(queue, SynchronisationPack().SetWaitSemaphore(
                                &swapchainRender.renderCompleteSemaphore));
-
-  swapchain.MoveToNextFrame();
 }
 
-void Vulkan::DisposeResource(ResourceKey key) {
+void Vulkan::DisposeResource(const ResourceKey key) {
   resourcesToDispose_.push_back(key);
 }
 
-void Vulkan::ReleaseResources(ResourceKey key) {
+void Vulkan::ReleaseResources(const ResourceKey key) {
   const auto pointLightIterator = pointLights_.find(key);
 
   if (pointLightIterator != pointLights_.end()) {
     pointLights_.erase(pointLightIterator);
   }
 
-  for (auto& pair : particleComputes_) {
-    Compute& compute = pair.second;
-
+  for (Compute& compute : IterateValues(particleComputes_)) {
     const auto iterator = compute.instances.find(key);
 
     if (iterator != compute.instances.end()) {
@@ -1408,19 +1326,11 @@ void Vulkan::ReleaseResources(ResourceKey key) {
     }
   }
 
-  for (auto& pair : renders_) {
-    Render& render = pair.second;
+  for (Render& render : IterateValues(renders_)) {
+    const auto iterator = render.draws.find(key);
 
-    const auto iterator = render.instances.find(key);
-
-    if (iterator != render.instances.end()) {
-      render.instances.erase(iterator);
-    }
-
-    const auto indirectDrawIterator = render.indirectDraws.find(key);
-
-    if (indirectDrawIterator != render.indirectDraws.end()) {
-      render.indirectDraws.erase(indirectDrawIterator);
+    if (iterator != render.draws.end()) {
+      render.draws.erase(iterator);
     }
   }
 }

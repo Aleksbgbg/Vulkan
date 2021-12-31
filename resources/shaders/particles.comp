@@ -36,14 +36,6 @@ layout(set = 1, binding = 2) buffer ParticleRenderBuffer {
   ParticleRender renders[];
 } render;
 
-layout(set = 1, binding = 3) buffer DrawIndexedIndirectCommandBuffer {
-  uint indexCount;
-  uint instanceCount;
-  uint firstIndex;
-  int vertexOffset;
-  uint firstInstance;
-} draw;
-
 const uint ELEMENT_COUNT = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
 
 const float PARTICLE_DISTANCE_OVER_LIFETIME = 0.1;

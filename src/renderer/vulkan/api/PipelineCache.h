@@ -8,7 +8,7 @@
 #include "renderer/vulkan/api/structures/PipelineCacheCreateInfo.h"
 
 class PipelineCache {
-  friend class Pipeline;
+  friend class GraphicsPipeline;
   friend class ComputePipeline;
 
  public:
