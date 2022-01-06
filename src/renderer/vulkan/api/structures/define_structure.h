@@ -1,33 +1,33 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_API_STRUCTURES_DEFINE_STRUCTURE_H_
 #define VULKAN_SRC_RENDERER_VULKAN_API_STRUCTURES_DEFINE_STRUCTURE_H_
 
-#define __STRUCTURE_BUILDER(name, structure, initializer)      \
-  class name {                                                 \
-   private:                                                    \
-    structure value;                                           \
-                                                               \
-   public:                                                     \
-    constexpr name() : value(initializer) {}                   \
-    explicit constexpr name(structure value) : value(value) {} \
-                                                               \
-    constexpr operator structure() const {                     \
-      return value;                                            \
-    }                                                          \
-                                                               \
-    constexpr structure BuildObject() const {                  \
-      return value;                                            \
-    }                                                          \
-                                                               \
-    constexpr const structure* Build() const {                 \
-      return &value;                                           \
-    }                                                          \
-                                                               \
-    constexpr structure* Build() {                             \
-      return &value;                                           \
-    }                                                          \
-                                                               \
-    constexpr name& Reference() {                              \
-      return *this;                                            \
+#define __STRUCTURE_BUILDER(name, structure, initializer) \
+  class name {                                            \
+   private:                                               \
+    structure value;                                      \
+                                                          \
+   public:                                                \
+    constexpr name() : value(initializer) {}              \
+    constexpr name(structure value) : value(value) {}     \
+                                                          \
+    constexpr operator structure() const {                \
+      return value;                                       \
+    }                                                     \
+                                                          \
+    constexpr structure BuildObject() const {             \
+      return value;                                       \
+    }                                                     \
+                                                          \
+    constexpr const structure* Build() const {            \
+      return &value;                                      \
+    }                                                     \
+                                                          \
+    constexpr structure* Build() {                        \
+      return &value;                                      \
+    }                                                     \
+                                                          \
+    constexpr name& Reference() {                         \
+      return *this;                                       \
     }
 
 #define STRUCTURE_BUILDER(name, structure, structureType) \

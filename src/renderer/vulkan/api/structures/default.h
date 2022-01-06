@@ -51,4 +51,23 @@ inline constexpr const VkImageMemoryBarrier
             .SetSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
             .SetDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
 
+inline constexpr VkCommandBufferInheritanceInfo
+    COMMAND_BUFFER_INHERITANCE_EMPTY = CommandBufferInheritanceInfoBuilder();
+
+inline constexpr VkCommandBufferBeginInfo COMMAND_BUFFER_ONE_TIME_SUBMIT =
+    CommandBufferBeginInfoBuilder().SetFlags(
+        VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+inline constexpr VkCommandBufferBeginInfo
+    COMMAND_BUFFER_ONE_TIME_SUBMIT_RENDER_PASS_CONTINUE =
+        CommandBufferBeginInfoBuilder().SetFlags(
+            VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT |
+            VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT);
+
+inline constexpr VkCommandBufferBeginInfo
+    COMMAND_BUFFER_ONE_TIME_SUBMIT_SECONDARY =
+        CommandBufferBeginInfoBuilder()
+            .SetFlags(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
+            .SetPInheritanceInfo(&COMMAND_BUFFER_INHERITANCE_EMPTY);
+
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_STRUCTURES_DEFAULT_H_

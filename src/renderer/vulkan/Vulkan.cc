@@ -4,6 +4,11 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include "ParticleComputeHandler.h"
+#include "Pipeline.h"
+#include "TransformDescriptorWriter.h"
+#include "game/actor/CompositeResource.h"
+#include "game/actor/resource/ReleaseListResource.h"
 #include "general/adapters/MapValueIterator.h"
 #include "general/files/file.h"
 #include "general/files/images/png.h"
@@ -29,18 +34,17 @@
 #include "renderer/vulkan/buffer_structures/Particle.h"
 #include "renderer/vulkan/buffer_structures/ParticleRender.h"
 #include "renderer/vulkan/buffer_structures/ParticleSpawnParams.h"
+#include "renderer/vulkan/render_graph/InsertPipelineBuilder.h"
+#include "renderer/vulkan/render_graph/layout/builder/DescriptorReferenceBuilder.h"
+#include "renderer/vulkan/render_graph/layout/builder/DescriptorSetBuilder.h"
+#include "renderer/vulkan/render_graph/layout/builder/RenderGraphLayoutBuilder.h"
+#include "renderer/vulkan/render_graph/layout/builder/ShaderBuilder.h"
+#include "renderer/vulkan/render_graph/layout/builder/VertexAttributesBuilder.h"
+#include "renderer/vulkan/render_graph/layout/builder/bindings.h"
 #include "util/build_definition.h"
 #include "util/filenames.h"
 
 static constexpr u32 WANTED_SWAPCHAIN_IMAGES = 3u;
-
-VulkanResource::VulkanResource(ResourceDisposer* const disposer,
-                               const ResourceKey key)
-    : resourceDisposer_(disposer), key_(key) {}
-
-VulkanResource::~VulkanResource() {
-  resourceDisposer_->DisposeResource(key_);
-}
 
 ResourceKey GenerateResourceKey() {
   static u32 currentKey = 0;
@@ -211,13 +215,6 @@ VkSurfaceFormatKHR Vulkan::SelectSwapSurfaceFormat(
   return availableFormats[0];
 }
 
-VkExtent2D Vulkan::SelectSwapExtent(
-    const VkSurfaceCapabilitiesKHR surfaceCapabilities) {
-  // TODO: Check the framebuffer size if the currentExtent is a special value
-  // UINT32_MAX meaning the picture can be a different size than the window
-  return surfaceCapabilities.currentExtent;
-}
-
 VkPresentModeKHR Vulkan::SelectSwapPresentMode(
     const std::vector<VkPresentModeKHR>& availablePresentModes) {
   BufferedLog("Selecting vertically synced swapchain present mode.");
@@ -228,7 +225,7 @@ VkFormat Vulkan::SelectDepthStencilFormat(
     const std::vector<VkFormat>& potentialFormats) const {
   for (const VkFormat format : potentialFormats) {
     const VkFormatProperties formatProperties =
-        targetPhysicalDevice.GetFormatProperties(format);
+        targetPhysicalDevice_.GetFormatProperties(format);
 
     if (formatProperties.optimalTilingFeatures &
         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
@@ -242,8 +239,8 @@ VkFormat Vulkan::SelectDepthStencilFormat(
 VkSampleCountFlagBits Vulkan::SelectMsaaSamples(
     const VkSampleCountFlagBits preferred) const {
   const VkSampleCountFlags supportedSamples =
-      physicalDeviceProperties.limits.framebufferColorSampleCounts &
-      physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+      physicalDeviceProperties_.limits.framebufferColorSampleCounts &
+      physicalDeviceProperties_.limits.framebufferDepthSampleCounts;
 
   for (VkSampleCountFlagBits samples = preferred;
        samples > VK_SAMPLE_COUNT_1_BIT;
@@ -257,7 +254,7 @@ VkSampleCountFlagBits Vulkan::SelectMsaaSamples(
 }
 
 RenderPass Vulkan::CreateRenderPass() const {
-  const VkFormat swapchainImageFormat = surfaceFormat.format;
+  const VkFormat swapchainImageFormat = surfaceFormat_.format;
   const std::array<VkAttachmentDescription, 3> attachmentDescriptions{
       AttachmentDescriptionBuilder()
           .SetFormat(swapchainImageFormat)
@@ -270,7 +267,7 @@ RenderPass Vulkan::CreateRenderPass() const {
           .SetFinalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR),
       AttachmentDescriptionBuilder()
           .SetFormat(swapchainImageFormat)
-          .SetSamples(samples)
+          .SetSamples(samples_)
           .SetLoadOp(VK_ATTACHMENT_LOAD_OP_CLEAR)
           .SetStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
           .SetStencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE)
@@ -278,8 +275,8 @@ RenderPass Vulkan::CreateRenderPass() const {
           .SetInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
           .SetFinalLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL),
       AttachmentDescriptionBuilder()
-          .SetFormat(depthStencilFormat)
-          .SetSamples(samples)
+          .SetFormat(depthStencilFormat_)
+          .SetSamples(samples_)
           .SetLoadOp(VK_ATTACHMENT_LOAD_OP_CLEAR)
           .SetStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
           .SetStencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE)
@@ -305,7 +302,7 @@ RenderPass Vulkan::CreateRenderPass() const {
           .SetPDepthStencilAttachment(&depthStencilAttachment),
   };
 
-  return virtualDevice.CreateRenderPass(
+  return virtualDevice_.CreateRenderPass(
       RenderPassCreateInfoBuilder()
           .SetAttachmentCount(attachmentDescriptions.size())
           .SetPAttachments(attachmentDescriptions.data())
@@ -333,282 +330,147 @@ DescriptorPool MakeDescriptorPool(const VirtualDevice& virtualDevice) {
           .SetMaxSets(1000));
 }
 
-Vulkan::Render Vulkan::CreateRender(
-    const RenderConfiguration& configuration) const {
-  Render render;
-  render.descriptorSetLayout =
-      configuration.ConfigureDescriptors(virtualDevice);
-  std::vector<ShaderModule> shaders;
-  for (const ShaderConfiguration& shader : configuration.ConfigureShaders()) {
-    shaders.push_back(
-        std::move(virtualDevice.LoadShader(shader.stage, shader.path)));
-  }
-  const std::vector<VkVertexInputBindingDescription> vertexBindingDescriptions =
-      configuration.ConfigureVertexBindings();
-  const std::vector<VkVertexInputAttributeDescription>
-      vertexAttributeDescriptions = configuration.ConfigureVertexAttributes();
-  constexpr std::array<VkDynamicState, 2> dynamicStates = {
-      VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
-  render.pipeline = virtualDevice.CreateGraphicsPipeline(
-      pipelineCache, shaders,
-      virtualDevice.CreatePipelineLayout(
-          {&sceneDescriptorSetLayout_, &render.descriptorSetLayout},
-          PipelineLayoutCreateInfoBuilder()
-              .SetPushConstantRangeCount(1)
-              .SetPPushConstantRanges(
-                  PushConstantRangeBuilder()
-                      .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT)
-                      .SetOffset(0)
-                      .SetSize(sizeof(ModelTransform)))),
-      subpass0,
-      GraphicsPipelineCreateInfoBuilder()
-          .SetPDepthStencilState(PipelineDepthStencilStateCreateInfoBuilder()
-                                     .SetDepthTestEnable(VK_TRUE)
-                                     .SetDepthWriteEnable(VK_TRUE)
-                                     .SetDepthCompareOp(VK_COMPARE_OP_LESS)
-                                     .SetDepthBoundsTestEnable(VK_FALSE))
-          .SetPVertexInputState(PipelineVertexInputStateCreateInfoBuilder()
-                                    .SetVertexBindingDescriptionCount(
-                                        vertexBindingDescriptions.size())
-                                    .SetPVertexBindingDescriptions(
-                                        vertexBindingDescriptions.data())
-                                    .SetVertexAttributeDescriptionCount(
-                                        vertexAttributeDescriptions.size())
-                                    .SetPVertexAttributeDescriptions(
-                                        vertexAttributeDescriptions.data()))
-          .SetPInputAssemblyState(
-              PipelineInputAssemblyStateCreateInfoBuilder().SetTopology(
-                  VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST))
-          .SetPViewportState(PipelineViewportStateCreateInfoBuilder()
-                                 .SetViewportCount(1)
-                                 .SetScissorCount(1))
-          .SetPDynamicState(PipelineDynamicStateCreateInfoBuilder()
-                                .SetDynamicStateCount(dynamicStates.size())
-                                .SetPDynamicStates(dynamicStates.data()))
-          .SetPRasterizationState(
-              PipelineRasterizationStateCreateInfoBuilder()
-                  .SetCullMode(VK_CULL_MODE_BACK_BIT)
-                  .SetFrontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
-                  .SetPolygonMode(VK_POLYGON_MODE_FILL)
-                  .SetLineWidth(1.0f))
-          .SetPMultisampleState(PipelineMultisampleStateCreateInfoBuilder()
-                                    .SetRasterizationSamples(samples)
-                                    .SetMinSampleShading(1.0f))
-          .SetPColorBlendState(
-              PipelineColorBlendStateCreateInfoBuilder()
-                  .SetAttachmentCount(1)
-                  .SetPAttachments(
-                      PipelineColorBlendAttachmentStateBuilder()
-                          .SetColorWriteMask(VK_COLOR_COMPONENT_R_BIT |
-                                             VK_COLOR_COMPONENT_G_BIT |
-                                             VK_COLOR_COMPONENT_B_BIT |
-                                             VK_COLOR_COMPONENT_A_BIT)
-                          .SetSrcColorBlendFactor(VK_BLEND_FACTOR_ONE)
-                          .SetDstColorBlendFactor(VK_BLEND_FACTOR_ZERO)
-                          .SetColorBlendOp(VK_BLEND_OP_ADD)
-                          .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
-                          .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
-                          .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
-  return render;
+RenderGraph Vulkan::CreateRenderGraph() {
+  return RenderGraph(
+      *this,
+      RenderGraphLayoutBuilder()
+          .ComputeGlobalDescriptors(DescriptorSetBuilder().AddBinding(
+              UniformStructure<GlobalComputeUniform>(
+                  STRUCTURE_FLAGS_HOST_ACCESSIBLE)))
+          .ComputePipeline(
+              PIPELINE_PARTICLE_COMPUTE, "particles",
+              DescriptorSetBuilder()
+                  .AddBinding(UniformStructure<ParticleSpawnParams>(
+                      STRUCTURE_FLAGS_HOST_ACCESSIBLE))
+                  .AddBinding(BufferStructurePerInstance<Particle>())
+                  .AddBinding(BufferStructurePerInstance<ParticleRender>()),
+              ShaderBuilder().AddComputeShader(
+                  DescriptorReferenceBuilder()
+                      .AddGlobalSetBindings(0)
+                      .AddLocalSetBindings({0, 1, 2})))
+          .RenderGlobalDescriptors(DescriptorSetBuilder().AddBinding(
+              UniformStructure<GlobalRenderUniform>(
+                  STRUCTURE_FLAGS_HOST_ACCESSIBLE)))
+          .RenderPipeline(
+              PIPELINE_SKYBOX_RENDER, "skybox",
+              VertexInputBindingDescriptionBuilder()
+                  .SetBinding(0)
+                  .SetStride(sizeof(PositionTextureVertex))
+                  .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
+              VertexAttributesBuilder()
+                  .AddDescription(
+                      VertexInputAttributeDescriptionBuilder()
+                          .SetBinding(0)
+                          .SetLocation(0)
+                          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+                          .SetOffset(offsetof(PositionTextureVertex, position)))
+                  .AddDescription(VertexInputAttributeDescriptionBuilder()
+                                      .SetBinding(0)
+                                      .SetLocation(1)
+                                      .SetFormat(VK_FORMAT_R32G32_SFLOAT)
+                                      .SetOffset(offsetof(PositionTextureVertex,
+                                                          textureCoordinate))),
+              DescriptorSetBuilder().AddBinding(
+                  TextureSampler(textureSampler_)),
+              ShaderBuilder()
+                  .AddVertexShader(
+                      DescriptorReferenceBuilder().AddGlobalSetBindings(0))
+                  .AddFragmentShader(
+                      DescriptorReferenceBuilder().AddLocalSetBindings(0)))
+          .RenderPipeline(
+              PIPELINE_LIGHT_RENDER, "light",
+              VertexInputBindingDescriptionBuilder()
+                  .SetBinding(0)
+                  .SetStride(sizeof(PositionTextureVertex))
+                  .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
+              VertexAttributesBuilder()
+                  .AddDescription(
+                      VertexInputAttributeDescriptionBuilder()
+                          .SetBinding(0)
+                          .SetLocation(0)
+                          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+                          .SetOffset(offsetof(PositionTextureVertex, position)))
+                  .AddDescription(VertexInputAttributeDescriptionBuilder()
+                                      .SetBinding(0)
+                                      .SetLocation(1)
+                                      .SetFormat(VK_FORMAT_R32G32_SFLOAT)
+                                      .SetOffset(offsetof(PositionTextureVertex,
+                                                          textureCoordinate))),
+              DescriptorSetBuilder()
+                  .AddBinding(UniformStructure<ModelTransform>(
+                      STRUCTURE_FLAGS_HOST_ACCESSIBLE))
+                  .AddBinding(TextureSampler(textureSampler_)),
+              ShaderBuilder()
+                  .AddVertexShader(DescriptorReferenceBuilder()
+                                       .AddGlobalSetBindings(0)
+                                       .AddLocalSetBindings(0))
+                  .AddFragmentShader(
+                      DescriptorReferenceBuilder().AddLocalSetBindings(1)))
+          .RenderPipeline(
+              PIPELINE_PARTICLE_RENDER, "particles",
+              VertexInputBindingDescriptionBuilder()
+                  .SetBinding(0)
+                  .SetStride(sizeof(PositionVertex))
+                  .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
+              VertexAttributesBuilder().AddDescription(
+                  VertexInputAttributeDescriptionBuilder()
+                      .SetBinding(0)
+                      .SetLocation(0)
+                      .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+                      .SetOffset(offsetof(PositionVertex, position))),
+              DescriptorSetBuilder().AddBinding(
+                  BufferStructurePerInstance<ParticleRender>()),
+              ShaderBuilder()
+                  .AddVertexShader(DescriptorReferenceBuilder()
+                                       .AddGlobalSetBindings(0)
+                                       .AddLocalSetBindings(0))
+                  .AddFragmentShader())
+          .RenderPipeline(
+              PIPELINE_SPACESHIP_RENDER, "spaceship",
+              VertexInputBindingDescriptionBuilder()
+                  .SetBinding(0)
+                  .SetStride(sizeof(PositionNormalTextureVertex))
+                  .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
+              VertexAttributesBuilder()
+                  .AddDescription(
+                      VertexInputAttributeDescriptionBuilder()
+                          .SetBinding(0)
+                          .SetLocation(0)
+                          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+                          .SetOffset(
+                              offsetof(PositionNormalTextureVertex, position)))
+                  .AddDescription(VertexInputAttributeDescriptionBuilder()
+                                      .SetBinding(0)
+                                      .SetLocation(1)
+                                      .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+                                      .SetOffset(offsetof(
+                                          PositionNormalTextureVertex, normal)))
+                  .AddDescription(
+                      VertexInputAttributeDescriptionBuilder()
+                          .SetBinding(0)
+                          .SetLocation(2)
+                          .SetFormat(VK_FORMAT_R32G32_SFLOAT)
+                          .SetOffset(offsetof(PositionNormalTextureVertex,
+                                              textureCoordinate))),
+              DescriptorSetBuilder()
+                  .AddBinding(UniformStructure<ModelTransform>(
+                      STRUCTURE_FLAGS_HOST_ACCESSIBLE))
+                  .AddBinding(TextureSampler(textureSampler_))
+                  .AddBinding(TextureSampler(textureSampler_)),
+              ShaderBuilder()
+                  .AddVertexShader(DescriptorReferenceBuilder()
+                                       .AddGlobalSetBindings(0)
+                                       .AddLocalSetBindings(0))
+                  .AddFragmentShader(DescriptorReferenceBuilder()
+                                         .AddGlobalSetBindings(0)
+                                         .AddLocalSetBindings({1, 2})))
+          .Build());
 }
 
-class SkyboxRenderConfiguration : public RenderConfiguration {
- public:
-  DescriptorSetLayout ConfigureDescriptors(
-      const VirtualDevice& virtualDevice) const override {
-    return virtualDevice.CreateDescriptorSetLayout(
-        DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
-            DescriptorSetLayoutBindingBuilder()
-                .SetBinding(0)
-                .SetDescriptorCount(1)
-                .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-                .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT)));
-  }
-
-  std::vector<ShaderConfiguration> ConfigureShaders() const override {
-    return {{VK_SHADER_STAGE_VERTEX_BIT, "shaders/sky.vert.spv"},
-            {VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/sky.frag.spv"}};
-  }
-
-  std::vector<VkVertexInputBindingDescription> ConfigureVertexBindings()
-      const override {
-    return {
-        VertexInputBindingDescriptionBuilder()
-            .SetBinding(0)
-            .SetStride(sizeof(PositionTextureVertex))
-            .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
-    };
-  }
-
-  std::vector<VkVertexInputAttributeDescription> ConfigureVertexAttributes()
-      const override {
-    return {
-        VertexInputAttributeDescriptionBuilder()
-            .SetBinding(0)
-            .SetLocation(0)
-            .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-            .SetOffset(offsetof(PositionTextureVertex, position)),
-        VertexInputAttributeDescriptionBuilder()
-            .SetBinding(0)
-            .SetLocation(1)
-            .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-            .SetOffset(offsetof(PositionTextureVertex, textureCoordinate)),
-    };
-  }
-};
-
-class SunRenderConfiguration : public RenderConfiguration {
- public:
-  DescriptorSetLayout ConfigureDescriptors(
-      const VirtualDevice& virtualDevice) const override {
-    return virtualDevice.CreateDescriptorSetLayout(
-        DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
-            DescriptorSetLayoutBindingBuilder()
-                .SetBinding(0)
-                .SetDescriptorCount(1)
-                .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-                .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT)));
-  }
-
-  std::vector<ShaderConfiguration> ConfigureShaders() const override {
-    return {{VK_SHADER_STAGE_VERTEX_BIT, "shaders/light.vert.spv"},
-            {VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/light.frag.spv"}};
-  }
-
-  std::vector<VkVertexInputBindingDescription> ConfigureVertexBindings()
-      const override {
-    return {
-        VertexInputBindingDescriptionBuilder()
-            .SetBinding(0)
-            .SetStride(sizeof(PositionTextureVertex))
-            .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
-    };
-  }
-
-  std::vector<VkVertexInputAttributeDescription> ConfigureVertexAttributes()
-      const override {
-    return {
-        VertexInputAttributeDescriptionBuilder()
-            .SetBinding(0)
-            .SetLocation(0)
-            .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-            .SetOffset(offsetof(PositionTextureVertex, position)),
-        VertexInputAttributeDescriptionBuilder()
-            .SetBinding(0)
-            .SetLocation(1)
-            .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-            .SetOffset(offsetof(PositionTextureVertex, textureCoordinate)),
-    };
-  }
-};
-
-class SpaceshipRenderConfiguration : public RenderConfiguration {
- public:
-  DescriptorSetLayout ConfigureDescriptors(
-      const VirtualDevice& virtualDevice) const override {
-    constexpr std::array<VkDescriptorSetLayoutBinding, 2>
-        textureSamplerLayoutBindings = {
-            DescriptorSetLayoutBindingBuilder()
-                .SetBinding(0)
-                .SetDescriptorCount(1)
-                .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-                .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT),
-            DescriptorSetLayoutBindingBuilder()
-                .SetBinding(1)
-                .SetDescriptorCount(1)
-                .SetDescriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-                .SetStageFlags(VK_SHADER_STAGE_FRAGMENT_BIT),
-        };
-    return virtualDevice.CreateDescriptorSetLayout(
-        DescriptorSetLayoutCreateInfoBuilder()
-            .SetBindingCount(textureSamplerLayoutBindings.size())
-            .SetPBindings(textureSamplerLayoutBindings.data()));
-  }
-
-  std::vector<ShaderConfiguration> ConfigureShaders() const override {
-    return {{VK_SHADER_STAGE_VERTEX_BIT, "shaders/spaceship.vert.spv"},
-            {VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/spaceship.frag.spv"}};
-  }
-
-  std::vector<VkVertexInputBindingDescription> ConfigureVertexBindings()
-      const override {
-    return {
-        VertexInputBindingDescriptionBuilder()
-            .SetBinding(0)
-            .SetStride(sizeof(PositionNormalTextureVertex))
-            .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
-    };
-  }
-
-  std::vector<VkVertexInputAttributeDescription> ConfigureVertexAttributes()
-      const override {
-    return {
-        VertexInputAttributeDescriptionBuilder()
-            .SetBinding(0)
-            .SetLocation(0)
-            .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-            .SetOffset(offsetof(PositionNormalTextureVertex, position)),
-        VertexInputAttributeDescriptionBuilder()
-            .SetBinding(0)
-            .SetLocation(1)
-            .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-            .SetOffset(offsetof(PositionNormalTextureVertex, normal)),
-        VertexInputAttributeDescriptionBuilder()
-            .SetBinding(0)
-            .SetLocation(2)
-            .SetFormat(VK_FORMAT_R32G32_SFLOAT)
-            .SetOffset(
-                offsetof(PositionNormalTextureVertex, textureCoordinate)),
-    };
-  }
-};
-
-class ParticleRenderConfiguration : public RenderConfiguration {
- public:
-  DescriptorSetLayout ConfigureDescriptors(
-      const VirtualDevice& virtualDevice) const override {
-    constexpr const VkDescriptorSetLayoutBinding particleDescriptorSet =
-        DescriptorSetLayoutBindingBuilder()
-            .SetBinding(0)
-            .SetDescriptorCount(1)
-            .SetDescriptorType(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
-            .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT);
-    return virtualDevice.CreateDescriptorSetLayout(
-        DescriptorSetLayoutCreateInfoBuilder().SetBindingCount(1).SetPBindings(
-            &particleDescriptorSet));
-  }
-
-  std::vector<ShaderConfiguration> ConfigureShaders() const override {
-    return {{VK_SHADER_STAGE_VERTEX_BIT, "shaders/particles.vert.spv"},
-            {VK_SHADER_STAGE_FRAGMENT_BIT, "shaders/particles.frag.spv"}};
-  }
-
-  std::vector<VkVertexInputBindingDescription> ConfigureVertexBindings()
-      const override {
-    return {
-        VertexInputBindingDescriptionBuilder()
-            .SetBinding(0)
-            .SetStride(sizeof(PositionVertex))
-            .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
-    };
-  }
-
-  std::vector<VkVertexInputAttributeDescription> ConfigureVertexAttributes()
-      const override {
-    return {
-        VertexInputAttributeDescriptionBuilder()
-            .SetBinding(0)
-            .SetLocation(0)
-            .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
-            .SetOffset(offsetof(PositionVertex, position)),
-    };
-  }
-};
-
 Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
-    : instance(CreateVulkanInstance(vulkanSystem)),
+    : instance_(CreateVulkanInstance(vulkanSystem)),
 #ifdef VALIDATION
-      debugMessenger(instance.CreateDebugUtilsMessenger(
+      debugMessenger_(instance_.CreateDebugUtilsMessenger(
           DebugUtilsMessengerCreateInfoExtBuilder()
               .SetMessageSeverity(
                   VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
@@ -619,35 +481,44 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
                               VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT)
               .SetPfnUserCallback(DebugCallback))),
 #endif
-      windowSurface(instance.CreateSurface(window)),
-      targetPhysicalDevice(ChoosePhysicalDevice(instance)),
-      physicalDeviceProperties(targetPhysicalDevice.GetProperties()),
-      swapchainImages(CalculateSwapchainImages(
-          windowSurface.GetCapabilities(targetPhysicalDevice))),
-      queueFamilyIndex(ChooseQueueFamily(targetPhysicalDevice, windowSurface)),
-      computeQueueFamilyIndex_(ChooseComputeFamily(targetPhysicalDevice)),
-      virtualDevice(CreateVirtualDevice(targetPhysicalDevice, queueFamilyIndex,
-                                        computeQueueFamilyIndex_)),
-      queue(virtualDevice.GetQueue(queueFamilyIndex, 0)),
-      computeQueue_(virtualDevice.GetQueue(computeQueueFamilyIndex_, 0)),
-      pipelineCache(LoadOrCreatePipelineCache(virtualDevice)),
-      deviceAllocator(&virtualDevice,
-                      targetPhysicalDevice.GetMemoryProperties()),
-      fence(virtualDevice.CreateFence()),
-      shortExecutionCommandPool(queue.CreateCommandPool(
+      windowSurface_(instance_.CreateSurface(window)),
+      targetPhysicalDevice_(ChoosePhysicalDevice(instance_)),
+      physicalDeviceProperties_(targetPhysicalDevice_.GetProperties()),
+      swapchainImages_(CalculateSwapchainImages(
+          windowSurface_.GetCapabilities(targetPhysicalDevice_))),
+      graphicsQueueFamilyIndex_(
+          ChooseQueueFamily(targetPhysicalDevice_, windowSurface_)),
+      computeQueueFamilyIndex_(ChooseComputeFamily(targetPhysicalDevice_)),
+      virtualDevice_(CreateVirtualDevice(targetPhysicalDevice_,
+                                         graphicsQueueFamilyIndex_,
+                                         computeQueueFamilyIndex_)),
+      graphicsQueue_(virtualDevice_.GetQueue(graphicsQueueFamilyIndex_, 0)),
+      computeQueue_(virtualDevice_.GetQueue(computeQueueFamilyIndex_, 0)),
+      pipelineCache_(LoadOrCreatePipelineCache(virtualDevice_)),
+      deviceAllocator_(&virtualDevice_,
+                       targetPhysicalDevice_.GetMemoryProperties()),
+      fence_(virtualDevice_.CreateFence()),
+      shortExecutionCommandPool_(graphicsQueue_.CreateCommandPool(
           VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)),
-      shortExecutionCommandBuffer(
-          shortExecutionCommandPool.AllocatePrimaryCommandBuffer()),
+      shortExecutionCommandBuffer_(
+          shortExecutionCommandPool_.AllocatePrimaryCommandBuffer()),
       computeCommandPool_(computeQueue_.CreateCommandPool(
           VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)),
-      computeCommandBuffer_(computeCommandPool_.AllocatePrimaryCommandBuffer()),
-      surfaceFormat(SelectSwapSurfaceFormat(
-          windowSurface.GetFormats(targetPhysicalDevice))),
-      depthStencilFormat(SelectDepthStencilFormat(
+      computeMainCommandBuffer_(
+          computeCommandPool_.AllocatePrimaryCommandBuffer()),
+      computeTransferCommandBuffer_(
+          computeCommandPool_.AllocateSecondaryCommandBuffer()),
+      computeCommandBuffer_(
+          computeCommandPool_.AllocateSecondaryCommandBuffer()),
+      computeCompleteFence_(
+          virtualDevice_.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)),
+      surfaceFormat_(SelectSwapSurfaceFormat(
+          windowSurface_.GetFormats(targetPhysicalDevice_))),
+      depthStencilFormat_(SelectDepthStencilFormat(
           {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
            VK_FORMAT_D24_UNORM_S8_UINT})),
-      samples(SelectMsaaSamples(VK_SAMPLE_COUNT_16_BIT)),
-      textureSampler(virtualDevice.CreateSampler(
+      samples_(SelectMsaaSamples(VK_SAMPLE_COUNT_16_BIT)),
+      textureSampler_(virtualDevice_.CreateSampler(
           SamplerCreateInfoBuilder()
               .SetMagFilter(VK_FILTER_LINEAR)
               .SetMinFilter(VK_FILTER_LINEAR)
@@ -656,133 +527,44 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
               .SetAddressModeW(VK_SAMPLER_ADDRESS_MODE_REPEAT)
               .SetAnisotropyEnable(VK_TRUE)
               .SetMaxAnisotropy(
-                  physicalDeviceProperties.limits.maxSamplerAnisotropy))),
-      renderPass(CreateRenderPass()),
-      subpass0(SubpassReference(renderPass, 0)),
-      renderCommandPool(queue.CreateCommandPool(
+                  physicalDeviceProperties_.limits.maxSamplerAnisotropy))),
+      renderPass_(CreateRenderPass()),
+      subpass0_(SubpassReference(renderPass_, 0)),
+      renderCommandPool_(graphicsQueue_.CreateCommandPool(
           VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)),
-      swapchain(*this),
-      oldSwapchain(),
-      imageIndex(0),
-      descriptorPool_(MakeDescriptorPool(virtualDevice)),
-      sceneDescriptorSetLayout_(virtualDevice.CreateDescriptorSetLayout(
-          DescriptorSetLayoutCreateInfoBuilder()
-              .SetBindingCount(1)
-              .SetPBindings(
-                  DescriptorSetLayoutBindingBuilder()
-                      .SetBinding(0)
-                      .SetDescriptorCount(1)
-                      .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                      .SetStageFlags(VK_SHADER_STAGE_VERTEX_BIT |
-                                     VK_SHADER_STAGE_FRAGMENT_BIT)))),
-      sceneDescriptorSet_(
-          descriptorPool_.AllocateDescriptorSet(sceneDescriptorSetLayout_)),
-      sceneUniformBuffer_(AllocateLocalBuffer(
-          sizeof(sceneData_), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)),
-      renders_(),
-      computeDescriptorSetLayout_(virtualDevice.CreateDescriptorSetLayout(
-          DescriptorSetLayoutCreateInfoBuilder()
-              .SetBindingCount(1)
-              .SetPBindings(
-                  DescriptorSetLayoutBindingBuilder()
-                      .SetBinding(0)
-                      .SetDescriptorCount(1)
-                      .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                      .SetStageFlags(VK_SHADER_STAGE_COMPUTE_BIT)))),
-      computeDescriptorSet_(
-          descriptorPool_.AllocateDescriptorSet(computeDescriptorSetLayout_)),
-      computeRootBuffer_(AllocateLocalBuffer(
-          sizeof(ComputeContext), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)),
-      particleComputes_() {
-  for (u32 renderIndex = 0; renderIndex < swapchain.GetImageCount();
+      swapchain_(*this),
+      oldSwapchain_(),
+      descriptorPool_(MakeDescriptorPool(virtualDevice_)),
+      renderGraph_(CreateRenderGraph()) {
+  for (u32 renderIndex = 0; renderIndex < swapchain_.GetImageCount();
        ++renderIndex) {
-    swapchainRenderData.push_back(
-        {.commandBuffer = AllocatePrimaryRenderCommandBuffer(),
-         .renderCompleteSemaphore = CreateSemaphore(),
-         .submitCompleteFence = CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
+    swapchainRenderData_.push_back(
+        {.main = renderCommandPool_.AllocatePrimaryCommandBuffer(),
+         .transfer = renderCommandPool_.AllocateSecondaryCommandBuffer(),
+         .graphics = renderCommandPool_.AllocateSecondaryCommandBuffer(),
+         .renderCompleteSemaphore = virtualDevice_.CreateSemaphore(),
+         .submitCompleteFence =
+             virtualDevice_.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
   }
-  for (u32 renderIndex = 0; renderIndex < swapchain.GetImageCount();
-       ++renderIndex) {
-    computeCommandsBuffers_.push_back(
-        computeCommandPool_.AllocatePrimaryCommandBuffer());
-  }
-
-  std::vector<DescriptorSet::WriteDescriptorSet> descriptorSetWrites;
-  descriptorSetWrites.push_back(sceneUniformBuffer_.WriteBuffer(
-      sceneDescriptorSet_, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0));
-  descriptorSetWrites.push_back(computeRootBuffer_.WriteBuffer(
-      computeDescriptorSet_, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0));
-
-  virtualDevice.UpdateDescriptorSets(descriptorSetWrites);
 
   CalculateProjection();
-
-  renders_.insert(std::move(
-      std::make_pair(RenderType::Skybox,
-                     std::move(CreateRender(SkyboxRenderConfiguration())))));
-  renders_.insert(std::move(std::make_pair(
-      RenderType::Sun, std::move(CreateRender(SunRenderConfiguration())))));
-  renders_.insert(std::move(
-      std::make_pair(RenderType::Spaceship,
-                     std::move(CreateRender(SpaceshipRenderConfiguration())))));
-  renders_.insert(std::move(
-      std::make_pair(RenderType::Particle,
-                     std::move(CreateRender(ParticleRenderConfiguration())))));
-
-  constexpr std::array<VkDescriptorSetLayoutBinding, 4> computeBindings{
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(0)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-          .SetStageFlags(VK_SHADER_STAGE_COMPUTE_BIT),
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(1)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
-          .SetStageFlags(VK_SHADER_STAGE_COMPUTE_BIT),
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(2)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
-          .SetStageFlags(VK_SHADER_STAGE_COMPUTE_BIT),
-      DescriptorSetLayoutBindingBuilder()
-          .SetBinding(3)
-          .SetDescriptorCount(1)
-          .SetDescriptorType(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
-          .SetStageFlags(VK_SHADER_STAGE_COMPUTE_BIT),
-  };
-
-  Compute compute =
-      Compute{.descriptorSetLayout = virtualDevice.CreateDescriptorSetLayout(
-                  DescriptorSetLayoutCreateInfoBuilder()
-                      .SetBindingCount(computeBindings.size())
-                      .SetPBindings(computeBindings.data()))};
-  compute.pipeline = virtualDevice.CreateComputePipeline(
-      pipelineCache,
-      virtualDevice.CreatePipelineLayout(
-          {&computeDescriptorSetLayout_, &compute.descriptorSetLayout},
-          PipelineLayoutCreateInfoBuilder()),
-      virtualDevice.LoadComputeShader("shaders/particles.comp.spv"));
-
-  particleComputes_.insert(
-      std::make_pair(ParticleBehaviour::SpaceshipExhaust, std::move(compute)));
 }
 
 Vulkan::~Vulkan() {
-  virtualDevice.WaitIdle();
+  virtualDevice_.WaitIdle();
   file::WriteFile(PIPELINE_CACHE_FILENAME,
-                  pipelineCache.GetPipelineCacheData());
+                  pipelineCache_.GetPipelineCacheData());
 }
 
 void Vulkan::RecreateSwapchain() {
-  oldSwapchain = std::move(swapchain);
-  swapchain = oldSwapchain.RecreateSwapchain(*this);
+  oldSwapchain_ = std::move(swapchain_);
+  swapchain_ = oldSwapchain_.RecreateSwapchain(*this);
 
   CalculateProjection();
 }
 
 void Vulkan::CalculateProjection() {
-  const VkExtent2D swapchainExtent = swapchain.GetImageExtent();
+  const VkExtent2D swapchainExtent = swapchain_.GetImageExtent();
   glm::mat4 projection =
       glm::perspective(glm::radians(55.0f),
                        static_cast<float>(swapchainExtent.width) /
@@ -806,40 +588,32 @@ VkBool32 Vulkan::DebugCallback(
   return VK_FALSE;
 }
 
-CommandBuffer Vulkan::AllocatePrimaryRenderCommandBuffer() const {
-  return renderCommandPool.AllocatePrimaryCommandBuffer();
-}
-
-Fence Vulkan::CreateFence(const VkFenceCreateFlags flags) const {
-  return virtualDevice.CreateFence(flags);
-}
-
 Texture Vulkan::LoadTexture(const std::string_view filename) {
   const file::Image image = file::ReadPng(filename);
 
-  const Buffer stagingBuffer = virtualDevice.CreateBuffer(
+  const Buffer stagingBuffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(image.size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  const BoundDeviceMemory stagingBufferMemory = deviceAllocator.BindMemory(
+  const BoundDeviceMemory stagingBufferMemory = deviceAllocator_.BindMemory(
       stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
   stagingBufferMemory.MapCopy(image.data.data(), stagingBuffer.Size());
 
   Image textureImage =
-      virtualDevice.CreateImage(ImageCreateInfoBuilder(IMAGE_2D)
-                                    .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
-                                    .SetExtent(Extent3DBuilder()
-                                                   .SetWidth(image.width)
-                                                   .SetHeight(image.height)
-                                                   .SetDepth(1))
-                                    .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                              VK_IMAGE_USAGE_SAMPLED_BIT));
-  BoundDeviceMemory textureImageMemory = deviceAllocator.BindMemory(
+      virtualDevice_.CreateImage(ImageCreateInfoBuilder(IMAGE_2D)
+                                     .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
+                                     .SetExtent(Extent3DBuilder()
+                                                    .SetWidth(image.width)
+                                                    .SetHeight(image.height)
+                                                    .SetDepth(1))
+                                     .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                                               VK_IMAGE_USAGE_SAMPLED_BIT));
+  BoundDeviceMemory textureImageMemory = deviceAllocator_.BindMemory(
       textureImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  shortExecutionCommandBuffer.BeginOneTimeSubmit();
-  shortExecutionCommandBuffer.CmdImageMemoryBarrier(
+  shortExecutionCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
+  shortExecutionCommandBuffer_.CmdImageMemoryBarrier(
       textureImage, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
       VK_PIPELINE_STAGE_TRANSFER_BIT,
       ImageMemoryBarrierBuilder(IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER)
@@ -848,14 +622,14 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
           .SetOldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
           .SetNewLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
           .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  shortExecutionCommandBuffer.CmdCopyBufferToImage(
+  shortExecutionCommandBuffer_.CmdCopyBufferToImage(
       stagingBuffer, textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
       BufferImageCopyBuilder()
           .SetImageSubresource(SUBRESOURCE_LAYERS_COLOR_SINGLE_LAYER)
           .SetImageExtent(Extent3DBuilder(EXTENT3D_SINGLE_DEPTH)
                               .SetWidth(image.width)
                               .SetHeight(image.height)));
-  shortExecutionCommandBuffer.CmdImageMemoryBarrier(
+  shortExecutionCommandBuffer_.CmdImageMemoryBarrier(
       textureImage, VK_PIPELINE_STAGE_TRANSFER_BIT,
       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
       ImageMemoryBarrierBuilder(IMAGE_MEMORY_BARRIER_NO_OWNERSHIP_TRANSFER)
@@ -864,7 +638,7 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
           .SetOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
           .SetNewLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
           .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
-  shortExecutionCommandBuffer.End().Submit(fence).Wait().Reset();
+  shortExecutionCommandBuffer_.End().Submit(fence_).Wait().Reset();
 
   ImageView textureView = textureImage.CreateView(
       ImageViewCreateInfoBuilder()
@@ -877,52 +651,16 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
                  .view = std::move(textureView)};
 }
 
-BoundBuffer Vulkan::AllocateLocalBuffer(const std::size_t size,
-                                        const VkBufferUsageFlags usage) {
-  Buffer buffer = virtualDevice.CreateBuffer(
-      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE).SetSize(size).SetUsage(usage));
-  BoundDeviceMemory memory = deviceAllocator.BindMemory(
-      buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  return BoundBuffer(std::move(buffer), std::move(memory));
-}
-
-BoundBuffer Vulkan::AllocateDeviceBuffer(const void* const data,
-                                         const std::size_t size,
-                                         const VkBufferUsageFlags usage) {
-  Buffer stagingBuffer = virtualDevice.CreateBuffer(
-      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
-          .SetSize(size)
-          .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  BoundDeviceMemory stagingBufferMemory = deviceAllocator.BindMemory(
-      stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  stagingBufferMemory.MapCopy(data, stagingBuffer.Size());
-
-  Buffer finalBuffer = virtualDevice.CreateBuffer(
-      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
-          .SetSize(size)
-          .SetUsage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage));
-  BoundDeviceMemory finalBufferMemory = deviceAllocator.BindMemory(
-      finalBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-  shortExecutionCommandBuffer.BeginOneTimeSubmit();
-  shortExecutionCommandBuffer.CmdCopyBufferFull(stagingBuffer, finalBuffer);
-  shortExecutionCommandBuffer.End().Submit(fence).Wait().Reset();
-
-  return BoundBuffer(std::move(finalBuffer), std::move(finalBufferMemory));
-}
-
 IndexedVertexBuffer Vulkan::AllocateDrawBuffer(
     const StructuredVertexData::RawVertexData& vertexData) {
   const VkDeviceSize size =
       vertexData.verticesMemorySize + vertexData.indicesMemorySize;
 
-  Buffer stagingBuffer = virtualDevice.CreateBuffer(
+  Buffer stagingBuffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  BoundDeviceMemory stagingBufferMemory = deviceAllocator.BindMemory(
+  BoundDeviceMemory stagingBufferMemory = deviceAllocator_.BindMemory(
       stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
   void* memory = stagingBufferMemory.Map(0, stagingBuffer.Size());
@@ -931,18 +669,18 @@ IndexedVertexBuffer Vulkan::AllocateDrawBuffer(
               vertexData.indices, vertexData.indicesMemorySize);
   stagingBufferMemory.Unmap();
 
-  Buffer finalBuffer = virtualDevice.CreateBuffer(
+  Buffer finalBuffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                     VK_BUFFER_USAGE_INDEX_BUFFER_BIT));
-  BoundDeviceMemory finalBufferMemory = deviceAllocator.BindMemory(
+  BoundDeviceMemory finalBufferMemory = deviceAllocator_.BindMemory(
       finalBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  shortExecutionCommandBuffer.BeginOneTimeSubmit();
-  shortExecutionCommandBuffer.CmdCopyBufferFull(stagingBuffer, finalBuffer);
-  shortExecutionCommandBuffer.End().Submit(fence).Wait().Reset();
+  shortExecutionCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
+  shortExecutionCommandBuffer_.CmdCopyBufferFull(stagingBuffer, finalBuffer);
+  shortExecutionCommandBuffer_.End().Submit(fence_).Wait().Reset();
 
   return IndexedVertexBuffer(
       BoundBuffer(std::move(finalBuffer), std::move(finalBufferMemory)),
@@ -951,63 +689,63 @@ IndexedVertexBuffer Vulkan::AllocateDrawBuffer(
 
 SwapchainCreateInfoBuilder Vulkan::SwapchainCreateInfo() const {
   const VkSurfaceCapabilitiesKHR surfaceCapabilities =
-      windowSurface.GetCapabilities(targetPhysicalDevice);
+      windowSurface_.GetCapabilities(targetPhysicalDevice_);
   return SwapchainCreateInfoBuilder()
-      .SetMinImageCount(swapchainImages)
-      .SetImageFormat(surfaceFormat.format)
-      .SetImageColorSpace(surfaceFormat.colorSpace)
-      .SetImageExtent(SelectSwapExtent(surfaceCapabilities))
+      .SetMinImageCount(swapchainImages_)
+      .SetImageFormat(surfaceFormat_.format)
+      .SetImageColorSpace(surfaceFormat_.colorSpace)
+      .SetImageExtent(surfaceCapabilities.currentExtent)
       .SetImageArrayLayers(1)
       .SetImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
       .SetImageSharingMode(VK_SHARING_MODE_EXCLUSIVE)
       .SetPreTransform(surfaceCapabilities.currentTransform)
       .SetCompositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
       .SetPresentMode(SelectSwapPresentMode(
-          windowSurface.GetPresentModes(targetPhysicalDevice)))
+          windowSurface_.GetPresentModes(targetPhysicalDevice_)))
       .SetClipped(VK_TRUE);
 }
 
 Swapchain Vulkan::CreateSwapchain() const {
-  return virtualDevice.CreateSwapchain(windowSurface, SwapchainCreateInfo());
+  return virtualDevice_.CreateSwapchain(windowSurface_, SwapchainCreateInfo());
 }
 
 Swapchain Vulkan::CreateSwapchain(const Swapchain& oldSwapchain) const {
-  return virtualDevice.CreateSwapchain(windowSurface, oldSwapchain,
-                                       SwapchainCreateInfo());
+  return virtualDevice_.CreateSwapchain(windowSurface_, oldSwapchain,
+                                        SwapchainCreateInfo());
 }
 
 BoundImage Vulkan::CreateDepthStencilAttachment(const Swapchain& swapchain) {
-  Image image = virtualDevice.CreateImage(
+  Image image = virtualDevice_.CreateImage(
       ImageCreateInfoBuilder(IMAGE_2D)
-          .SetFormat(depthStencilFormat)
-          .SetSamples(samples)
+          .SetFormat(depthStencilFormat_)
+          .SetSamples(samples_)
           .SetExtent(Extent3DBuilder(swapchain.GetImageExtent()).SetDepth(1))
           .SetUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
   BoundDeviceMemory memory =
-      deviceAllocator.BindMemory(image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+      deviceAllocator_.BindMemory(image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   return BoundImage(std::move(image), std::move(memory));
 }
 
 BoundImage Vulkan::CreateMultisamplingAttachment(const Swapchain& swapchain) {
-  Image image = virtualDevice.CreateImage(
+  Image image = virtualDevice_.CreateImage(
       ImageCreateInfoBuilder(IMAGE_2D)
           .SetFormat(swapchain.GetImageFormat())
           .SetExtent(Extent3DBuilder(swapchain.GetImageExtent()).SetDepth(1))
-          .SetSamples(samples)
+          .SetSamples(samples_)
           .SetUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT));
   BoundDeviceMemory memory =
-      deviceAllocator.BindMemory(image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+      deviceAllocator_.BindMemory(image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   return BoundImage(std::move(image), std::move(memory));
 }
 
 std::vector<Framebuffer> Vulkan::GetFramebuffers(
     const Swapchain& swapchain,
     const std::vector<const ImageView*>& attachments) const {
-  return swapchain.GetFramebuffers(renderPass, attachments);
+  return swapchain.GetFramebuffers(renderPass_, attachments);
 }
 
 Semaphore Vulkan::CreateSemaphore() const {
-  return virtualDevice.CreateSemaphore();
+  return virtualDevice_.CreateSemaphore();
 }
 
 MeshHandle Vulkan::LoadMesh(const RenderType renderType,
@@ -1057,156 +795,98 @@ std::unique_ptr<Resource> Vulkan::SpawnLightSource(
       key,
       PointLightSource{.transform = lightSourceInfo.transformable,
                        .info = lightSourceInfo.lightSource.info.pointLight}));
-  return std::make_unique<VulkanResource>(this, key);
+  return std::make_unique<ReleaseListResource<ResourceKey>>(key,
+                                                            lightsToDispose_);
 }
 
 std::unique_ptr<Resource> Vulkan::SpawnParticleSystem(
     const ParticleSystemInfo& particleSystemInfo) {
   constexpr u32 PARTICLES = 64;
 
-  VulkanMesh& mesh = meshes_[particleSystemInfo.meshHandle];
-  Render& render = renders_[mesh.renderType];
-  Compute& compute = particleComputes_[particleSystemInfo.particleBehaviour];
+  const VulkanMesh& mesh = meshes_[particleSystemInfo.meshHandle];
 
-  BoundBuffer spawnParamsBuffer = AllocateLocalBuffer(
-      sizeof(ParticleSpawnParams), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-  ParticleSpawnParams particleSpawnParams;
-  memset(&particleSpawnParams, 0, sizeof(particleSpawnParams));
-  spawnParamsBuffer.MapCopy(&particleSpawnParams, sizeof(particleSpawnParams));
-
-  Particle particles[PARTICLES];
-  memset(particles, 0, sizeof(particles));
-  BoundBuffer particleBuffer =
-      AllocateDeviceBuffer(particles, sizeof(Particle) * PARTICLES,
-                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
-
-  ParticleRender renders[PARTICLES];
-  memset(renders, 0, sizeof(renders));
-  BoundBuffer renderBuffer =
-      AllocateDeviceBuffer(renders, sizeof(ParticleRender) * PARTICLES,
-                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
-
-  Draw draw{.descriptorSet = descriptorPool_.AllocateDescriptorSet(
-                render.descriptorSetLayout),
-            .transformable = particleSystemInfo.transformable,
-            .drawBuffer = &mesh.drawBuffer,
-            .instances = PARTICLES};
-
-  ComputeInstance computeInstance;
-  computeInstance.descriptorSet =
-      descriptorPool_.AllocateDescriptorSet(compute.descriptorSetLayout);
-
-  std::vector<DescriptorSet::WriteDescriptorSet> descriptorSetWrites;
-  descriptorSetWrites.push_back(renderBuffer.WriteBuffer(
-      draw.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 0));
-  descriptorSetWrites.push_back(spawnParamsBuffer.WriteBuffer(
-      computeInstance.descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0));
-  descriptorSetWrites.push_back(particleBuffer.WriteBuffer(
-      computeInstance.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1));
-  descriptorSetWrites.push_back(renderBuffer.WriteBuffer(
-      computeInstance.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2));
-  virtualDevice.UpdateDescriptorSets(descriptorSetWrites);
-
-  computeInstance.base = particleSystemInfo.transformable;
-  computeInstance.spawn = particleSystemInfo.spawnControllable;
-  computeInstance.spawnRegionLow = particleSystemInfo.spawnRegionLow;
-  computeInstance.spawnRegionHigh = particleSystemInfo.spawnRegionHigh;
-  computeInstance.particleSpawnParamsBuffer = std::move(spawnParamsBuffer);
-  computeInstance.particleBuffer = std::move(particleBuffer);
-  computeInstance.particleRenderBuffer = std::move(renderBuffer);
-
-  const ResourceKey key = GenerateResourceKey();
-
-  render.draws.insert(std::make_pair(key, std::move(draw)));
-  compute.instances.insert(std::make_pair(key, std::move(computeInstance)));
-
-  return std::make_unique<VulkanResource>(this, key);
+  return renderGraph_.Insert(
+      InsertPipelineBuilder()
+          .Compute(
+              PIPELINE_PARTICLE_COMPUTE,
+              {.instances = PARTICLES,
+               .descriptorWriter = std::make_unique<ParticleComputeHandler>(
+                   randomNumberGenerator_,
+                   *particleSystemInfo.spawnControllable,
+                   *particleSystemInfo.transformable,
+                   particleSystemInfo.spawnRegionLow,
+                   particleSystemInfo.spawnRegionHigh)})
+          .Render(PIPELINE_PARTICLE_RENDER, {.instances = PARTICLES,
+                                             .drawBuffer = &mesh.drawBuffer,
+                                             .textures = &mesh.textures})
+          .ConnectDescriptors(
+              {PipelineDescriptorReference(PIPELINE_PARTICLE_COMPUTE, 2),
+               PipelineDescriptorReference(PIPELINE_PARTICLE_RENDER, 0)}));
 }
 
-std::unique_ptr<Resource> Vulkan::SpawnRenderable(RenderInfo renderInfo) {
-  VulkanMesh& mesh = meshes_[renderInfo.meshHandle];
-  Render& render = renders_[mesh.renderType];
+std::unique_ptr<Resource> Vulkan::SpawnRenderable(const RenderInfo renderInfo) {
+  const VulkanMesh& mesh = meshes_[renderInfo.meshHandle];
 
-  Draw draw{.descriptorSet = descriptorPool_.AllocateDescriptorSet(
-                render.descriptorSetLayout),
-            .transformable = renderInfo.transformable,
-            .drawBuffer = &mesh.drawBuffer,
-            .instances = 1};
+  Pipeline pipeline;
+  std::unique_ptr<HostDescriptorWriter> descriptorWriter;
 
-  std::vector<DescriptorSet::WriteDescriptorSet> descriptorSetWrites;
-
-  for (const Texture& texture : mesh.textures) {
-    descriptorSetWrites.push_back(draw.descriptorSet.CreateImageSamplerWrite(
-        texture.view, textureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        descriptorSetWrites.size()));
+  switch (mesh.renderType) {
+    case RenderType::Skybox:
+      pipeline = PIPELINE_SKYBOX_RENDER;
+      break;
+    case RenderType::Sun:
+      pipeline = PIPELINE_LIGHT_RENDER;
+      descriptorWriter = std::make_unique<TransformDescriptorWriter>(
+          *renderInfo.transformable);
+      break;
+    case RenderType::Spaceship:
+      pipeline = PIPELINE_SPACESHIP_RENDER;
+      descriptorWriter = std::make_unique<TransformDescriptorWriter>(
+          *renderInfo.transformable);
+      break;
   }
 
-  virtualDevice.UpdateDescriptorSets(descriptorSetWrites);
-
-  const ResourceKey key = GenerateResourceKey();
-  render.draws.insert(std::make_pair(key, std::move(draw)));
-
-  return std::make_unique<VulkanResource>(this, key);
+  return renderGraph_.Insert(InsertPipelineBuilder().Render(
+      pipeline, {.instances = 1,
+                 .drawBuffer = &mesh.drawBuffer,
+                 .textures = &mesh.textures,
+                 .descriptorWriter = std::move(descriptorWriter)}));
 }
 
 void Vulkan::ScheduleCompute(const ComputeContext& context) {
-  // TODO: Remove by setting fence before this
-  static bool firstTime = true;
-  if (firstTime) {
-    firstTime = false;
-  } else {
-    fence.Wait().Reset();
-  }
-
   const GlobalComputeUniform sceneUniform = {.deltaTime = context.deltaTime};
-  computeRootBuffer_.MapCopy(&sceneUniform, sizeof(sceneUniform));
 
-  computeCommandBuffer_.Begin();
-  computeCommandBuffer_.CmdBindDescriptorSet(
-      VK_PIPELINE_BIND_POINT_COMPUTE,
-      FirstValue(particleComputes_).pipeline.GetLayout(), 0,
-      computeDescriptorSet_);
-  for (const Compute& compute : IterateValues(particleComputes_)) {
-    computeCommandBuffer_.CmdBindComputePipeline(compute.pipeline);
-    for (const ComputeInstance& instance : IterateValues(compute.instances)) {
-      const ParticleSpawnParams particleSpawnParams{
-          .randomSeed = randomNumberGenerator_.RandomUint(0, UINT32_MAX),
-          .enableRespawn =
-              instance.spawn->GetEnableSpawn() ? VK_TRUE : VK_FALSE,
-          .baseTransform = instance.base->GetTransform(),
-          .spawnRegionLow = instance.spawnRegionLow,
-          .spawnRegionHigh = instance.spawnRegionHigh,
-      };
-      instance.particleSpawnParamsBuffer.MapCopy(&particleSpawnParams,
-                                                 sizeof(particleSpawnParams));
+  computeCompleteFence_.Wait().Reset();
 
-      computeCommandBuffer_.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_COMPUTE,
-                                                 compute.pipeline.GetLayout(),
-                                                 1, instance.descriptorSet);
-      computeCommandBuffer_.CmdDispatch(1, 1, 1);
-    }
-  }
-  computeCommandBuffer_.End().SubmitCompute(fence);
+  computeTransferCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT_SECONDARY);
+  computeCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT_SECONDARY);
+  renderGraph_.ExecuteComputePipelines(computeTransferCommandBuffer_,
+                                       computeCommandBuffer_, &sceneUniform);
+  computeTransferCommandBuffer_.End();
+  computeCommandBuffer_.End();
+
+  computeMainCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
+  computeMainCommandBuffer_.CmdExecuteCommands(computeTransferCommandBuffer_);
+  computeMainCommandBuffer_.CmdExecuteCommands(computeCommandBuffer_);
+  computeMainCommandBuffer_.End().SubmitCompute(computeCompleteFence_);
 }
 
 void Vulkan::ScheduleRender(const game::Camera& camera,
                             const sys::Window& window) {
-  for (const ResourceKey key : resourcesToDispose_) {
+  for (const ResourceKey key : lightsToDispose_) {
     ReleaseResources(key);
   }
-  resourcesToDispose_.clear();
+  lightsToDispose_.clear();
 
   const SwapchainWithResources::AcquireNextImageResult nextImageResult =
-      swapchain.AcquireNextImage();
+      swapchain_.AcquireNextImage();
 
   if (nextImageResult.status == VK_ERROR_OUT_OF_DATE_KHR) {
     return;
   }
 
-  imageIndex = nextImageResult.imageIndex;
-
-  const SwapchainRenderPass& swapchainRender = swapchainRenderData[imageIndex];
-  const CommandBuffer& commandBuffer = swapchainRender.commandBuffer;
+  const SwapchainRenderPass& swapchainRender =
+      swapchainRenderData_[nextImageResult.imageIndex];
 
   swapchainRender.submitCompleteFence.Wait().Reset();
   constexpr VkClearValue colorClear =
@@ -1250,52 +930,42 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
     }
 
     frame.pointLightCount = pointLights_.size();
-
-    sceneUniformBuffer_.MapCopy(&sceneData_, sizeof(sceneData_));
   }
 
-  commandBuffer.Begin();
+  swapchainRender.transfer.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT_SECONDARY);
+  swapchainRender.graphics.BeginWithInheritance(
+      COMMAND_BUFFER_ONE_TIME_SUBMIT_RENDER_PASS_CONTINUE, subpass0_,
+      nextImageResult.framebuffer);
   {
     const glm::vec2 windowSizeFloat = window.GetRect().Size();
     const glm::ivec2 windowSizeInt = glm::ivec2(windowSizeFloat);
-    commandBuffer.CmdSetViewport(ViewportBuilder(VIEWPORT_BASE)
-                                     .SetWidth(windowSizeFloat.x)
-                                     .SetHeight(windowSizeFloat.y));
-    commandBuffer.CmdSetScissor(
+    swapchainRender.graphics.CmdSetViewport(ViewportBuilder(VIEWPORT_BASE)
+                                                .SetWidth(windowSizeFloat.x)
+                                                .SetHeight(windowSizeFloat.y));
+    swapchainRender.graphics.CmdSetScissor(
         Rect2DBuilder()
             .SetOffset(OFFSET2D_ZERO)
             .SetExtent(Extent2DBuilder()
                            .SetWidth(windowSizeInt.x)
                            .SetHeight(windowSizeInt.y)));
   }
+  renderGraph_.ExecuteRenderPipelines(swapchainRender.transfer,
+                                      swapchainRender.graphics, &sceneData_);
+  swapchainRender.transfer.End();
+  swapchainRender.graphics.End();
+
+  const CommandBuffer& commandBuffer = swapchainRender.main;
+
+  commandBuffer.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
+  commandBuffer.CmdExecuteCommands(swapchainRender.transfer);
   commandBuffer.CmdBeginRenderPass(
       RenderPassBeginInfoBuilder()
-          .SetRenderArea(Rect2DBuilder().SetExtent(swapchain.GetImageExtent()))
+          .SetRenderArea(Rect2DBuilder().SetExtent(swapchain_.GetImageExtent()))
           .SetClearValueCount(clearValues.size())
           .SetPClearValues(clearValues.data()),
-      VK_SUBPASS_CONTENTS_INLINE, renderPass, nextImageResult.framebuffer);
-  commandBuffer.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                     FirstValue(renders_).pipeline.GetLayout(),
-                                     0, sceneDescriptorSet_);
-
-  for (const Render& render : IterateValues(renders_)) {
-    const GraphicsPipeline& pipeline = render.pipeline;
-    const PipelineLayout& layout = pipeline.GetLayout();
-
-    commandBuffer.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                  render.pipeline);
-
-    for (const Draw& draw : IterateValues(render.draws)) {
-      commandBuffer.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                         layout, 1, draw.descriptorSet);
-      const ModelTransform transform =
-          ModelTransform{draw.transformable->GetTransform()};
-      commandBuffer.CmdPushConstants(layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                                     sizeof(transform), &transform);
-      draw.drawBuffer->DrawInstanced(commandBuffer, draw.instances);
-    }
-  }
-
+      VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS, renderPass_,
+      nextImageResult.framebuffer);
+  commandBuffer.CmdExecuteCommands(swapchainRender.graphics);
   commandBuffer.CmdEndRenderPass();
   commandBuffer.End();
   commandBuffer.Submit(
@@ -1303,12 +973,9 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
           .SetWaitSemaphore(&nextImageResult.semaphore)
           .SetSignalSemaphore(&swapchainRender.renderCompleteSemaphore)
           .SetSignalFence(&swapchainRender.submitCompleteFence));
-  swapchain.Present(queue, SynchronisationPack().SetWaitSemaphore(
-                               &swapchainRender.renderCompleteSemaphore));
-}
-
-void Vulkan::DisposeResource(const ResourceKey key) {
-  resourcesToDispose_.push_back(key);
+  swapchain_.Present(graphicsQueue_,
+                     SynchronisationPack().SetWaitSemaphore(
+                         &swapchainRender.renderCompleteSemaphore));
 }
 
 void Vulkan::ReleaseResources(const ResourceKey key) {
@@ -1317,20 +984,125 @@ void Vulkan::ReleaseResources(const ResourceKey key) {
   if (pointLightIterator != pointLights_.end()) {
     pointLights_.erase(pointLightIterator);
   }
+}
 
-  for (Compute& compute : IterateValues(particleComputes_)) {
-    const auto iterator = compute.instances.find(key);
+DescriptorSetLayout Vulkan::CreateDescriptorSetLayout(
+    const DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const {
+  return virtualDevice_.CreateDescriptorSetLayout(infoBuilder);
+}
 
-    if (iterator != compute.instances.end()) {
-      compute.instances.erase(iterator);
-    }
-  }
+DescriptorSet Vulkan::CreateDescriptorSet(
+    const DescriptorSetLayout& layout) const {
+  return descriptorPool_.AllocateDescriptorSet(layout);
+}
 
-  for (Render& render : IterateValues(renders_)) {
-    const auto iterator = render.draws.find(key);
+void Vulkan::UpdateDescriptorSets(
+    const std::vector<DescriptorSet::WriteDescriptorSet>& descriptorSetWrites)
+    const {
+  virtualDevice_.UpdateDescriptorSets(descriptorSetWrites);
+}
 
-    if (iterator != render.draws.end()) {
-      render.draws.erase(iterator);
-    }
-  }
+BoundBuffer Vulkan::AllocateHostBuffer(const std::size_t size,
+                                       const VkBufferUsageFlags usage) {
+  Buffer buffer = virtualDevice_.CreateBuffer(
+      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE).SetSize(size).SetUsage(usage));
+  BoundDeviceMemory memory = deviceAllocator_.BindMemory(
+      buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  return BoundBuffer(std::move(buffer), std::move(memory));
+}
+
+BoundBuffer Vulkan::AllocateDeviceBuffer(const std::size_t size,
+                                         const VkBufferUsageFlags usage) {
+  Buffer buffer = virtualDevice_.CreateBuffer(
+      BufferCreateInfoBuilder(BUFFER_EXCLUSIVE).SetSize(size).SetUsage(usage));
+  BoundDeviceMemory bufferMemory =
+      deviceAllocator_.BindMemory(buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+  shortExecutionCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
+  shortExecutionCommandBuffer_.CmdFillBuffer(buffer, size, 0);
+  shortExecutionCommandBuffer_.End().Submit(fence_).Wait().Reset();
+
+  return BoundBuffer(std::move(buffer), std::move(bufferMemory));
+}
+
+ShaderModule Vulkan::LoadComputeShader(const std::string_view name) const {
+  return virtualDevice_.LoadComputeShader(name);
+}
+
+ShaderModule Vulkan::LoadGraphicsShader(
+    const std::string_view name, const VkShaderStageFlagBits stage) const {
+  return virtualDevice_.LoadShader(stage, name);
+}
+
+ComputePipeline Vulkan::CreateComputePipeline(
+    const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
+    ShaderModule computeShader) const {
+  return virtualDevice_.CreateComputePipeline(
+      pipelineCache_,
+      virtualDevice_.CreatePipelineLayout(descriptorSetLayouts,
+                                          PipelineLayoutCreateInfoBuilder()),
+      std::move(computeShader));
+}
+
+GraphicsPipeline Vulkan::CreateGraphicsPipeline(
+    const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
+    std::vector<ShaderModule> shaders,
+    const VkVertexInputBindingDescription& vertexInputBindingDescription,
+    const std::vector<VkVertexInputAttributeDescription>&
+        vertexInputAttributeDescriptions) const {
+  constexpr std::array<VkDynamicState, 2> dynamicStates = {
+      VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+  return virtualDevice_.CreateGraphicsPipeline(
+      pipelineCache_, shaders,
+      virtualDevice_.CreatePipelineLayout(descriptorSetLayouts,
+                                          PipelineLayoutCreateInfoBuilder()),
+      subpass0_,
+      GraphicsPipelineCreateInfoBuilder()
+          .SetPDepthStencilState(PipelineDepthStencilStateCreateInfoBuilder()
+                                     .SetDepthTestEnable(VK_TRUE)
+                                     .SetDepthWriteEnable(VK_TRUE)
+                                     .SetDepthCompareOp(VK_COMPARE_OP_LESS)
+                                     .SetDepthBoundsTestEnable(VK_FALSE))
+          .SetPVertexInputState(
+              PipelineVertexInputStateCreateInfoBuilder()
+                  .SetVertexBindingDescriptionCount(1)
+                  .SetPVertexBindingDescriptions(&vertexInputBindingDescription)
+                  .SetVertexAttributeDescriptionCount(
+                      vertexInputAttributeDescriptions.size())
+                  .SetPVertexAttributeDescriptions(
+                      vertexInputAttributeDescriptions.data()))
+          .SetPInputAssemblyState(
+              PipelineInputAssemblyStateCreateInfoBuilder().SetTopology(
+                  VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST))
+          .SetPViewportState(PipelineViewportStateCreateInfoBuilder()
+                                 .SetViewportCount(1)
+                                 .SetScissorCount(1))
+          .SetPDynamicState(PipelineDynamicStateCreateInfoBuilder()
+                                .SetDynamicStateCount(dynamicStates.size())
+                                .SetPDynamicStates(dynamicStates.data()))
+          .SetPRasterizationState(
+              PipelineRasterizationStateCreateInfoBuilder()
+                  .SetCullMode(VK_CULL_MODE_BACK_BIT)
+                  .SetFrontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
+                  .SetPolygonMode(VK_POLYGON_MODE_FILL)
+                  .SetLineWidth(1.0f))
+          .SetPMultisampleState(PipelineMultisampleStateCreateInfoBuilder()
+                                    .SetRasterizationSamples(samples_)
+                                    .SetMinSampleShading(1.0f))
+          .SetPColorBlendState(
+              PipelineColorBlendStateCreateInfoBuilder()
+                  .SetAttachmentCount(1)
+                  .SetPAttachments(
+                      PipelineColorBlendAttachmentStateBuilder()
+                          .SetColorWriteMask(VK_COLOR_COMPONENT_R_BIT |
+                                             VK_COLOR_COMPONENT_G_BIT |
+                                             VK_COLOR_COMPONENT_B_BIT |
+                                             VK_COLOR_COMPONENT_A_BIT)
+                          .SetSrcColorBlendFactor(VK_BLEND_FACTOR_ONE)
+                          .SetDstColorBlendFactor(VK_BLEND_FACTOR_ZERO)
+                          .SetColorBlendOp(VK_BLEND_OP_ADD)
+                          .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
+                          .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
+                          .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
 }

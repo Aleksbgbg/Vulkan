@@ -1,9 +1,9 @@
 #include "CommandBuffer.h"
 
-#include <renderer/vulkan/api/structures/SubmitInfo.h>
-
 #include "error.h"
 #include "renderer/vulkan/api/structures/CommandBufferBeginInfo.h"
+#include "renderer/vulkan/api/structures/CommandBufferInheritanceInfo.h"
+#include "renderer/vulkan/api/structures/SubmitInfo.h"
 
 CommandBuffer::CommandBuffer() : commandBuffer(nullptr) {}
 
@@ -37,16 +37,20 @@ CommandBuffer& CommandBuffer::operator=(CommandBuffer&& other) noexcept {
   return *this;
 }
 
-void CommandBuffer::Begin() const {
-  PROCEED_ON_VALID_RESULT(vkBeginCommandBuffer(
-      commandBuffer, CommandBufferBeginInfoBuilder().Build()));
+void CommandBuffer::BeginWithInheritance(
+    CommandBufferBeginInfoBuilder infoBuilder, const SubpassReference reference,
+    const Framebuffer& framebuffer) const {
+  Begin(infoBuilder.SetPInheritanceInfo(
+      CommandBufferInheritanceInfoBuilder()
+          .SetRenderPass(reference.renderPass->renderPass)
+          .SetSubpass(reference.subpass)
+          .SetFramebuffer(framebuffer.framebuffer)));
 }
 
-void CommandBuffer::BeginOneTimeSubmit() const {
-  PROCEED_ON_VALID_RESULT(vkBeginCommandBuffer(
-      commandBuffer, CommandBufferBeginInfoBuilder()
-                         .SetFlags(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
-                         .Build()));
+void CommandBuffer::Begin(
+    const CommandBufferBeginInfoBuilder& infoBuilder) const {
+  PROCEED_ON_VALID_RESULT(
+      vkBeginCommandBuffer(commandBuffer, infoBuilder.Build()));
 }
 
 const CommandBuffer& CommandBuffer::End() const {
@@ -111,11 +115,17 @@ void CommandBuffer::CmdDispatch(const u32 groupCountX, const u32 groupCountY,
   vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
 }
 
-void CommandBuffer::CmdCopyBufferFull(Buffer& source, Buffer& dest) const {
+void CommandBuffer::CmdFillBuffer(const Buffer& buffer, const VkDeviceSize size,
+                                  const u32 value) const {
+  vkCmdFillBuffer(commandBuffer, buffer.buffer_, 0, size, value);
+}
+
+void CommandBuffer::CmdCopyBufferFull(const Buffer& source,
+                                      const Buffer& dest) const {
   CmdCopyBuffer(source, dest, {.size = source.size_});
 }
 
-void CommandBuffer::CmdCopyBuffer(Buffer& source, Buffer& dest,
+void CommandBuffer::CmdCopyBuffer(const Buffer& source, const Buffer& dest,
                                   const VkBufferCopy& copyRegion) const {
   vkCmdCopyBuffer(commandBuffer, source.buffer_, dest.buffer_, 1, &copyRegion);
 }
@@ -233,4 +243,8 @@ void CommandBuffer::CmdEndRenderPass() const {
 
 void CommandBuffer::CmdNextSubpass(const VkSubpassContents contents) const {
   vkCmdNextSubpass(commandBuffer, contents);
+}
+
+void CommandBuffer::CmdExecuteCommands(const CommandBuffer& other) const {
+  vkCmdExecuteCommands(commandBuffer, 1, &other.commandBuffer);
 }

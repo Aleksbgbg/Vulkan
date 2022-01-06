@@ -15,13 +15,12 @@
 #include "renderer/vulkan/api/structures/BufferImageCopy.h"
 #include "renderer/vulkan/api/structures/BufferMemoryBarrier.h"
 #include "renderer/vulkan/api/structures/CommandBufferAllocateInfo.h"
+#include "renderer/vulkan/api/structures/CommandBufferBeginInfo.h"
 #include "renderer/vulkan/api/structures/ImageMemoryBarrier.h"
 #include "renderer/vulkan/api/structures/MemoryBarrier.h"
 #include "renderer/vulkan/api/structures/RenderPassBeginInfo.h"
 
 class CommandBuffer {
-  friend class ImGuiInstance;
-
  public:
   CommandBuffer();
   CommandBuffer(VkDevice device, VkQueue queue, VkCommandPool commandPool,
@@ -35,8 +34,10 @@ class CommandBuffer {
   CommandBuffer& operator=(const CommandBuffer&) = delete;
   CommandBuffer& operator=(CommandBuffer&& other) noexcept;
 
-  void Begin() const;
-  void BeginOneTimeSubmit() const;
+  void BeginWithInheritance(CommandBufferBeginInfoBuilder infoBuilder,
+                            SubpassReference reference,
+                            const Framebuffer& framebuffer) const;
+  void Begin(const CommandBufferBeginInfoBuilder& infoBuilder) const;
   const CommandBuffer& End() const;
   const Fence& Submit(const Fence& fence) const;
   void SubmitCompute(const Fence& fence) const;
@@ -48,8 +49,9 @@ class CommandBuffer {
   void CmdDispatch(const u32 groupCountX, const u32 groupCountY,
                    const u32 groupCountZ) const;
 
-  void CmdCopyBufferFull(Buffer& source, Buffer& dest) const;
-  void CmdCopyBuffer(Buffer& source, Buffer& dest,
+  void CmdFillBuffer(const Buffer& buffer, VkDeviceSize size, u32 value) const;
+  void CmdCopyBufferFull(const Buffer& source, const Buffer& dest) const;
+  void CmdCopyBuffer(const Buffer& source, const Buffer& dest,
                      const VkBufferCopy& copyRegion) const;
   void CmdCopyBufferToImage(const Buffer& source, const Image& dest,
                             const VkImageLayout destLayout,
@@ -101,6 +103,8 @@ class CommandBuffer {
 
   void CmdNextSubpass(const VkSubpassContents contents) const;
   void CmdEndRenderPass() const;
+
+  void CmdExecuteCommands(const CommandBuffer& other) const;
 
  private:
   VkDevice device;

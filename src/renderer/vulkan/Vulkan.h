@@ -1,7 +1,6 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_VULKAN_H_
 #define VULKAN_SRC_RENDERER_VULKAN_VULKAN_H_
 
-#include <renderer/vertices/StructuredVertexData.h>
 #include <vulkan/vulkan.h>
 
 #include <unordered_map>
@@ -10,70 +9,50 @@
 #include "IndexedVertexBuffer.h"
 #include "SwapchainWithResources.h"
 #include "Texture.h"
-#include "Vulkan.h"
 #include "VulkanSystem.h"
 #include "game/Renderer.h"
 #include "game/Scene.h"
 #include "game/Transformable.h"
 #include "general/algorithms/RandomNumberGenerator.h"
 #include "general/geometry/Rect.h"
+#include "renderer/vertices/StructuredVertexData.h"
 #include "renderer/vulkan/api/Swapchain.h"
 #include "renderer/vulkan/api/VulkanInstance.h"
 #include "renderer/vulkan/api/memory/DeviceMemoryAllocator.h"
 #include "renderer/vulkan/buffer_structures/GlobalRenderUniform.h"
+#include "renderer/vulkan/render_graph/RenderGraph.h"
 #include "system/windowing/Window.h"
-
-// TODO: Lots of cleanup since this file has been through a lot of evolution
-
-struct ShaderConfiguration {
-  VkShaderStageFlagBits stage;
-  std::string_view path;
-};
-
-class RenderConfiguration {
- public:
-  virtual ~RenderConfiguration() = default;
-
-  virtual DescriptorSetLayout ConfigureDescriptors(
-      const VirtualDevice& virtualDevice) const = 0;
-  virtual std::vector<ShaderConfiguration> ConfigureShaders() const = 0;
-  virtual std::vector<VkVertexInputBindingDescription> ConfigureVertexBindings()
-      const = 0;
-  virtual std::vector<VkVertexInputAttributeDescription>
-  ConfigureVertexAttributes() const = 0;
-};
 
 typedef u32 ResourceKey;
 
-class ResourceDisposer {
- public:
-  virtual ~ResourceDisposer() = default;
-
-  virtual void DisposeResource(ResourceKey key) = 0;
-};
-
-class VulkanResource : public Resource {
- public:
-  VulkanResource(ResourceDisposer* disposer, ResourceKey key);
-  ~VulkanResource() override;
-
- private:
-  ResourceDisposer* resourceDisposer_;
-  ResourceKey key_;
-};
-
-class Vulkan : private SwapchainWithResources::Initializer,
-               public Renderer,
-               public ResourceDisposer {
+class Vulkan : public Renderer,
+               private SwapchainWithResources::Initializer,
+               private RenderGraph::ResourceAllocator {
  public:
   Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window);
   ~Vulkan();
 
   void RecreateSwapchain();
+
+  struct ComputeContext {
+    float deltaTime;
+  };
+  void ScheduleCompute(const ComputeContext& context);
+  void ScheduleRender(const game::Camera& camera, const sys::Window& window);
+
+ private:
   void CalculateProjection();
 
-  CommandBuffer AllocatePrimaryRenderCommandBuffer() const;
-  Fence CreateFence(const VkFenceCreateFlags flags) const;
+  RenderPass CreateRenderPass() const;
+  RenderGraph CreateRenderGraph();
+
+  Texture LoadTexture(const std::string_view filename);
+  IndexedVertexBuffer AllocateDrawBuffer(
+      const StructuredVertexData::RawVertexData& vertexData);
+
+  SwapchainCreateInfoBuilder SwapchainCreateInfo() const;
+
+  void ReleaseResources(ResourceKey key);
 
   Swapchain CreateSwapchain() const override;
   Swapchain CreateSwapchain(const Swapchain& oldSwapchain) const override;
@@ -86,22 +65,36 @@ class Vulkan : private SwapchainWithResources::Initializer,
 
   MeshHandle LoadMesh(const RenderType renderType,
                       const MeshLoadParams& meshLoadParams) override;
-
   std::unique_ptr<Resource> SpawnLightSource(
       const LightSourceInfo& lightSourceInfo) override;
   std::unique_ptr<Resource> SpawnParticleSystem(
       const ParticleSystemInfo& particleSystemInfo) override;
   std::unique_ptr<Resource> SpawnRenderable(RenderInfo renderInfo) override;
 
-  struct ComputeContext {
-    float deltaTime;
-  };
-  void ScheduleCompute(const ComputeContext& context);
-  void ScheduleRender(const game::Camera& camera, const sys::Window& window);
+  DescriptorSetLayout CreateDescriptorSetLayout(
+      const DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const override;
+  DescriptorSet CreateDescriptorSet(
+      const DescriptorSetLayout& layout) const override;
+  void UpdateDescriptorSets(
+      const std::vector<DescriptorSet::WriteDescriptorSet>& descriptorSetWrites)
+      const override;
+  BoundBuffer AllocateHostBuffer(std::size_t size,
+                                 VkBufferUsageFlags usage) override;
+  BoundBuffer AllocateDeviceBuffer(std::size_t size,
+                                   VkBufferUsageFlags usage) override;
+  ShaderModule LoadComputeShader(std::string_view name) const override;
+  ShaderModule LoadGraphicsShader(std::string_view name,
+                                  VkShaderStageFlagBits stage) const override;
+  ComputePipeline CreateComputePipeline(
+      const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
+      ShaderModule computeShader) const override;
+  GraphicsPipeline CreateGraphicsPipeline(
+      const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
+      std::vector<ShaderModule> shaders,
+      const VkVertexInputBindingDescription& vertexInputBindingDescription,
+      const std::vector<VkVertexInputAttributeDescription>&
+          vertexInputAttributeDescriptions) const override;
 
-  void DisposeResource(ResourceKey key) override;
-
- private:
   static VKAPI_ATTR VkBool32 VKAPI_CALL
   DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                 VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -112,79 +105,65 @@ class Vulkan : private SwapchainWithResources::Initializer,
       const std::vector<VkFormat>& potentialFormats) const;
   VkSurfaceFormatKHR SelectSwapSurfaceFormat(
       const std::vector<VkSurfaceFormatKHR>& availableSurfaceFormats) const;
-  static VkExtent2D SelectSwapExtent(
-      const VkSurfaceCapabilitiesKHR surfaceCapabilities);
   static VkPresentModeKHR SelectSwapPresentMode(
       const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkSampleCountFlagBits SelectMsaaSamples(
       const VkSampleCountFlagBits preferred) const;
-  RenderPass CreateRenderPass() const;
-
-  Texture LoadTexture(const std::string_view filename);
-  BoundBuffer AllocateLocalBuffer(const std::size_t size,
-                                  const VkBufferUsageFlags usage);
-  BoundBuffer AllocateDeviceBuffer(const void* const data,
-                                   const std::size_t size,
-                                   const VkBufferUsageFlags usage);
-  IndexedVertexBuffer AllocateDrawBuffer(
-      const StructuredVertexData::RawVertexData& vertexData);
-
-  SwapchainCreateInfoBuilder SwapchainCreateInfo() const;
-
-  void ReleaseResources(ResourceKey key);
 
  private:
-  VulkanInstance instance;
-  DebugUtilsMessenger debugMessenger;
-  Surface windowSurface;
+  VulkanInstance instance_;
+  DebugUtilsMessenger debugMessenger_;
+  Surface windowSurface_;
 
-  PhysicalDevice targetPhysicalDevice;
-  VkPhysicalDeviceProperties physicalDeviceProperties;
+  PhysicalDevice targetPhysicalDevice_;
+  VkPhysicalDeviceProperties physicalDeviceProperties_;
 
-  u32 swapchainImages;
+  u32 swapchainImages_;
 
-  u32 queueFamilyIndex;
+  u32 graphicsQueueFamilyIndex_;
   u32 computeQueueFamilyIndex_;
-  VirtualDevice virtualDevice;
-  Queue queue;
+  VirtualDevice virtualDevice_;
+  Queue graphicsQueue_;
   Queue computeQueue_;
 
-  PipelineCache pipelineCache;
+  PipelineCache pipelineCache_;
 
-  DeviceMemoryAllocator deviceAllocator;
+  DeviceMemoryAllocator deviceAllocator_;
 
-  Fence fence;
+  Fence fence_;
 
-  CommandPool shortExecutionCommandPool;
-  CommandBuffer shortExecutionCommandBuffer;
+  CommandPool shortExecutionCommandPool_;
+  CommandBuffer shortExecutionCommandBuffer_;
 
   CommandPool computeCommandPool_;
+  CommandBuffer computeMainCommandBuffer_;
+  CommandBuffer computeTransferCommandBuffer_;
   CommandBuffer computeCommandBuffer_;
-  std::vector<CommandBuffer> computeCommandsBuffers_;
+  Fence computeCompleteFence_;
 
-  VkSurfaceFormatKHR surfaceFormat;
-  VkFormat depthStencilFormat;
-  VkSampleCountFlagBits samples;
+  VkSurfaceFormatKHR surfaceFormat_;
+  VkFormat depthStencilFormat_;
+  VkSampleCountFlagBits samples_;
 
-  Sampler textureSampler;
+  Sampler textureSampler_;
 
-  RenderPass renderPass;
-  SubpassReference subpass0;
+  RenderPass renderPass_;
+  SubpassReference subpass0_;
 
-  CommandPool renderCommandPool;
+  CommandPool renderCommandPool_;
 
-  SwapchainWithResources swapchain;
-  SwapchainWithResources oldSwapchain;
-
-  u32 imageIndex;
+  SwapchainWithResources swapchain_;
+  SwapchainWithResources oldSwapchain_;
 
   struct SwapchainRenderPass {
-    CommandBuffer commandBuffer;
+    CommandBuffer main;
+    CommandBuffer transfer;
+    CommandBuffer graphics;
 
     Semaphore renderCompleteSemaphore;
     Fence submitCompleteFence;
   };
-  std::vector<SwapchainRenderPass> swapchainRenderData;
+  std::vector<SwapchainRenderPass> swapchainRenderData_;
 
   struct VulkanMesh {
     RenderType renderType;
@@ -194,50 +173,10 @@ class Vulkan : private SwapchainWithResources::Initializer,
   std::vector<VulkanMesh> meshes_;
 
   DescriptorPool descriptorPool_;
-  DescriptorSetLayout sceneDescriptorSetLayout_;
-  DescriptorSet sceneDescriptorSet_;
+
+  RenderGraph renderGraph_;
+
   GlobalRenderUniform sceneData_;
-  BoundBuffer sceneUniformBuffer_;
-
-  struct Draw {
-    DescriptorSet descriptorSet;
-    const Transformable* transformable;
-    const IndexedVertexBuffer* drawBuffer;
-    u32 instances;
-  };
-
-  struct Render {
-    DescriptorSetLayout descriptorSetLayout;
-    GraphicsPipeline pipeline;
-
-    std::unordered_map<ResourceKey, Draw> draws;
-  };
-
-  std::unordered_map<RenderType, Render> renders_;
-
-  DescriptorSetLayout computeDescriptorSetLayout_;
-  DescriptorSet computeDescriptorSet_;
-
-  BoundBuffer computeRootBuffer_;
-
-  struct ComputeInstance {
-    DescriptorSet descriptorSet;
-    const Transformable* base;
-    const SpawnControllable* spawn;
-    glm::vec3 spawnRegionLow;
-    glm::vec3 spawnRegionHigh;
-    BoundBuffer particleSpawnParamsBuffer;
-    BoundBuffer particleBuffer;
-    BoundBuffer particleRenderBuffer;
-  };
-
-  struct Compute {
-    DescriptorSetLayout descriptorSetLayout;
-    ComputePipeline pipeline;
-
-    std::unordered_map<ResourceKey, ComputeInstance> instances;
-  };
-  std::unordered_map<ParticleBehaviour, Compute> particleComputes_;
 
   RandomNumberGenerator randomNumberGenerator_;
 
@@ -247,10 +186,7 @@ class Vulkan : private SwapchainWithResources::Initializer,
   };
   std::unordered_map<ResourceKey, PointLightSource> pointLights_;
 
-  std::list<ResourceKey> resourcesToDispose_;
-
- private:
-  Render CreateRender(const RenderConfiguration& configuration) const;
+  std::list<ResourceKey> lightsToDispose_;
 };
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_VULKAN_H_

@@ -1,4 +1,4 @@
-#version 450
+#version 460 core
 
 const uint MAX_LIGHTS = 128;
 
@@ -35,8 +35,8 @@ layout(set = 0, binding = 0) uniform SceneUniform {
   uint pointLightCount;
 } scene;
 
-layout(set = 1, binding = 0) uniform sampler2D textureSampler;
-layout(set = 1, binding = 1) uniform sampler2D emissionSampler;
+layout(set = 1, binding = 1) uniform sampler2D textureSampler;
+layout(set = 1, binding = 2) uniform sampler2D emissionSampler;
 
 layout(location = 0) in vec3 in_fragPosition;
 layout(location = 1) in vec3 in_normal;

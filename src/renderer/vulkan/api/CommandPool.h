@@ -21,6 +21,9 @@ class CommandPool {
   CommandPool& operator=(CommandPool&& other) noexcept;
 
   CommandBuffer AllocatePrimaryCommandBuffer() const;
+  CommandBuffer AllocateSecondaryCommandBuffer() const;
+
+ private:
   CommandBuffer AllocateCommandBuffer(const VkCommandBufferLevel level) const;
 
  private:

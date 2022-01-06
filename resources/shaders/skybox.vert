@@ -1,6 +1,6 @@
-#version 450
+#version 460 core
 
-layout(set = 0, binding = 0) uniform SceneUniform {
+layout(set = 0, binding = 0) uniform GlobalRenderUniform {
   mat4 view;
   mat4 projection;
 } scene;

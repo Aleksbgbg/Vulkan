@@ -13,6 +13,18 @@ DescriptorSet::WriteDescriptorSet BoundBuffer::WriteBuffer(
   return descriptorSet.CreateBufferWrite(buffer_, descriptorType, binding);
 }
 
+void* BoundBuffer::Map() const {
+  return memory_.Map(0, buffer_.Size());
+}
+
+void BoundBuffer::Unmap() const {
+  memory_.Unmap();
+}
+
+void BoundBuffer::MapCopy(const void* const data) const {
+  MapCopy(data, buffer_.Size());
+}
+
 void BoundBuffer::MapCopy(const void* const data,
                           const VkDeviceSize size) const {
   memory_.MapCopy(data, size);

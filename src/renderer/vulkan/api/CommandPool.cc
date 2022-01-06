@@ -33,6 +33,10 @@ CommandBuffer CommandPool::AllocatePrimaryCommandBuffer() const {
   return AllocateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 }
 
+CommandBuffer CommandPool::AllocateSecondaryCommandBuffer() const {
+  return AllocateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+}
+
 CommandBuffer CommandPool::AllocateCommandBuffer(
     const VkCommandBufferLevel level) const {
   return CommandBuffer(device, queue, commandPool,

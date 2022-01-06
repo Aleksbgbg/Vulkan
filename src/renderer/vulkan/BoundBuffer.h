@@ -17,6 +17,10 @@ class BoundBuffer {
       const DescriptorSet& descriptorSet, VkDescriptorType descriptorType,
       u32 binding) const;
 
+  void* Map() const;
+  void Unmap() const;
+
+  void MapCopy(const void* data) const;
   void MapCopy(const void* data, VkDeviceSize size) const;
 
  private:

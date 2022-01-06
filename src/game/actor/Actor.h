@@ -6,11 +6,11 @@
 #include <unordered_map>
 
 #include "ActorOwner.h"
-#include "Resource.h"
 #include "game/UpdateContext.h"
 #include "game/actor/behaviour/Behaviour.h"
 #include "game/actor/property/Property.h"
 #include "game/actor/property/PropertyKey.h"
+#include "game/actor/resource/Resource.h"
 
 namespace game {
 

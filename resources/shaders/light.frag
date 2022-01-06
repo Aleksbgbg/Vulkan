@@ -1,6 +1,6 @@
-#version 450
+#version 460 core
 
-layout(set = 1, binding = 0) uniform sampler2D textureSampler;
+layout(set = 1, binding = 1) uniform sampler2D textureSampler;
 
 layout(location = 0) in vec2 in_fragTextureCoordinate;
 

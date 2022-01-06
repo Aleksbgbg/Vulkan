@@ -4,7 +4,7 @@
 #include "LightSource.h"
 #include "SpawnControllable.h"
 #include "Transformable.h"
-#include "game/actor/Resource.h"
+#include "game/actor/resource/Resource.h"
 #include "game/composition/MeshHandle.h"
 #include "game/composition/MeshLoadParams.h"
 #include "game/composition/ParticleBehaviour.h"
