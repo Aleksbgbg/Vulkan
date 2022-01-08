@@ -75,6 +75,7 @@ class CompositionBuilder {
                                const ActorKey parentKey);
 
  private:
+  ActorKeyGenerator actorKeyGenerator_;
   SpawnDependencies spawnDependencies_;
   Composition composition_;
 };

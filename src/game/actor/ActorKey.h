@@ -1,8 +1,9 @@
 #ifndef VULKAN_SRC_GAME_ACTOR_ACTORKEY_H_
 #define VULKAN_SRC_GAME_ACTOR_ACTORKEY_H_
 
-#include "util/types.h"
+#include "general/algorithms/KeyGenerator.h"
 
-typedef u32 ActorKey;
+using ActorKey = Key;
+using ActorKeyGenerator = KeyGenerator;
 
 #endif  // VULKAN_SRC_GAME_ACTOR_ACTORKEY_H_

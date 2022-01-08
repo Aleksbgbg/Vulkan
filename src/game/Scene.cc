@@ -15,10 +15,7 @@
 #include "util/filenames.h"
 
 Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
-    : scene_(camera, {.actorConsumer = this,
-                      .actorOwner = this,
-                      .renderer = &renderer,
-                      .sound = &sound}),
+    : scene_(camera, *this, *this, renderer, sound),
       sceneGraph_(),
       actorsToSpawn_(),
       actorsToDespawn_() {

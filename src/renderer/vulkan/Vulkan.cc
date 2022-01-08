@@ -46,11 +46,6 @@
 
 static constexpr u32 WANTED_SWAPCHAIN_IMAGES = 3u;
 
-ResourceKey GenerateResourceKey() {
-  static u32 currentKey = 0;
-  return ++currentKey;
-}
-
 VulkanInstance CreateVulkanInstance(const VulkanSystem& vulkanSystem) {
   const std::vector<VkExtensionProperties> availableExtensions =
       LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
@@ -332,7 +327,7 @@ DescriptorPool MakeDescriptorPool(const VirtualDevice& virtualDevice) {
 
 RenderGraph Vulkan::CreateRenderGraph() {
   return RenderGraph(
-      *this,
+      *this, swapchain_.GetImageCount(),
       RenderGraphLayoutBuilder()
           .ComputeGlobalDescriptors(DescriptorSetBuilder().AddBinding(
               UniformStructure<GlobalComputeUniform>(
@@ -790,13 +785,9 @@ MeshHandle Vulkan::LoadMesh(const RenderType renderType,
 
 std::unique_ptr<Resource> Vulkan::SpawnLightSource(
     const Renderer::LightSourceInfo& lightSourceInfo) {
-  const ResourceKey key = GenerateResourceKey();
-  pointLights_.insert(std::make_pair(
-      key,
-      PointLightSource{.transform = lightSourceInfo.transformable,
-                       .info = lightSourceInfo.lightSource.info.pointLight}));
-  return std::make_unique<ReleaseListResource<ResourceKey>>(key,
-                                                            lightsToDispose_);
+  return pointLights_.Insert(
+      {.transform = lightSourceInfo.transformable,
+       .info = lightSourceInfo.lightSource.info.pointLight});
 }
 
 std::unique_ptr<Resource> Vulkan::SpawnParticleSystem(
@@ -873,10 +864,7 @@ void Vulkan::ScheduleCompute(const ComputeContext& context) {
 
 void Vulkan::ScheduleRender(const game::Camera& camera,
                             const sys::Window& window) {
-  for (const ResourceKey key : lightsToDispose_) {
-    ReleaseResources(key);
-  }
-  lightsToDispose_.clear();
+  pointLights_.ReleasePendingResources();
 
   const SwapchainWithResources::AcquireNextImageResult nextImageResult =
       swapchain_.AcquireNextImage();
@@ -914,7 +902,7 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
                       .shininess = 32.0f};
 
     u32 index = 0;
-    for (const PointLightSource& light : IterateValues(pointLights_)) {
+    for (const PointLightSource& light : pointLights_) {
       GlobalRenderUniform::PointLight& pointLight = frame.pointLights[index];
 
       pointLight.position =
@@ -950,7 +938,8 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
                            .SetHeight(windowSizeInt.y)));
   }
   renderGraph_.ExecuteRenderPipelines(swapchainRender.transfer,
-                                      swapchainRender.graphics, &sceneData_);
+                                      swapchainRender.graphics, &sceneData_,
+                                      nextImageResult.imageIndex);
   swapchainRender.transfer.End();
   swapchainRender.graphics.End();
 
@@ -976,14 +965,6 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
   swapchain_.Present(graphicsQueue_,
                      SynchronisationPack().SetWaitSemaphore(
                          &swapchainRender.renderCompleteSemaphore));
-}
-
-void Vulkan::ReleaseResources(const ResourceKey key) {
-  const auto pointLightIterator = pointLights_.find(key);
-
-  if (pointLightIterator != pointLights_.end()) {
-    pointLights_.erase(pointLightIterator);
-  }
 }
 
 DescriptorSetLayout Vulkan::CreateDescriptorSetLayout(

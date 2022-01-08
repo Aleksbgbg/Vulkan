@@ -10,12 +10,11 @@
 #include "InsertPipelineBuilder.h"
 #include "InsertRenderInfo.h"
 #include "game/actor/resource/Resource.h"
+#include "game/actor/resource/ResourceList.h"
 #include "renderer/vulkan/IndexedVertexBuffer.h"
 #include "renderer/vulkan/Texture.h"
 #include "renderer/vulkan/api/CommandBuffer.h"
 #include "renderer/vulkan/render_graph/layout/RenderGraphLayout.h"
-
-using ResourceKey = u32;
 
 class RenderGraph {
  public:
@@ -74,7 +73,7 @@ class RenderGraph {
     ::ComputePipeline pipeline;
     DescriptorSetLayout descriptorLayout;
     DescriptorSetStructure descriptorStructure;
-    std::unordered_map<ResourceKey, ComputeInstance> instances;
+    ResourceList<ComputeInstance> instances;
   };
 
   struct RenderInstance {
@@ -88,18 +87,13 @@ class RenderGraph {
     GraphicsPipeline pipeline;
     DescriptorSetLayout descriptorLayout;
     DescriptorSetStructure descriptorStructure;
-    std::unordered_map<ResourceKey, RenderInstance> instances;
-  };
-
-  struct ResourceIdentifier {
-    PipelineKey pipeline;
-    ResourceKey key;
+    ResourceList<RenderInstance> instances;
+    std::vector<std::list<RenderInstance>> instancesToReleasePerFrame;
   };
 
   template <typename TPipeline>
   struct PipelineGraph {
     std::unordered_map<PipelineKey, TPipeline> pipelines;
-    std::list<ResourceIdentifier> instancesToRemove;
     const PipelineLayout* rootPipelineLayout;
     DescriptorSetLayout descriptorLayout;
     Descriptor descriptor;
@@ -111,7 +105,8 @@ class RenderGraph {
   PipelineGraph<RenderPipeline> graphicsPipelineGraph_;
 
  public:
-  RenderGraph(ResourceAllocator& initializer, const RenderGraphLayout& layout);
+  RenderGraph(ResourceAllocator& allocator, u32 framesInFlight,
+              const RenderGraphLayout& layout);
 
   std::unique_ptr<Resource> Insert(InsertPipelineBuilder insertBuilder);
 
@@ -120,7 +115,7 @@ class RenderGraph {
                                const void* globalUniformData);
   void ExecuteRenderPipelines(const CommandBuffer& transfer,
                               const CommandBuffer& graphics,
-                              const void* globalUniformData);
+                              const void* globalUniformData, u32 frameIndex);
 
  private:
   std::unique_ptr<Resource> InsertCompute(PipelineKey key,

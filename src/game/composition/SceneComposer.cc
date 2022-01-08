@@ -3,9 +3,16 @@
 #include "game/behaviours/CameraController.h"
 #include "game/composition/behaviour_utils.h"
 
-SceneComposer::SceneComposer(game::Camera& camera,
-                             const SpawnDependencies spawnDependencies)
-    : camera_(camera), spawnDependencies_(spawnDependencies) {}
+SceneComposer::SceneComposer(game::Camera& camera, ActorConsumer& actorConsumer,
+                             ActorOwner& actorOwner, Renderer& renderer,
+                             sys::Sound& sound)
+    : actorKeyGenerator_(),
+      camera_(camera),
+      spawnDependencies_({.actorConsumer = &actorConsumer,
+                          .actorOwner = &actorOwner,
+                          .renderer = &renderer,
+                          .sound = &sound,
+                          .actorKeyGenerator = &actorKeyGenerator_}) {}
 
 MeshHandle SceneComposer::LoadMesh(const RenderType renderType,
                                    const MeshLoadParams& meshLoadParams) {

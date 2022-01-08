@@ -11,7 +11,8 @@
 
 class SceneComposer {
  public:
-  SceneComposer(game::Camera& camera, SpawnDependencies spawnDependencies);
+  SceneComposer(game::Camera& camera, ActorConsumer& actorConsumer,
+                ActorOwner& actorOwner, Renderer& renderer, sys::Sound& sound);
 
   MeshHandle LoadMesh(const RenderType renderType,
                       const MeshLoadParams& meshLoadParams);
@@ -21,6 +22,7 @@ class SceneComposer {
   CompositionBuilder ParticleSystem(const ParticleBehaviour behaviour);
 
  private:
+  ActorKeyGenerator actorKeyGenerator_;
   game::Camera& camera_;
   SpawnDependencies spawnDependencies_;
 };

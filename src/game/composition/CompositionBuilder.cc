@@ -1,6 +1,5 @@
 #include "CompositionBuilder.h"
 
-#include "game/actor/actor_key_generator.h"
 #include "game/actor/property/ParticleController.h"
 #include "game/actor/property/SoundEmitter.h"
 #include "game/actor/property/Transform.h"
@@ -63,7 +62,8 @@ void CompositionBuilder::Spawn() const {
 
 CompositionBuilder::CompositionBuilder(SpawnDependencies spawnDependencies,
                                        Composition composition)
-    : spawnDependencies_(spawnDependencies),
+    : actorKeyGenerator_(),
+      spawnDependencies_(spawnDependencies),
       composition_(std::move(composition)) {}
 
 void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
@@ -125,7 +125,7 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
     } break;
   }
 
-  const ActorKey key = GenerateActorKey();
+  const ActorKey key = dependencies.actorKeyGenerator->CreateKey();
 
   std::unique_ptr<game::Actor> actor = std::make_unique<game::Actor>(
       key, *dependencies.actorOwner, std::move(resources),

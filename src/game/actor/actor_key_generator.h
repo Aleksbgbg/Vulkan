@@ -1,8 +1,0 @@
-#ifndef VULKAN_SRC_GAME_ACTOR_ACTOR_KEY_GENERATOR_H_
-#define VULKAN_SRC_GAME_ACTOR_ACTOR_KEY_GENERATOR_H_
-
-#include "ActorKey.h"
-
-ActorKey GenerateActorKey();
-
-#endif  // VULKAN_SRC_GAME_ACTOR_ACTOR_KEY_GENERATOR_H_

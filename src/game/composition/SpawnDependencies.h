@@ -11,6 +11,7 @@ struct SpawnDependencies {
   ActorOwner* actorOwner;
   Renderer* renderer;
   sys::Sound* sound;
+  ActorKeyGenerator* actorKeyGenerator;
 };
 
 #endif  // VULKAN_SRC_GAME_COMPOSITION_SPAWNDEPENDENCIES_H_

@@ -13,6 +13,7 @@
 #include "game/Renderer.h"
 #include "game/Scene.h"
 #include "game/Transformable.h"
+#include "game/actor/resource/ResourceList.h"
 #include "general/algorithms/RandomNumberGenerator.h"
 #include "general/geometry/Rect.h"
 #include "renderer/vertices/StructuredVertexData.h"
@@ -22,8 +23,6 @@
 #include "renderer/vulkan/buffer_structures/GlobalRenderUniform.h"
 #include "renderer/vulkan/render_graph/RenderGraph.h"
 #include "system/windowing/Window.h"
-
-typedef u32 ResourceKey;
 
 class Vulkan : public Renderer,
                private SwapchainWithResources::Initializer,
@@ -51,8 +50,6 @@ class Vulkan : public Renderer,
       const StructuredVertexData::RawVertexData& vertexData);
 
   SwapchainCreateInfoBuilder SwapchainCreateInfo() const;
-
-  void ReleaseResources(ResourceKey key);
 
   Swapchain CreateSwapchain() const override;
   Swapchain CreateSwapchain(const Swapchain& oldSwapchain) const override;
@@ -184,9 +181,7 @@ class Vulkan : public Renderer,
     const Transformable* transform;
     LightSource::PointLightInfo info;
   };
-  std::unordered_map<ResourceKey, PointLightSource> pointLights_;
-
-  std::list<ResourceKey> lightsToDispose_;
+  ResourceList<PointLightSource> pointLights_;
 };
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_VULKAN_H_
