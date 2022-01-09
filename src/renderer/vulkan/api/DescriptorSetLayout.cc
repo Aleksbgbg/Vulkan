@@ -28,8 +28,8 @@ DescriptorSetLayout::~DescriptorSetLayout() {
 
 DescriptorSetLayout& DescriptorSetLayout::operator=(
     DescriptorSetLayout&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(descriptorSetLayout, other.descriptorSetLayout);
+  this->~DescriptorSetLayout();
+  new (this) DescriptorSetLayout(std::move(other));
   return *this;
 }
 

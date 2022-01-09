@@ -27,8 +27,8 @@ Framebuffer::~Framebuffer() {
 }
 
 Framebuffer& Framebuffer::operator=(Framebuffer&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(framebuffer, other.framebuffer);
+  this->~Framebuffer();
+  new (this) Framebuffer(std::move(other));
   return *this;
 }
 

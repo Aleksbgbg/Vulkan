@@ -25,9 +25,8 @@ CommandPool::~CommandPool() {
 }
 
 CommandPool& CommandPool::operator=(CommandPool&& other) noexcept {
-  std::swap(device, other.device);
-  queue = other.queue;
-  std::swap(commandPool, other.commandPool);
+  this->~CommandPool();
+  new (this) CommandPool(std::move(other));
   return *this;
 }
 

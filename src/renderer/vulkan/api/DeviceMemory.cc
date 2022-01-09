@@ -28,8 +28,8 @@ DeviceMemory::~DeviceMemory() {
 }
 
 DeviceMemory& DeviceMemory::operator=(DeviceMemory&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(memory, other.memory);
+  this->~DeviceMemory();
+  new (this) DeviceMemory(std::move(other));
   return *this;
 }
 

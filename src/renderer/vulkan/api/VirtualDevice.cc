@@ -28,7 +28,8 @@ VirtualDevice::~VirtualDevice() {
 }
 
 VirtualDevice& VirtualDevice::operator=(VirtualDevice&& other) noexcept {
-  std::swap(device, other.device);
+  this->~VirtualDevice();
+  new (this) VirtualDevice(std::move(other));
   return *this;
 }
 

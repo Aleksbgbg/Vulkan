@@ -29,9 +29,8 @@ ShaderModule::~ShaderModule() {
 }
 
 ShaderModule& ShaderModule::operator=(ShaderModule&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(shaderModule, other.shaderModule);
-  stage = other.stage;
+  this->~ShaderModule();
+  new (this) ShaderModule(std::move(other));
   return *this;
 }
 

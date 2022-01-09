@@ -28,9 +28,8 @@ Buffer::~Buffer() {
 }
 
 Buffer& Buffer::operator=(Buffer&& other) noexcept {
-  std::swap(device_, other.device_);
-  std::swap(buffer_, other.buffer_);
-  size_ = other.size_;
+  this->~Buffer();
+  new (this) Buffer(std::move(other));
   return *this;
 }
 

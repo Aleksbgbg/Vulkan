@@ -59,12 +59,8 @@ Swapchain::~Swapchain() {
 }
 
 Swapchain& Swapchain::operator=(Swapchain&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(swapchain, other.swapchain);
-  images = std::move(other.images);
-  imageViews = std::move(other.imageViews);
-  imageFormat = other.imageFormat;
-  imageExtent = other.imageExtent;
+  this->~Swapchain();
+  new (this) Swapchain(std::move(other));
   return *this;
 }
 

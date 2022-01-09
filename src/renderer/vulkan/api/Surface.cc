@@ -19,8 +19,8 @@ Surface::~Surface() {
 }
 
 Surface& Surface::operator=(Surface&& other) noexcept {
-  std::swap(instance, other.instance);
-  std::swap(surface, other.surface);
+  this->~Surface();
+  new (this) Surface(std::move(other));
   return *this;
 }
 

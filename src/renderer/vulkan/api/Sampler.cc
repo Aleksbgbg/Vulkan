@@ -26,8 +26,8 @@ Sampler::~Sampler() {
 }
 
 Sampler& Sampler::operator=(Sampler&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(sampler, other.sampler);
+  this->~Sampler();
+  new (this) Sampler(std::move(other));
   return *this;
 }
 

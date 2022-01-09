@@ -45,8 +45,8 @@ PipelineLayout::~PipelineLayout() {
 }
 
 PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(pipelineLayout, other.pipelineLayout);
+  this->~PipelineLayout();
+  new (this) PipelineLayout(std::move(other));
   return *this;
 }
 

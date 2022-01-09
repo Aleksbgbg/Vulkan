@@ -27,8 +27,8 @@ ImageView::~ImageView() {
 }
 
 ImageView& ImageView::operator=(ImageView&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(imageView, other.imageView);
+  this->~ImageView();
+  new (this) ImageView(std::move(other));
   return *this;
 }
 

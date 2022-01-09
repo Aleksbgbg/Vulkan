@@ -32,10 +32,8 @@ CommandBuffer::~CommandBuffer() {
 }
 
 CommandBuffer& CommandBuffer::operator=(CommandBuffer&& other) noexcept {
-  std::swap(device, other.device);
-  queue = other.queue;
-  std::swap(commandPool, other.commandPool);
-  std::swap(commandBuffer, other.commandBuffer);
+  this->~CommandBuffer();
+  new (this) CommandBuffer(std::move(other));
   return *this;
 }
 

@@ -50,9 +50,8 @@ GraphicsPipeline::~GraphicsPipeline() {
 
 GraphicsPipeline& GraphicsPipeline::operator=(
     GraphicsPipeline&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(pipeline, other.pipeline);
-  pipelineLayout = std::move(other.pipelineLayout);
+  this->~GraphicsPipeline();
+  new (this) GraphicsPipeline(std::move(other));
   return *this;
 }
 

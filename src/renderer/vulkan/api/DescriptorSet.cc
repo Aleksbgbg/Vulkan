@@ -3,7 +3,7 @@
 namespace vk {
 
 DescriptorSet::WriteDescriptorSet::WriteDescriptorSet(
-    DescriptorBufferInfoBuilder descriptorBuilder,
+    const DescriptorBufferInfoBuilder& descriptorBuilder,
     WriteDescriptorSetBuilder writeBuilder)
     : type(Type::Buffer),
       info({.bufferInfo = descriptorBuilder.BuildObject()}),
@@ -12,7 +12,7 @@ DescriptorSet::WriteDescriptorSet::WriteDescriptorSet(
 }
 
 DescriptorSet::WriteDescriptorSet::WriteDescriptorSet(
-    DescriptorImageInfoBuilder descriptorBuilder,
+    const DescriptorImageInfoBuilder& descriptorBuilder,
     WriteDescriptorSetBuilder writeBuilder)
     : type(Type::Image),
       info({.imageInfo = descriptorBuilder.BuildObject()}),
@@ -36,23 +36,13 @@ DescriptorSet::WriteDescriptorSet::WriteDescriptorSet(
 
 DescriptorSet::WriteDescriptorSet& DescriptorSet::WriteDescriptorSet::operator=(
     const DescriptorSet::WriteDescriptorSet& other) noexcept {
-  type = other.type;
-  info = other.info;
-  writeBuilder = other.writeBuilder;
-
-  ReassignPointers();
-
+  new (this) WriteDescriptorSet(other);
   return *this;
 }
 
 DescriptorSet::WriteDescriptorSet& DescriptorSet::WriteDescriptorSet::operator=(
     DescriptorSet::WriteDescriptorSet&& other) noexcept {
-  type = std::move(other.type);
-  info = std::move(other.info);
-  writeBuilder = std::move(other.writeBuilder);
-
-  ReassignPointers();
-
+  new (this) WriteDescriptorSet(std::move(other));
   return *this;
 }
 

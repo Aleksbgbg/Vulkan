@@ -27,8 +27,8 @@ RenderPass::~RenderPass() {
 }
 
 RenderPass& RenderPass::operator=(RenderPass&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(renderPass, other.renderPass);
+  this->~RenderPass();
+  new (this) RenderPass(std::move(other));
   return *this;
 }
 

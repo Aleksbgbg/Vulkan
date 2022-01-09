@@ -29,8 +29,8 @@ Fence::~Fence() {
 }
 
 Fence& Fence::operator=(Fence&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(fence, other.fence);
+  this->~Fence();
+  new (this) Fence(std::move(other));
   return *this;
 }
 

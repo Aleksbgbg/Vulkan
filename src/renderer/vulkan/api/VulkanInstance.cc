@@ -24,7 +24,8 @@ VulkanInstance::~VulkanInstance() {
 }
 
 VulkanInstance& VulkanInstance::operator=(VulkanInstance&& other) noexcept {
-  std::swap(instance, other.instance);
+  this->~VulkanInstance();
+  new (this) VulkanInstance(std::move(other));
   return *this;
 }
 

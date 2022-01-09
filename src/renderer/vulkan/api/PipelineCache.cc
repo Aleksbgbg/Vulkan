@@ -25,8 +25,8 @@ PipelineCache::~PipelineCache() {
 }
 
 PipelineCache& PipelineCache::operator=(PipelineCache&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(pipelineCache, other.pipelineCache);
+  this->~PipelineCache();
+  new (this) PipelineCache(std::move(other));
   return *this;
 }
 

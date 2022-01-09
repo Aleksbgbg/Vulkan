@@ -24,9 +24,8 @@ Image::~Image() {
 }
 
 Image& Image::operator=(Image&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(image, other.image);
-  createInfo = other.createInfo;
+  this->~Image();
+  new (this) Image(std::move(other));
   return *this;
 }
 

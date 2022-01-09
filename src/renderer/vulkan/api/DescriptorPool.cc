@@ -29,8 +29,8 @@ DescriptorPool::~DescriptorPool() {
 }
 
 DescriptorPool& DescriptorPool::operator=(DescriptorPool&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(descriptorPool, other.descriptorPool);
+  this->~DescriptorPool();
+  new (this) DescriptorPool(std::move(other));
   return *this;
 }
 

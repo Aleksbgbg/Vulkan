@@ -62,9 +62,8 @@ ComputePipeline::~ComputePipeline() {
 }
 
 ComputePipeline& ComputePipeline::operator=(ComputePipeline&& other) noexcept {
-  std::swap(device_, other.device_);
-  std::swap(pipeline_, other.pipeline_);
-  pipelineLayout_ = std::move(other.pipelineLayout_);
+  this->~ComputePipeline();
+  new (this) ComputePipeline(std::move(other));
   return *this;
 }
 

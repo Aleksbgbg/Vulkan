@@ -21,10 +21,12 @@ class DescriptorSet {
     enum class Type { Buffer, Image };
 
    public:
-    WriteDescriptorSet(DescriptorBufferInfoBuilder descriptorBuilder,
+    WriteDescriptorSet(const DescriptorBufferInfoBuilder& descriptorBuilder,
                        WriteDescriptorSetBuilder writeBuilder);
-    WriteDescriptorSet(DescriptorImageInfoBuilder descriptorBuilder,
+    WriteDescriptorSet(const DescriptorImageInfoBuilder& descriptorBuilder,
                        WriteDescriptorSetBuilder writeBuilder);
+
+    ~WriteDescriptorSet() = default;
 
     WriteDescriptorSet(const WriteDescriptorSet& other) noexcept;
     WriteDescriptorSet(WriteDescriptorSet&& other) noexcept;

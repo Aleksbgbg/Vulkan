@@ -29,8 +29,8 @@ DebugUtilsMessenger::~DebugUtilsMessenger() {
 
 DebugUtilsMessenger& DebugUtilsMessenger::operator=(
     DebugUtilsMessenger&& other) noexcept {
-  std::swap(instance, other.instance);
-  std::swap(messenger, other.messenger);
+  this->~DebugUtilsMessenger();
+  new (this) DebugUtilsMessenger(std::move(other));
   return *this;
 }
 

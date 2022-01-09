@@ -27,8 +27,8 @@ Semaphore::~Semaphore() {
 }
 
 Semaphore& Semaphore::operator=(Semaphore&& other) noexcept {
-  std::swap(device, other.device);
-  std::swap(semaphore, other.semaphore);
+  this->~Semaphore();
+  new (this) Semaphore(std::move(other));
   return *this;
 }
 
