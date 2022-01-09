@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 Semaphore::Semaphore() : semaphore(nullptr) {}
 
 Semaphore::Semaphore(VkDevice device,
@@ -37,3 +39,5 @@ const VkSemaphore* Semaphore::Pointer() const {
 VkSemaphore Semaphore::Raw() const {
   return semaphore;
 }
+
+}  // namespace vk

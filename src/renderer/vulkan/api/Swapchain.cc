@@ -7,6 +7,8 @@
 #include "error.h"
 #include "util.h"
 
+namespace vk {
+
 Swapchain::Swapchain() : swapchain(nullptr) {}
 
 Swapchain::Swapchain(VkDevice device, const Swapchain& oldSwapchain,
@@ -122,3 +124,5 @@ std::vector<Framebuffer> Swapchain::GetFramebuffers(
 
   return framebuffers;
 }
+
+}  // namespace vk

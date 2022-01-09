@@ -6,6 +6,8 @@
 #include "error.h"
 #include "general/files/file.h"
 
+namespace vk {
+
 VirtualDevice::VirtualDevice() : device(nullptr) {}
 
 VirtualDevice::VirtualDevice(VkPhysicalDevice physicalDevice,
@@ -173,3 +175,5 @@ PipelineCache VirtualDevice::LoadPipelineCache(
                                    .SetInitialDataSize(data.size())
                                    .SetPInitialData(data.data()));
 }
+
+}  // namespace vk

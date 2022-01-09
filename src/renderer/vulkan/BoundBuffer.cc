@@ -1,15 +1,15 @@
 #include "BoundBuffer.h"
 
-BoundBuffer::BoundBuffer(Buffer buffer, BoundDeviceMemory memory)
+BoundBuffer::BoundBuffer(vk::Buffer buffer, vk::BoundDeviceMemory memory)
     : buffer_(std::move(buffer)), memory_(std::move(memory)) {}
 
-const Buffer& BoundBuffer::RawBuffer() const {
+const vk::Buffer& BoundBuffer::RawBuffer() const {
   return buffer_;
 }
 
-DescriptorSet::WriteDescriptorSet BoundBuffer::WriteBuffer(
-    const DescriptorSet& descriptorSet, const VkDescriptorType descriptorType,
-    const u32 binding) const {
+vk::DescriptorSet::WriteDescriptorSet BoundBuffer::WriteBuffer(
+    const vk::DescriptorSet& descriptorSet,
+    const VkDescriptorType descriptorType, const u32 binding) const {
   return descriptorSet.CreateBufferWrite(buffer_, descriptorType, binding);
 }
 

@@ -29,11 +29,11 @@
 #include "renderer/vulkan/api/structures/SwapchainCreateInfo.h"
 #include "renderer/vulkan/api/structures/WriteDescriptorSet.h"
 
+namespace vk {
+
 class Surface;
 
 class VirtualDevice {
-  friend class ImGuiInstance;
-
  public:
   VirtualDevice();
   VirtualDevice(VkPhysicalDevice physicalDevice,
@@ -101,5 +101,7 @@ class VirtualDevice {
  private:
   VkDevice device;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_VIRTUALDEVICE_H_

@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 DescriptorSetLayout::DescriptorSetLayout() : descriptorSetLayout(nullptr) {}
 
 DescriptorSetLayout::DescriptorSetLayout(
@@ -30,3 +32,5 @@ DescriptorSetLayout& DescriptorSetLayout::operator=(
   std::swap(descriptorSetLayout, other.descriptorSetLayout);
   return *this;
 }
+
+}  // namespace vk

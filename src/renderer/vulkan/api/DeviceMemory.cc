@@ -5,6 +5,8 @@
 #include "error.h"
 #include "renderer/vulkan/api/structures/MappedMemoryRange.h"
 
+namespace vk {
+
 DeviceMemory::DeviceMemory() : memory(nullptr) {}
 
 DeviceMemory::DeviceMemory(VkDevice device,
@@ -89,3 +91,5 @@ void DeviceMemory::FlushMappedMemoryRange(const VkDeviceSize offset,
                                                         .SetSize(size)
                                                         .Build()));
 }
+
+}  // namespace vk

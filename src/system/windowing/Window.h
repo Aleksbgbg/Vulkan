@@ -8,7 +8,7 @@
 
 namespace sys {
 
-class Window : public SurfaceFactory {
+class Window : public vk::SurfaceFactory {
  public:
   enum class Event {
     None,

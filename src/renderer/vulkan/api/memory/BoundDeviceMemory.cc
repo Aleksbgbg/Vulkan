@@ -1,5 +1,7 @@
 #include "BoundDeviceMemory.h"
 
+namespace vk {
+
 BoundDeviceMemory::BoundDeviceMemory(const DeviceMemory* const memory,
                                      ReservedBlock reservedBlock)
     : memory_(memory),
@@ -32,3 +34,5 @@ void BoundDeviceMemory::FlushMappedMemoryRange(const VkDeviceSize offset,
                                                const VkDeviceSize size) const {
   memory_->FlushMappedMemoryRange(allocatedMemoryOffset_ + offset, size);
 }
+
+}  // namespace vk

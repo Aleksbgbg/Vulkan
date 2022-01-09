@@ -5,6 +5,8 @@
 
 #include "renderer/vulkan/api/structures/SamplerCreateInfo.h"
 
+namespace vk {
+
 class Sampler {
   friend class DescriptorSet;
 
@@ -24,5 +26,7 @@ class Sampler {
   VkDevice device;
   VkSampler sampler;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_SAMPLER_H_

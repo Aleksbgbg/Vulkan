@@ -9,13 +9,13 @@
 class BoundImage {
  public:
   BoundImage() = default;
-  BoundImage(Image image, BoundDeviceMemory memory);
+  BoundImage(vk::Image image, vk::BoundDeviceMemory memory);
 
-  ImageView CreateView(const ImageViewCreateInfoBuilder& infoBuilder) const;
+  vk::ImageView CreateView(const ImageViewCreateInfoBuilder& infoBuilder) const;
 
  private:
-  Image image_;
-  BoundDeviceMemory memory_;
+  vk::Image image_;
+  vk::BoundDeviceMemory memory_;
 };
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_BOUNDIMAGE_H_

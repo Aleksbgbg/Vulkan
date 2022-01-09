@@ -10,6 +10,8 @@
 #include "GraphicsPipeline.h"
 #include "renderer/vulkan/api/structures/DescriptorPoolCreateInfo.h"
 
+namespace vk {
+
 class DescriptorPool {
  public:
   DescriptorPool();
@@ -33,5 +35,7 @@ class DescriptorPool {
   VkDevice device;
   VkDescriptorPool descriptorPool;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_DESCRIPTORPOOL_H_

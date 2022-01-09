@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 ShaderModule::ShaderModule() : shaderModule(nullptr) {}
 
 ShaderModule::ShaderModule(VkDevice device, const VkShaderStageFlagBits stage,
@@ -32,3 +34,5 @@ ShaderModule& ShaderModule::operator=(ShaderModule&& other) noexcept {
   stage = other.stage;
   return *this;
 }
+
+}  // namespace vk

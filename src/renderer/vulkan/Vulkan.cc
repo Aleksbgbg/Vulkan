@@ -46,9 +46,9 @@
 
 static constexpr u32 WANTED_SWAPCHAIN_IMAGES = 3u;
 
-VulkanInstance CreateVulkanInstance(const VulkanSystem& vulkanSystem) {
+vk::VulkanInstance CreateVulkanInstance(const VulkanSystem& vulkanSystem) {
   const std::vector<VkExtensionProperties> availableExtensions =
-      LoadArray(VulkanInstance::LoadInstanceExtensionProperties);
+      vk::LoadArray(vk::VulkanInstance::LoadInstanceExtensionProperties);
 
   const std::vector<const char*> requiredExtensions = {
     VK_KHR_SURFACE_EXTENSION_NAME,
@@ -58,29 +58,30 @@ VulkanInstance CreateVulkanInstance(const VulkanSystem& vulkanSystem) {
 #endif
   };
 
-  if (!RequiredValuesAreAvailable(availableExtensions, requiredExtensions,
-                                  [](const VkExtensionProperties& property) {
-                                    return property.extensionName;
-                                  })) {
+  if (!vk::RequiredValuesAreAvailable(
+          availableExtensions, requiredExtensions,
+          [](const VkExtensionProperties& property) {
+            return property.extensionName;
+          })) {
     throw std::runtime_error("Required extensions not available.");
   }
 
   const std::vector<VkLayerProperties> availableLayers =
-      LoadArray(VulkanInstance::LoadInstanceLayerProperties);
+      vk::LoadArray(vk::VulkanInstance::LoadInstanceLayerProperties);
   const std::vector<const char*> requiredLayers = {
 #ifdef VALIDATION
       "VK_LAYER_KHRONOS_validation",
 #endif
   };
 
-  if (!RequiredValuesAreAvailable(availableLayers, requiredLayers,
-                                  [](const VkLayerProperties& property) {
-                                    return property.layerName;
-                                  })) {
+  if (!vk::RequiredValuesAreAvailable(availableLayers, requiredLayers,
+                                      [](const VkLayerProperties& property) {
+                                        return property.layerName;
+                                      })) {
     throw std::runtime_error("Required layers not available.");
   }
 
-  return VulkanInstance(
+  return vk::VulkanInstance(
       InstanceCreateInfoBuilder()
           .SetApplicationInfo(ApplicationInfoBuilder()
                                   .SetPApplicationName("Application")
@@ -91,8 +92,9 @@ VulkanInstance CreateVulkanInstance(const VulkanSystem& vulkanSystem) {
           .SetPpEnabledLayerNames(requiredLayers.data()));
 }
 
-PhysicalDevice ChoosePhysicalDevice(const VulkanInstance& instance) {
-  std::vector<PhysicalDevice> physicalDevices = instance.GetPhysicalDevices();
+vk::PhysicalDevice ChoosePhysicalDevice(const vk::VulkanInstance& instance) {
+  std::vector<vk::PhysicalDevice> physicalDevices =
+      instance.GetPhysicalDevices();
 
   if (physicalDevices.empty()) {
     throw std::runtime_error("No Vulkan-enabled GPUs found on the machine.");
@@ -119,8 +121,8 @@ u32 CalculateSwapchainImages(
                        surfaceCapabilities.minImageCount, maxImageCount);
 }
 
-u32 ChooseQueueFamily(const PhysicalDevice& physicalDevice,
-                      const Surface& windowSurface) {
+u32 ChooseQueueFamily(const vk::PhysicalDevice& physicalDevice,
+                      const vk::Surface& windowSurface) {
   const std::optional<u32> queueFamilyIndex =
       physicalDevice.FindAppropriateQueueFamily(
           VK_QUEUE_GRAPHICS_BIT, [&](const u32 queueFamilyIndex) {
@@ -136,7 +138,7 @@ u32 ChooseQueueFamily(const PhysicalDevice& physicalDevice,
   return queueFamilyIndex.value();
 }
 
-u32 ChooseComputeFamily(const PhysicalDevice& physicalDevice) {
+u32 ChooseComputeFamily(const vk::PhysicalDevice& physicalDevice) {
   const std::optional<u32> queueFamilyIndex =
       physicalDevice.FindAppropriateQueueFamily(VK_QUEUE_TRANSFER_BIT |
                                                 VK_QUEUE_COMPUTE_BIT);
@@ -148,9 +150,9 @@ u32 ChooseComputeFamily(const PhysicalDevice& physicalDevice) {
   return queueFamilyIndex.value();
 }
 
-VirtualDevice CreateVirtualDevice(const PhysicalDevice& physicalDevice,
-                                  const u32 graphicsQueueFamily,
-                                  const u32 computeQueueFamily) {
+vk::VirtualDevice CreateVirtualDevice(const vk::PhysicalDevice& physicalDevice,
+                                      const u32 graphicsQueueFamily,
+                                      const u32 computeQueueFamily) {
   const std::vector<const char*> deviceExtensions{
       VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
@@ -186,7 +188,8 @@ VirtualDevice CreateVirtualDevice(const PhysicalDevice& physicalDevice,
           .SetPpEnabledExtensionNames(deviceExtensions.data()));
 }
 
-PipelineCache LoadOrCreatePipelineCache(const VirtualDevice& virtualDevice) {
+vk::PipelineCache LoadOrCreatePipelineCache(
+    const vk::VirtualDevice& virtualDevice) {
   if (std::filesystem::exists(PIPELINE_CACHE_FILENAME)) {
     return virtualDevice.LoadPipelineCache(
         file::ReadFile(PIPELINE_CACHE_FILENAME));
@@ -248,7 +251,7 @@ VkSampleCountFlagBits Vulkan::SelectMsaaSamples(
   return VK_SAMPLE_COUNT_1_BIT;
 }
 
-RenderPass Vulkan::CreateRenderPass() const {
+vk::RenderPass Vulkan::CreateRenderPass() const {
   const VkFormat swapchainImageFormat = surfaceFormat_.format;
   const std::array<VkAttachmentDescription, 3> attachmentDescriptions{
       AttachmentDescriptionBuilder()
@@ -305,7 +308,7 @@ RenderPass Vulkan::CreateRenderPass() const {
           .SetPSubpasses(subpasses.data()));
 }
 
-DescriptorPool MakeDescriptorPool(const VirtualDevice& virtualDevice) {
+vk::DescriptorPool MakeDescriptorPool(const vk::VirtualDevice& virtualDevice) {
   constexpr std::array<VkDescriptorPoolSize, 3> descriptorPoolSizes{
       DescriptorPoolSizeBuilder()
           .SetType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
@@ -524,7 +527,7 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
               .SetMaxAnisotropy(
                   physicalDeviceProperties_.limits.maxSamplerAnisotropy))),
       renderPass_(CreateRenderPass()),
-      subpass0_(SubpassReference(renderPass_, 0)),
+      subpass0_(vk::SubpassReference(renderPass_, 0)),
       renderCommandPool_(graphicsQueue_.CreateCommandPool(
           VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)),
       swapchain_(*this),
@@ -586,16 +589,16 @@ VkBool32 Vulkan::DebugCallback(
 Texture Vulkan::LoadTexture(const std::string_view filename) {
   const file::Image image = file::ReadPng(filename);
 
-  const Buffer stagingBuffer = virtualDevice_.CreateBuffer(
+  const vk::Buffer stagingBuffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(image.size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  const BoundDeviceMemory stagingBufferMemory = deviceAllocator_.BindMemory(
+  const vk::BoundDeviceMemory stagingBufferMemory = deviceAllocator_.BindMemory(
       stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
   stagingBufferMemory.MapCopy(image.data.data(), stagingBuffer.Size());
 
-  Image textureImage =
+  vk::Image textureImage =
       virtualDevice_.CreateImage(ImageCreateInfoBuilder(IMAGE_2D)
                                      .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
                                      .SetExtent(Extent3DBuilder()
@@ -604,7 +607,7 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
                                                     .SetDepth(1))
                                      .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                                                VK_IMAGE_USAGE_SAMPLED_BIT));
-  BoundDeviceMemory textureImageMemory = deviceAllocator_.BindMemory(
+  vk::BoundDeviceMemory textureImageMemory = deviceAllocator_.BindMemory(
       textureImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   shortExecutionCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
@@ -635,7 +638,7 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
           .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
   shortExecutionCommandBuffer_.End().Submit(fence_).Wait().Reset();
 
-  ImageView textureView = textureImage.CreateView(
+  vk::ImageView textureView = textureImage.CreateView(
       ImageViewCreateInfoBuilder()
           .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
           .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
@@ -651,11 +654,11 @@ IndexedVertexBuffer Vulkan::AllocateDrawBuffer(
   const VkDeviceSize size =
       vertexData.verticesMemorySize + vertexData.indicesMemorySize;
 
-  Buffer stagingBuffer = virtualDevice_.CreateBuffer(
+  vk::Buffer stagingBuffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-  BoundDeviceMemory stagingBufferMemory = deviceAllocator_.BindMemory(
+  vk::BoundDeviceMemory stagingBufferMemory = deviceAllocator_.BindMemory(
       stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
   void* memory = stagingBufferMemory.Map(0, stagingBuffer.Size());
@@ -664,13 +667,13 @@ IndexedVertexBuffer Vulkan::AllocateDrawBuffer(
               vertexData.indices, vertexData.indicesMemorySize);
   stagingBufferMemory.Unmap();
 
-  Buffer finalBuffer = virtualDevice_.CreateBuffer(
+  vk::Buffer finalBuffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(size)
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                     VK_BUFFER_USAGE_INDEX_BUFFER_BIT));
-  BoundDeviceMemory finalBufferMemory = deviceAllocator_.BindMemory(
+  vk::BoundDeviceMemory finalBufferMemory = deviceAllocator_.BindMemory(
       finalBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   shortExecutionCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
@@ -700,46 +703,48 @@ SwapchainCreateInfoBuilder Vulkan::SwapchainCreateInfo() const {
       .SetClipped(VK_TRUE);
 }
 
-Swapchain Vulkan::CreateSwapchain() const {
+vk::Swapchain Vulkan::CreateSwapchain() const {
   return virtualDevice_.CreateSwapchain(windowSurface_, SwapchainCreateInfo());
 }
 
-Swapchain Vulkan::CreateSwapchain(const Swapchain& oldSwapchain) const {
+vk::Swapchain Vulkan::CreateSwapchain(const vk::Swapchain& oldSwapchain) const {
   return virtualDevice_.CreateSwapchain(windowSurface_, oldSwapchain,
                                         SwapchainCreateInfo());
 }
 
-BoundImage Vulkan::CreateDepthStencilAttachment(const Swapchain& swapchain) {
-  Image image = virtualDevice_.CreateImage(
+BoundImage Vulkan::CreateDepthStencilAttachment(
+    const vk::Swapchain& swapchain) {
+  vk::Image image = virtualDevice_.CreateImage(
       ImageCreateInfoBuilder(IMAGE_2D)
           .SetFormat(depthStencilFormat_)
           .SetSamples(samples_)
           .SetExtent(Extent3DBuilder(swapchain.GetImageExtent()).SetDepth(1))
           .SetUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
-  BoundDeviceMemory memory =
+  vk::BoundDeviceMemory memory =
       deviceAllocator_.BindMemory(image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   return BoundImage(std::move(image), std::move(memory));
 }
 
-BoundImage Vulkan::CreateMultisamplingAttachment(const Swapchain& swapchain) {
-  Image image = virtualDevice_.CreateImage(
+BoundImage Vulkan::CreateMultisamplingAttachment(
+    const vk::Swapchain& swapchain) {
+  vk::Image image = virtualDevice_.CreateImage(
       ImageCreateInfoBuilder(IMAGE_2D)
           .SetFormat(swapchain.GetImageFormat())
           .SetExtent(Extent3DBuilder(swapchain.GetImageExtent()).SetDepth(1))
           .SetSamples(samples_)
           .SetUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT));
-  BoundDeviceMemory memory =
+  vk::BoundDeviceMemory memory =
       deviceAllocator_.BindMemory(image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   return BoundImage(std::move(image), std::move(memory));
 }
 
-std::vector<Framebuffer> Vulkan::GetFramebuffers(
-    const Swapchain& swapchain,
-    const std::vector<const ImageView*>& attachments) const {
+std::vector<vk::Framebuffer> Vulkan::GetFramebuffers(
+    const vk::Swapchain& swapchain,
+    const std::vector<const vk::ImageView*>& attachments) const {
   return swapchain.GetFramebuffers(renderPass_, attachments);
 }
 
-Semaphore Vulkan::CreateSemaphore() const {
+vk::Semaphore Vulkan::CreateSemaphore() const {
   return virtualDevice_.CreateSemaphore();
 }
 
@@ -943,7 +948,7 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
   swapchainRender.transfer.End();
   swapchainRender.graphics.End();
 
-  const CommandBuffer& commandBuffer = swapchainRender.main;
+  const vk::CommandBuffer& commandBuffer = swapchainRender.main;
 
   commandBuffer.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
   commandBuffer.CmdExecuteCommands(swapchainRender.transfer);
@@ -958,36 +963,36 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
   commandBuffer.CmdEndRenderPass();
   commandBuffer.End();
   commandBuffer.Submit(
-      SynchronisationPack()
+      vk::SynchronisationPack()
           .SetWaitSemaphore(&nextImageResult.semaphore)
           .SetSignalSemaphore(&swapchainRender.renderCompleteSemaphore)
           .SetSignalFence(&swapchainRender.submitCompleteFence));
   swapchain_.Present(graphicsQueue_,
-                     SynchronisationPack().SetWaitSemaphore(
+                     vk::SynchronisationPack().SetWaitSemaphore(
                          &swapchainRender.renderCompleteSemaphore));
 }
 
-DescriptorSetLayout Vulkan::CreateDescriptorSetLayout(
+vk::DescriptorSetLayout Vulkan::CreateDescriptorSetLayout(
     const DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const {
   return virtualDevice_.CreateDescriptorSetLayout(infoBuilder);
 }
 
-DescriptorSet Vulkan::CreateDescriptorSet(
-    const DescriptorSetLayout& layout) const {
+vk::DescriptorSet Vulkan::CreateDescriptorSet(
+    const vk::DescriptorSetLayout& layout) const {
   return descriptorPool_.AllocateDescriptorSet(layout);
 }
 
 void Vulkan::UpdateDescriptorSets(
-    const std::vector<DescriptorSet::WriteDescriptorSet>& descriptorSetWrites)
-    const {
+    const std::vector<vk::DescriptorSet::WriteDescriptorSet>&
+        descriptorSetWrites) const {
   virtualDevice_.UpdateDescriptorSets(descriptorSetWrites);
 }
 
 BoundBuffer Vulkan::AllocateHostBuffer(const std::size_t size,
                                        const VkBufferUsageFlags usage) {
-  Buffer buffer = virtualDevice_.CreateBuffer(
+  vk::Buffer buffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE).SetSize(size).SetUsage(usage));
-  BoundDeviceMemory memory = deviceAllocator_.BindMemory(
+  vk::BoundDeviceMemory memory = deviceAllocator_.BindMemory(
       buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
   return BoundBuffer(std::move(buffer), std::move(memory));
@@ -995,9 +1000,9 @@ BoundBuffer Vulkan::AllocateHostBuffer(const std::size_t size,
 
 BoundBuffer Vulkan::AllocateDeviceBuffer(const std::size_t size,
                                          const VkBufferUsageFlags usage) {
-  Buffer buffer = virtualDevice_.CreateBuffer(
+  vk::Buffer buffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE).SetSize(size).SetUsage(usage));
-  BoundDeviceMemory bufferMemory =
+  vk::BoundDeviceMemory bufferMemory =
       deviceAllocator_.BindMemory(buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   shortExecutionCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
@@ -1007,18 +1012,18 @@ BoundBuffer Vulkan::AllocateDeviceBuffer(const std::size_t size,
   return BoundBuffer(std::move(buffer), std::move(bufferMemory));
 }
 
-ShaderModule Vulkan::LoadComputeShader(const std::string_view name) const {
+vk::ShaderModule Vulkan::LoadComputeShader(const std::string_view name) const {
   return virtualDevice_.LoadComputeShader(name);
 }
 
-ShaderModule Vulkan::LoadGraphicsShader(
+vk::ShaderModule Vulkan::LoadGraphicsShader(
     const std::string_view name, const VkShaderStageFlagBits stage) const {
   return virtualDevice_.LoadShader(stage, name);
 }
 
-ComputePipeline Vulkan::CreateComputePipeline(
-    const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
-    ShaderModule computeShader) const {
+vk::ComputePipeline Vulkan::CreateComputePipeline(
+    const std::vector<const vk::DescriptorSetLayout*>& descriptorSetLayouts,
+    vk::ShaderModule computeShader) const {
   return virtualDevice_.CreateComputePipeline(
       pipelineCache_,
       virtualDevice_.CreatePipelineLayout(descriptorSetLayouts,
@@ -1026,9 +1031,9 @@ ComputePipeline Vulkan::CreateComputePipeline(
       std::move(computeShader));
 }
 
-GraphicsPipeline Vulkan::CreateGraphicsPipeline(
-    const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
-    std::vector<ShaderModule> shaders,
+vk::GraphicsPipeline Vulkan::CreateGraphicsPipeline(
+    const std::vector<const vk::DescriptorSetLayout*>& descriptorSetLayouts,
+    std::vector<vk::ShaderModule> shaders,
     const VkVertexInputBindingDescription& vertexInputBindingDescription,
     const std::vector<VkVertexInputAttributeDescription>&
         vertexInputAttributeDescriptions) const {

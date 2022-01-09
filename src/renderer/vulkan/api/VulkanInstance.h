@@ -11,6 +11,8 @@
 #include "renderer/vulkan/api/structures/InstanceCreateInfo.h"
 #include "util/types.h"
 
+namespace vk {
+
 class VulkanInstance {
  public:
   VulkanInstance();
@@ -38,5 +40,7 @@ class VulkanInstance {
  private:
   VkInstance instance;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_VULKANINSTANCE_H_

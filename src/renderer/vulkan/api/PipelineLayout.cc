@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 PipelineLayout::PipelineLayout() : pipelineLayout(nullptr) {}
 
 PipelineLayout::PipelineLayout(
@@ -47,3 +49,5 @@ PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept {
   std::swap(pipelineLayout, other.pipelineLayout);
   return *this;
 }
+
+}  // namespace vk

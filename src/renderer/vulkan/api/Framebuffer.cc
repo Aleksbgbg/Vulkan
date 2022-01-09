@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 Framebuffer::Framebuffer() : framebuffer(nullptr) {}
 
 Framebuffer::Framebuffer(VkDevice device,
@@ -29,3 +31,5 @@ Framebuffer& Framebuffer::operator=(Framebuffer&& other) noexcept {
   std::swap(framebuffer, other.framebuffer);
   return *this;
 }
+
+}  // namespace vk

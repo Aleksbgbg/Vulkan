@@ -7,7 +7,7 @@ IndexedVertexBuffer::IndexedVertexBuffer(BoundBuffer vertexIndexBuffer,
       indexDataOffset_(indexDataOffset),
       indexCount_(indexCount) {}
 
-void IndexedVertexBuffer::DrawInstanced(const CommandBuffer& commandBuffer,
+void IndexedVertexBuffer::DrawInstanced(const vk::CommandBuffer& commandBuffer,
                                         const u32 instances) const {
   commandBuffer.CmdBindVertexBuffers(vertexIndexBuffer_.RawBuffer());
   commandBuffer.CmdBindIndexBuffer(vertexIndexBuffer_.RawBuffer(),

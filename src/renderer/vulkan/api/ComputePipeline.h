@@ -7,6 +7,8 @@
 #include "PipelineLayout.h"
 #include "ShaderModule.h"
 
+namespace vk {
+
 class ComputePipeline {
   friend class CommandBuffer;
 
@@ -31,5 +33,7 @@ class ComputePipeline {
   VkPipeline pipeline_;
   PipelineLayout pipelineLayout_;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_COMPUTEPIPELINE_H_

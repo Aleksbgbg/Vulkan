@@ -1,5 +1,7 @@
 #include "SynchronisationPack.h"
 
+namespace vk {
+
 const Semaphore* SynchronisationPack::GetWaitSemaphore() const {
   return waitSemaphore;
 }
@@ -29,3 +31,5 @@ SynchronisationPack& SynchronisationPack::SetSignalFence(
   signalFence = fence;
   return *this;
 }
+
+}  // namespace vk

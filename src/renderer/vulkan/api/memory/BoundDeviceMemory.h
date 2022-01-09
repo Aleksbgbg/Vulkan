@@ -4,6 +4,8 @@
 #include "memory/ReservedBlock.h"
 #include "renderer/vulkan/api/DeviceMemory.h"
 
+namespace vk {
+
 class BoundDeviceMemory {
   friend class DeviceMemoryAllocator;
 
@@ -31,5 +33,7 @@ class BoundDeviceMemory {
 
   VkDeviceSize allocatedMemoryOffset_;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_BOUNDDEVICEMEMORY_H_

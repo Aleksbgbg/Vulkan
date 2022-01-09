@@ -20,6 +20,8 @@
 #include "renderer/vulkan/api/structures/MemoryBarrier.h"
 #include "renderer/vulkan/api/structures/RenderPassBeginInfo.h"
 
+namespace vk {
+
 class CommandBuffer {
  public:
   CommandBuffer();
@@ -112,5 +114,7 @@ class CommandBuffer {
   VkCommandPool commandPool;
   VkCommandBuffer commandBuffer;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_COMMANDBUFFER_H_

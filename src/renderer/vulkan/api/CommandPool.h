@@ -6,6 +6,8 @@
 #include "CommandBuffer.h"
 #include "renderer/vulkan/api/structures/CommandPoolCreateInfo.h"
 
+namespace vk {
+
 class CommandPool {
  public:
   CommandPool();
@@ -31,5 +33,7 @@ class CommandPool {
   VkQueue queue;
   VkCommandPool commandPool;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_COMMANDPOOL_H_

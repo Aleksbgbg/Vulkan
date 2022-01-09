@@ -5,6 +5,8 @@
 
 #include "renderer/vulkan/api/structures/DescriptorSetLayoutCreateInfo.h"
 
+namespace vk {
+
 class DescriptorSetLayout {
   friend class PipelineLayout;
   friend class DescriptorPool;
@@ -26,5 +28,7 @@ class DescriptorSetLayout {
   VkDevice device;
   VkDescriptorSetLayout descriptorSetLayout;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_DESCRIPTORSETLAYOUT_H_

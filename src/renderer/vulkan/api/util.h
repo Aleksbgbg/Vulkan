@@ -7,6 +7,8 @@
 
 #include "util/types.h"
 
+namespace vk {
+
 template <typename>
 struct second_arg;
 
@@ -41,5 +43,7 @@ bool RequiredValuesAreAvailable(
 
   return requiredElementsSet.empty();
 }
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_UTIL_H_

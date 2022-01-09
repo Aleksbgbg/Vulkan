@@ -5,6 +5,8 @@
 
 #include "renderer/vulkan/api/structures/SemaphoreCreateInfo.h"
 
+namespace vk {
+
 class Semaphore {
  public:
   Semaphore();
@@ -25,5 +27,7 @@ class Semaphore {
   VkDevice device;
   VkSemaphore semaphore;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_SEMAPHORE_H_

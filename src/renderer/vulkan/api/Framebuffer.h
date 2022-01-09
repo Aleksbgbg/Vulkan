@@ -5,6 +5,8 @@
 
 #include "renderer/vulkan/api/structures/FramebufferCreateInfo.h"
 
+namespace vk {
+
 class Framebuffer {
   friend class CommandBuffer;
 
@@ -24,5 +26,7 @@ class Framebuffer {
   VkDevice device;
   VkFramebuffer framebuffer;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_FRAMEBUFFER_H_

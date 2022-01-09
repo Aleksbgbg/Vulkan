@@ -5,6 +5,8 @@
 #include "renderer/vulkan/api/structures/CommandBufferInheritanceInfo.h"
 #include "renderer/vulkan/api/structures/SubmitInfo.h"
 
+namespace vk {
+
 CommandBuffer::CommandBuffer() : commandBuffer(nullptr) {}
 
 CommandBuffer::CommandBuffer(VkDevice device, VkQueue queue,
@@ -248,3 +250,5 @@ void CommandBuffer::CmdNextSubpass(const VkSubpassContents contents) const {
 void CommandBuffer::CmdExecuteCommands(const CommandBuffer& other) const {
   vkCmdExecuteCommands(commandBuffer, 1, &other.commandBuffer);
 }
+
+}  // namespace vk

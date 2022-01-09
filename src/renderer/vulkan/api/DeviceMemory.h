@@ -9,6 +9,8 @@
 #include "Image.h"
 #include "renderer/vulkan/api/structures/MemoryAllocateInfo.h"
 
+namespace vk {
+
 class DeviceMemory {
  public:
   DeviceMemory();
@@ -42,5 +44,7 @@ class DeviceMemory {
   VkDevice device;
   VkDeviceMemory memory;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_DEVICEMEMORY_H_

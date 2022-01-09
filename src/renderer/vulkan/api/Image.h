@@ -6,6 +6,8 @@
 #include "ImageView.h"
 #include "renderer/vulkan/api/structures/ImageCreateInfo.h"
 
+namespace vk {
+
 class Image {
   friend class CommandBuffer;
   friend class DeviceMemory;
@@ -31,5 +33,7 @@ class Image {
   VkImage image;
   VkImageCreateInfo createInfo;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_IMAGE_H_

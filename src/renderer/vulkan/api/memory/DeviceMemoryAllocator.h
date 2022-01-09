@@ -11,6 +11,8 @@
 #include "renderer/vulkan/api/Image.h"
 #include "renderer/vulkan/api/VirtualDevice.h"
 
+namespace vk {
+
 class DeviceMemoryAllocator {
  public:
   DeviceMemoryAllocator() = default;
@@ -51,5 +53,7 @@ class DeviceMemoryAllocator {
 
   std::vector<Heap> heapsPerMemoryIndex_;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_MEMORY_DEVICEMEMORYALLOCATOR_H_

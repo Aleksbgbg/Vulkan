@@ -5,6 +5,8 @@
 
 #include "renderer/vulkan/api/structures/ShaderModuleCreateInfo.h"
 
+namespace vk {
+
 class ShaderModule {
   friend class GraphicsPipeline;
   friend class ComputePipeline;
@@ -27,5 +29,7 @@ class ShaderModule {
   VkShaderModule shaderModule;
   VkShaderStageFlagBits stage;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_SHADERMODULE_H_

@@ -5,6 +5,8 @@
 
 #include "renderer/vulkan/api/structures/FenceCreateInfo.h"
 
+namespace vk {
+
 class Fence {
  public:
   Fence();
@@ -28,5 +30,7 @@ class Fence {
   VkDevice device;
   VkFence fence;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_FENCE_H_

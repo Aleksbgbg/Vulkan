@@ -7,6 +7,8 @@
 
 #include "renderer/vulkan/api/structures/PipelineCacheCreateInfo.h"
 
+namespace vk {
+
 class PipelineCache {
   friend class GraphicsPipeline;
   friend class ComputePipeline;
@@ -30,5 +32,7 @@ class PipelineCache {
   VkDevice device;
   VkPipelineCache pipelineCache;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_PIPELINECACHE_H_

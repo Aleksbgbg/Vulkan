@@ -3,7 +3,7 @@
 SwapchainWithResources::SwapchainWithResources(Initializer& initializer)
     : SwapchainWithResources(initializer.CreateSwapchain(), initializer) {}
 
-SwapchainWithResources::SwapchainWithResources(Swapchain inSwapchain,
+SwapchainWithResources::SwapchainWithResources(vk::Swapchain inSwapchain,
                                                Initializer& initializer)
     : swapchain(std::move(inSwapchain)),
       depthStencil(initializer.CreateDepthStencilAttachment(swapchain)),
@@ -53,12 +53,12 @@ SwapchainWithResources::AcquireNextImage() {
   const u32 inFlightImage = currentInFlightImage;
   currentInFlightImage = (currentInFlightImage + 1) % imagesInFlight;
 
-  const Semaphore& acquireImageSemaphore =
+  const vk::Semaphore& acquireImageSemaphore =
       imagesInFlightSynchronisation[inFlightImage].acquireImageSemaphore;
 
-  const Swapchain::AcquireNextImageResult acquireNextImageResult =
+  const vk::Swapchain::AcquireNextImageResult acquireNextImageResult =
       swapchain.AcquireNextImage(
-          SynchronisationPack().SetSignalSemaphore(&acquireImageSemaphore));
+          vk::SynchronisationPack().SetSignalSemaphore(&acquireImageSemaphore));
   currentImageIndex = acquireNextImageResult.imageIndex;
 
   return AcquireNextImageResult{
@@ -69,6 +69,7 @@ SwapchainWithResources::AcquireNextImage() {
 }
 
 void SwapchainWithResources::Present(
-    const Queue& queue, const SynchronisationPack& synchronisation) const {
+    const vk::Queue& queue,
+    const vk::SynchronisationPack& synchronisation) const {
   queue.Present(swapchain, currentImageIndex, synchronisation);
 }

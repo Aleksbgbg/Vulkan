@@ -9,7 +9,8 @@ class IndexedVertexBuffer {
   IndexedVertexBuffer(BoundBuffer vertexIndexBuffer,
                       VkDeviceSize indexDataOffset, u32 indexCount);
 
-  void DrawInstanced(const CommandBuffer& commandBuffer, u32 instances) const;
+  void DrawInstanced(const vk::CommandBuffer& commandBuffer,
+                     u32 instances) const;
 
  private:
   BoundBuffer vertexIndexBuffer_;

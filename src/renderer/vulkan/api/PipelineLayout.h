@@ -8,6 +8,8 @@
 #include "DescriptorSetLayout.h"
 #include "renderer/vulkan/api/structures/PipelineLayoutCreateInfo.h"
 
+namespace vk {
+
 class PipelineLayout {
   friend class GraphicsPipeline;
   friend class ComputePipeline;
@@ -34,5 +36,7 @@ class PipelineLayout {
   VkDevice device;
   VkPipelineLayout pipelineLayout;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_PIPELINELAYOUT_H_

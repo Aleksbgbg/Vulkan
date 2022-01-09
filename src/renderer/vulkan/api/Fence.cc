@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 Fence::Fence() : fence(nullptr) {}
 
 Fence::Fence(const VkDevice device) : Fence(device, 0) {}
@@ -46,3 +48,5 @@ const Fence& Fence::Reset() const {
   PROCEED_ON_VALID_RESULT(vkResetFences(device, 1, &fence))
   return *this;
 }
+
+}  // namespace vk

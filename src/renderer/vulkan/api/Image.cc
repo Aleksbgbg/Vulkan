@@ -3,6 +3,8 @@
 #include "DeviceMemory.h"
 #include "error.h"
 
+namespace vk {
+
 Image::Image() : image(nullptr) {}
 
 Image::Image(VkDevice device, const ImageCreateInfoBuilder& infoBuilder)
@@ -38,3 +40,5 @@ ImageView Image::CreateView(ImageViewCreateInfoBuilder infoBuilder) const {
   return ImageView(device,
                    infoBuilder.SetImage(image).SetFormat(createInfo.format));
 }
+
+}  // namespace vk

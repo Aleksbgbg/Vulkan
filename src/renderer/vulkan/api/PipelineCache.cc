@@ -2,6 +2,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 PipelineCache::PipelineCache() : pipelineCache(nullptr) {}
 
 PipelineCache::PipelineCache(VkDevice device,
@@ -37,3 +39,5 @@ std::vector<u8> PipelineCache::GetPipelineCacheData() const {
       vkGetPipelineCacheData(device, pipelineCache, &dataSize, data.data()));
   return data;
 }
+
+}  // namespace vk

@@ -16,7 +16,7 @@ struct Binding {
   VkBufferUsageFlags bufferUsage;
   VkDescriptorType type;
   VkShaderStageFlags stageFlags;
-  const Sampler* sampler;
+  const vk::Sampler* sampler;
 };
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_BINDING_H_

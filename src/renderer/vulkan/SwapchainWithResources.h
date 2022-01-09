@@ -13,26 +13,27 @@ class SwapchainWithResources {
    public:
     virtual ~Initializer() = default;
 
-    virtual Swapchain CreateSwapchain() const = 0;
-    virtual Swapchain CreateSwapchain(const Swapchain& oldSwapchain) const = 0;
+    virtual vk::Swapchain CreateSwapchain() const = 0;
+    virtual vk::Swapchain CreateSwapchain(
+        const vk::Swapchain& oldSwapchain) const = 0;
 
     virtual BoundImage CreateDepthStencilAttachment(
-        const Swapchain& swapchain) = 0;
+        const vk::Swapchain& swapchain) = 0;
     virtual BoundImage CreateMultisamplingAttachment(
-        const Swapchain& swapchain) = 0;
+        const vk::Swapchain& swapchain) = 0;
 
-    virtual std::vector<Framebuffer> GetFramebuffers(
-        const Swapchain& swapchain,
-        const std::vector<const ImageView*>& attachments) const = 0;
+    virtual std::vector<vk::Framebuffer> GetFramebuffers(
+        const vk::Swapchain& swapchain,
+        const std::vector<const vk::ImageView*>& attachments) const = 0;
 
-    virtual Semaphore CreateSemaphore() const = 0;
+    virtual vk::Semaphore CreateSemaphore() const = 0;
   };
 
   struct AcquireNextImageResult {
     u32 imageIndex;
     VkResult status;
-    const Semaphore& semaphore;
-    const Framebuffer& framebuffer;
+    const vk::Semaphore& semaphore;
+    const vk::Framebuffer& framebuffer;
   };
 
   SwapchainWithResources() = default;
@@ -45,27 +46,27 @@ class SwapchainWithResources {
 
   AcquireNextImageResult AcquireNextImage();
 
-  void Present(const Queue& queue,
-               const SynchronisationPack& synchronisation) const;
+  void Present(const vk::Queue& queue,
+               const vk::SynchronisationPack& synchronisation) const;
 
  private:
-  SwapchainWithResources(Swapchain inSwapchain, Initializer& initializer);
+  SwapchainWithResources(vk::Swapchain inSwapchain, Initializer& initializer);
 
  private:
-  Swapchain swapchain;
+  vk::Swapchain swapchain;
 
   BoundImage depthStencil;
-  ImageView depthStencilView;
+  vk::ImageView depthStencilView;
 
   BoundImage multisampling;
-  ImageView multisamplingImageView;
+  vk::ImageView multisamplingImageView;
 
-  std::vector<Framebuffer> swapchainFramebuffers;
+  std::vector<vk::Framebuffer> swapchainFramebuffers;
 
   u32 imagesInFlight;
 
   struct InFlightImage {
-    Semaphore acquireImageSemaphore;
+    vk::Semaphore acquireImageSemaphore;
   };
   std::vector<InFlightImage> imagesInFlightSynchronisation;
   u32 currentInFlightImage;

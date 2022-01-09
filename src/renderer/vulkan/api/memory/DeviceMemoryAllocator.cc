@@ -2,7 +2,13 @@
 
 #include <stdexcept>
 
+namespace {
+
 static constexpr u32 InitialAllocationSize = 1u * 1024u * 1024u;
+
+}  // namespace
+
+namespace vk {
 
 struct DeviceMemoryObject : public Allocator::MemoryObject {
   DeviceMemoryObject(DeviceMemory deviceMemory)
@@ -72,3 +78,5 @@ BoundDeviceMemory DeviceMemoryAllocator::ReserveMemoryBlock(
       &reservedBlock.GetMemoryObjectAs<DeviceMemoryObject>().deviceMemory,
       std::move(reservedBlock));
 }
+
+}  // namespace vk

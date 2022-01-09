@@ -5,6 +5,8 @@
 
 #include "renderer/vulkan/api/structures/BufferCreateInfo.h"
 
+namespace vk {
+
 class Buffer {
   friend class CommandBuffer;
   friend class DescriptorSet;
@@ -31,5 +33,7 @@ class Buffer {
   VkBuffer buffer_;
   VkDeviceSize size_;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_BUFFER_H_

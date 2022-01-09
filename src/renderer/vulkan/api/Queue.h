@@ -8,9 +8,9 @@
 #include "Swapchain.h"
 #include "util/types.h"
 
-class Queue {
-  friend class ImGuiInstance;
+namespace vk {
 
+class Queue {
  public:
   Queue() = default;
   Queue(VkDevice device, VkQueue queue, const u32 familyIndex);
@@ -27,5 +27,7 @@ class Queue {
   VkQueue queue;
   u32 familyIndex;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_QUEUE_H_

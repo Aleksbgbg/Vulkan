@@ -17,7 +17,7 @@ class WindowsWindow : public sys::Window {
         instanceHandle_(instanceHandle),
         windowHandle_(windowHandle) {}
 
-  Surface CreateWindowSurface(VkInstance vulkanInstance) const {
+  vk::Surface CreateWindowSurface(VkInstance vulkanInstance) const {
     VkSurfaceKHR surface;
     PROCEED_ON_VALID_RESULT(
         vkCreateWin32SurfaceKHR(vulkanInstance,
@@ -26,7 +26,7 @@ class WindowsWindow : public sys::Window {
                                     .SetHwnd(windowHandle_)
                                     .Build(),
                                 nullptr, &surface));
-    return Surface(vulkanInstance, surface);
+    return vk::Surface(vulkanInstance, surface);
   }
 
  private:

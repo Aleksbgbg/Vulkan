@@ -4,6 +4,8 @@
 #include "DeviceMemory.h"
 #include "error.h"
 
+namespace vk {
+
 Buffer::Buffer() : buffer_(nullptr) {}
 
 Buffer::Buffer(VkDevice device, const BufferCreateInfoBuilder& infoBuilder)
@@ -41,3 +43,5 @@ VkMemoryRequirements Buffer::GetMemoryRequirements() const {
   vkGetBufferMemoryRequirements(device_, buffer_, &memoryRequirements);
   return memoryRequirements;
 }
+
+}  // namespace vk

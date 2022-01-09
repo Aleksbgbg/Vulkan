@@ -10,6 +10,8 @@
 #include "SubpassReference.h"
 #include "renderer/vulkan/api/structures/GraphicsPipelineCreateInfo.h"
 
+namespace vk {
+
 class GraphicsPipeline {
   friend class CommandBuffer;
 
@@ -36,5 +38,7 @@ class GraphicsPipeline {
   VkPipeline pipeline;
   PipelineLayout pipelineLayout;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_GRAPHICSPIPELINE_H_

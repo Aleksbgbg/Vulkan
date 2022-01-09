@@ -7,6 +7,8 @@
 #include "renderer/vulkan/api/structures/SpecializationInfo.h"
 #include "renderer/vulkan/api/structures/SpecializationMapEntry.h"
 
+namespace vk {
+
 ComputePipeline::ComputePipeline() : pipeline_(nullptr) {}
 
 ComputePipeline::ComputePipeline(VkDevice device,
@@ -69,3 +71,5 @@ ComputePipeline& ComputePipeline::operator=(ComputePipeline&& other) noexcept {
 const PipelineLayout& ComputePipeline::GetLayout() const {
   return pipelineLayout_;
 }
+
+}  // namespace vk

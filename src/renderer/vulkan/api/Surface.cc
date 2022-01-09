@@ -1,5 +1,7 @@
 #include "Surface.h"
 
+namespace vk {
+
 Surface::Surface() : surface(nullptr) {}
 
 Surface::Surface(VkInstance instance, VkSurfaceKHR surface)
@@ -41,3 +43,5 @@ std::vector<VkPresentModeKHR> Surface::GetPresentModes(
     const PhysicalDevice& physicalDevice) const {
   return physicalDevice.GetPresentModes(surface);
 }
+
+}  // namespace vk

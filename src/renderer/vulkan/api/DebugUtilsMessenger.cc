@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 DebugUtilsMessenger::DebugUtilsMessenger() : messenger(nullptr) {}
 
 DebugUtilsMessenger::DebugUtilsMessenger(
@@ -54,3 +56,5 @@ void DebugUtilsMessenger::vkDeleteDebugUtilsMessengerEXT(
 
   return function(instance, messenger, pAllocator);
 }
+
+}  // namespace vk

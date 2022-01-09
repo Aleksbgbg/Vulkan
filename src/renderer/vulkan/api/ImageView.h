@@ -5,6 +5,8 @@
 
 #include "renderer/vulkan/api/structures/ImageViewCreateInfo.h"
 
+namespace vk {
+
 class ImageView {
   friend class Swapchain;
   friend class DescriptorSet;
@@ -25,5 +27,7 @@ class ImageView {
   VkDevice device;
   VkImageView imageView;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_IMAGEVIEW_H_

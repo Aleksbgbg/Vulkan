@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 ImageView::ImageView() : imageView(nullptr) {}
 
 ImageView::ImageView(VkDevice device,
@@ -29,3 +31,5 @@ ImageView& ImageView::operator=(ImageView&& other) noexcept {
   std::swap(imageView, other.imageView);
   return *this;
 }
+
+}  // namespace vk

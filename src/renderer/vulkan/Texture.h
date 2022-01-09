@@ -6,7 +6,7 @@
 
 struct Texture {
   BoundImage image;
-  ImageView view;
+  vk::ImageView view;
 };
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_TEXTURE_H_

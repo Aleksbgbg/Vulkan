@@ -1,5 +1,7 @@
 #include "DescriptorSet.h"
 
+namespace vk {
+
 DescriptorSet::WriteDescriptorSet::WriteDescriptorSet(
     DescriptorBufferInfoBuilder descriptorBuilder,
     WriteDescriptorSetBuilder writeBuilder)
@@ -101,3 +103,5 @@ DescriptorSet::WriteDescriptorSet DescriptorSet::CreateImageSamplerWrite(
           .SetDstBinding(binding)
           .SetDescriptorCount(1));
 }
+
+}  // namespace vk

@@ -6,6 +6,8 @@
 #include "error.h"
 #include "renderer/vulkan/api/structures/DescriptorSetAllocateInfo.h"
 
+namespace vk {
+
 DescriptorPool::DescriptorPool() : descriptorPool(nullptr) {}
 
 DescriptorPool::DescriptorPool(
@@ -66,3 +68,5 @@ std::vector<DescriptorSet> DescriptorPool::AllocateDescriptorSets(
                  });
   return descriptorSets;
 }
+
+}  // namespace vk

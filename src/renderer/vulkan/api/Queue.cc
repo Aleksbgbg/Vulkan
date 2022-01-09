@@ -3,6 +3,8 @@
 #include "error.h"
 #include "renderer/vulkan/api/structures/PresentInfoKHR.h"
 
+namespace vk {
+
 Queue::Queue(VkDevice device, VkQueue queue, const u32 familyIndex)
     : device(device), queue(queue), familyIndex(familyIndex) {}
 
@@ -37,3 +39,5 @@ VkResult Queue::Present(const Swapchain& swapchain, const u32 imageIndex,
 
   return status;
 }
+
+}  // namespace vk

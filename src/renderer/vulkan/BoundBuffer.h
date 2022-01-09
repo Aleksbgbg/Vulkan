@@ -9,12 +9,12 @@
 class BoundBuffer {
  public:
   BoundBuffer() = default;
-  BoundBuffer(Buffer buffer, BoundDeviceMemory memory);
+  BoundBuffer(vk::Buffer buffer, vk::BoundDeviceMemory memory);
 
-  const Buffer& RawBuffer() const;
+  const vk::Buffer& RawBuffer() const;
 
-  DescriptorSet::WriteDescriptorSet WriteBuffer(
-      const DescriptorSet& descriptorSet, VkDescriptorType descriptorType,
+  vk::DescriptorSet::WriteDescriptorSet WriteBuffer(
+      const vk::DescriptorSet& descriptorSet, VkDescriptorType descriptorType,
       u32 binding) const;
 
   void* Map() const;
@@ -24,8 +24,8 @@ class BoundBuffer {
   void MapCopy(const void* data, VkDeviceSize size) const;
 
  private:
-  Buffer buffer_;
-  BoundDeviceMemory memory_;
+  vk::Buffer buffer_;
+  vk::BoundDeviceMemory memory_;
 };
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_BOUNDBUFFER_H_

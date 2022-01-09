@@ -5,6 +5,8 @@
 
 #include "renderer/vulkan/api/structures/DebugUtilsMessengerCreateInfo.h"
 
+namespace vk {
+
 class DebugUtilsMessenger {
  public:
   DebugUtilsMessenger();
@@ -34,5 +36,7 @@ class DebugUtilsMessenger {
   VkInstance instance;
   VkDebugUtilsMessengerEXT messenger;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_DEBUGUTILSMESSENGER_H_

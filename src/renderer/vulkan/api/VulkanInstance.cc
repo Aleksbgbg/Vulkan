@@ -3,6 +3,8 @@
 #include "error.h"
 #include "util.h"
 
+namespace vk {
+
 VulkanInstance::VulkanInstance() : instance(nullptr) {}
 
 VulkanInstance::VulkanInstance(const InstanceCreateInfoBuilder& infoBuilder) {
@@ -57,3 +59,5 @@ void VulkanInstance::LoadInstanceLayerProperties(
     u32* const count, VkLayerProperties* const properties) {
   PROCEED_ON_VALID_RESULT(vkEnumerateInstanceLayerProperties(count, properties))
 }
+
+}  // namespace vk

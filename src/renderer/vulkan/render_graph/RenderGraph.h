@@ -22,12 +22,12 @@ class RenderGraph {
    public:
     virtual ~ResourceAllocator() = default;
 
-    virtual DescriptorSetLayout CreateDescriptorSetLayout(
+    virtual vk::DescriptorSetLayout CreateDescriptorSetLayout(
         const DescriptorSetLayoutCreateInfoBuilder& infoBuilder) const = 0;
-    virtual DescriptorSet CreateDescriptorSet(
-        const DescriptorSetLayout& layout) const = 0;
+    virtual vk::DescriptorSet CreateDescriptorSet(
+        const vk::DescriptorSetLayout& layout) const = 0;
     virtual void UpdateDescriptorSets(
-        const std::vector<DescriptorSet::WriteDescriptorSet>&
+        const std::vector<vk::DescriptorSet::WriteDescriptorSet>&
             descriptorSetWrites) const = 0;
 
     virtual BoundBuffer AllocateHostBuffer(std::size_t size,
@@ -35,16 +35,16 @@ class RenderGraph {
     virtual BoundBuffer AllocateDeviceBuffer(std::size_t size,
                                              VkBufferUsageFlags usage) = 0;
 
-    virtual ShaderModule LoadComputeShader(std::string_view name) const = 0;
-    virtual ShaderModule LoadGraphicsShader(
+    virtual vk::ShaderModule LoadComputeShader(std::string_view name) const = 0;
+    virtual vk::ShaderModule LoadGraphicsShader(
         std::string_view name, VkShaderStageFlagBits stage) const = 0;
 
-    virtual ComputePipeline CreateComputePipeline(
-        const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
-        ShaderModule computeShader) const = 0;
-    virtual GraphicsPipeline CreateGraphicsPipeline(
-        const std::vector<const DescriptorSetLayout*>& descriptorSetLayouts,
-        std::vector<ShaderModule> shaders,
+    virtual vk::ComputePipeline CreateComputePipeline(
+        const std::vector<const vk::DescriptorSetLayout*>& descriptorSetLayouts,
+        vk::ShaderModule computeShader) const = 0;
+    virtual vk::GraphicsPipeline CreateGraphicsPipeline(
+        const std::vector<const vk::DescriptorSetLayout*>& descriptorSetLayouts,
+        std::vector<vk::ShaderModule> shaders,
         const VkVertexInputBindingDescription& vertexInputBindingDescription,
         const std::vector<VkVertexInputAttributeDescription>&
             vertexInputAttributeDescriptions) const = 0;
@@ -60,7 +60,7 @@ class RenderGraph {
   };
 
   struct Descriptor {
-    DescriptorSet set;
+    vk::DescriptorSet set;
     std::vector<std::shared_ptr<DescriptorBinding>> bindings;
   };
 
@@ -70,8 +70,8 @@ class RenderGraph {
   };
 
   struct ComputePipeline {
-    ::ComputePipeline pipeline;
-    DescriptorSetLayout descriptorLayout;
+    vk::ComputePipeline pipeline;
+    vk::DescriptorSetLayout descriptorLayout;
     DescriptorSetStructure descriptorStructure;
     ResourceList<ComputeInstance> instances;
   };
@@ -84,8 +84,8 @@ class RenderGraph {
   };
 
   struct RenderPipeline {
-    GraphicsPipeline pipeline;
-    DescriptorSetLayout descriptorLayout;
+    vk::GraphicsPipeline pipeline;
+    vk::DescriptorSetLayout descriptorLayout;
     DescriptorSetStructure descriptorStructure;
     ResourceList<RenderInstance> instances;
     std::vector<std::list<RenderInstance>> instancesToReleasePerFrame;
@@ -94,13 +94,13 @@ class RenderGraph {
   template <typename TPipeline>
   struct PipelineGraph {
     std::unordered_map<PipelineKey, TPipeline> pipelines;
-    const PipelineLayout* rootPipelineLayout;
-    DescriptorSetLayout descriptorLayout;
+    const vk::PipelineLayout* rootPipelineLayout;
+    vk::DescriptorSetLayout descriptorLayout;
     Descriptor descriptor;
   };
 
   ResourceAllocator& allocator_;
-  std::vector<DescriptorSet::WriteDescriptorSet> descriptorSetWrites_;
+  std::vector<vk::DescriptorSet::WriteDescriptorSet> descriptorSetWrites_;
   PipelineGraph<ComputePipeline> computePipelineGraph_;
   PipelineGraph<RenderPipeline> graphicsPipelineGraph_;
 
@@ -110,11 +110,11 @@ class RenderGraph {
 
   std::unique_ptr<Resource> Insert(InsertPipelineBuilder insertBuilder);
 
-  void ExecuteComputePipelines(const CommandBuffer& transfer,
-                               const CommandBuffer& compute,
+  void ExecuteComputePipelines(const vk::CommandBuffer& transfer,
+                               const vk::CommandBuffer& compute,
                                const void* globalUniformData);
-  void ExecuteRenderPipelines(const CommandBuffer& transfer,
-                              const CommandBuffer& graphics,
+  void ExecuteRenderPipelines(const vk::CommandBuffer& transfer,
+                              const vk::CommandBuffer& graphics,
                               const void* globalUniformData, u32 frameIndex);
 
  private:
@@ -135,7 +135,7 @@ class RenderGraph {
   BufferDescriptor AllocateBufferDescriptor(const Binding& binding,
                                             u32 instances);
 
-  Descriptor CreateDescriptor(const DescriptorSetLayout& layout,
+  Descriptor CreateDescriptor(const vk::DescriptorSetLayout& layout,
                               const DescriptorSetStructure& structure);
 
   void FlushDescriptors();

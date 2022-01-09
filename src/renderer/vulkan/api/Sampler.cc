@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 Sampler::Sampler() : sampler(nullptr) {}
 
 Sampler::Sampler(VkDevice device, SamplerCreateInfoBuilder& infoBuilder)
@@ -28,3 +30,5 @@ Sampler& Sampler::operator=(Sampler&& other) noexcept {
   std::swap(sampler, other.sampler);
   return *this;
 }
+
+}  // namespace vk

@@ -34,7 +34,7 @@ std::string ShaderName(const std::string_view pipelineName,
 
 }  // namespace
 
-DescriptorSetLayout DescriptorSetStructureAsLayout(
+vk::DescriptorSetLayout DescriptorSetStructureAsLayout(
     const DescriptorSetStructure& structure,
     const RenderGraph::ResourceAllocator& initializer) {
   std::vector<VkDescriptorSetLayoutBinding> descriptorBindings;
@@ -82,7 +82,7 @@ RenderGraph::BufferDescriptor RenderGraph::AllocateBufferDescriptor(
 }
 
 RenderGraph::Descriptor RenderGraph::CreateDescriptor(
-    const DescriptorSetLayout& layout,
+    const vk::DescriptorSetLayout& layout,
     const DescriptorSetStructure& structure) {
   Descriptor descriptor{.set = allocator_.CreateDescriptorSet(layout)};
 
@@ -119,7 +119,7 @@ RenderGraph::RenderGraph(RenderGraph::ResourceAllocator& allocator,
                        layout.globalGraphicsDescriptors);
 
   for (const auto& pipelineStructure : layout.computePipelines) {
-    DescriptorSetLayout descriptorLayout = DescriptorSetStructureAsLayout(
+    vk::DescriptorSetLayout descriptorLayout = DescriptorSetStructureAsLayout(
         pipelineStructure.descriptors, allocator_);
 
     computePipelineGraph_.pipelines.insert(std::make_pair(
@@ -134,9 +134,9 @@ RenderGraph::RenderGraph(RenderGraph::ResourceAllocator& allocator,
             .descriptorStructure = pipelineStructure.descriptors}));
   }
   for (const auto& pipelineStructure : layout.graphicsPipelines) {
-    DescriptorSetLayout descriptorLayout = DescriptorSetStructureAsLayout(
+    vk::DescriptorSetLayout descriptorLayout = DescriptorSetStructureAsLayout(
         pipelineStructure.descriptors, allocator_);
-    std::vector<ShaderModule> shaders;
+    std::vector<vk::ShaderModule> shaders;
     for (const auto& shader : pipelineStructure.shaders) {
       shaders.push_back(allocator_.LoadGraphicsShader(
           ShaderName(pipelineStructure.name, shader.shaderStage),
@@ -344,8 +344,8 @@ std::unique_ptr<Resource> RenderGraph::InsertRender(const PipelineKey key,
        .drawInstances = insertInfo.instances});
 }
 
-void RenderGraph::ExecuteComputePipelines(const CommandBuffer& transfer,
-                                          const CommandBuffer& compute,
+void RenderGraph::ExecuteComputePipelines(const vk::CommandBuffer& transfer,
+                                          const vk::CommandBuffer& compute,
                                           const void* const globalUniformData) {
   computePipelineGraph_.descriptor.bindings[0]->hostBuffer->MapCopy(
       globalUniformData);
@@ -363,7 +363,7 @@ void RenderGraph::ExecuteComputePipelines(const CommandBuffer& transfer,
 
     compute.CmdBindComputePipeline(pipeline.pipeline);
 
-    const PipelineLayout& layout = pipeline.pipeline.GetLayout();
+    const vk::PipelineLayout& layout = pipeline.pipeline.GetLayout();
 
     for (const ComputeInstance& instance : pipeline.instances) {
       std::unordered_map<u32, HostDescriptorWriter::Descriptor>
@@ -391,8 +391,8 @@ void RenderGraph::ExecuteComputePipelines(const CommandBuffer& transfer,
   }
 }
 
-void RenderGraph::ExecuteRenderPipelines(const CommandBuffer& transfer,
-                                         const CommandBuffer& graphics,
+void RenderGraph::ExecuteRenderPipelines(const vk::CommandBuffer& transfer,
+                                         const vk::CommandBuffer& graphics,
                                          const void* const globalUniformData,
                                          const u32 frameIndex) {
   graphicsPipelineGraph_.descriptor.bindings[0]->hostBuffer->MapCopy(
@@ -414,7 +414,7 @@ void RenderGraph::ExecuteRenderPipelines(const CommandBuffer& transfer,
     graphics.CmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS,
                              pipeline.pipeline);
 
-    const PipelineLayout& layout = pipeline.pipeline.GetLayout();
+    const vk::PipelineLayout& layout = pipeline.pipeline.GetLayout();
 
     for (const RenderInstance& instance : pipeline.instances) {
       graphics.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1,

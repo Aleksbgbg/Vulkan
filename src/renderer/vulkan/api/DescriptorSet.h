@@ -10,6 +10,8 @@
 #include "Sampler.h"
 #include "renderer/vulkan/api/structures/WriteDescriptorSet.h"
 
+namespace vk {
+
 class DescriptorSet {
   friend class CommandBuffer;
 
@@ -63,5 +65,7 @@ class DescriptorSet {
  private:
   VkDescriptorSet descriptorSet;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_DESCRIPTORSET_H_

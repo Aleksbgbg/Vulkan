@@ -5,6 +5,8 @@
 
 #include "PhysicalDevice.h"
 
+namespace vk {
+
 class Surface {
   friend class VirtualDevice;
 
@@ -33,5 +35,7 @@ class Surface {
   VkInstance instance;
   VkSurfaceKHR surface;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_SURFACE_H_

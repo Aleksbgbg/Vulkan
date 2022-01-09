@@ -20,7 +20,7 @@ class LinuxWindow : public sys::Window {
               ::Window window)
       : Window(windowRect, sdlWindow), display_(display), window_(window) {}
 
-  Surface CreateWindowSurface(VkInstance instance) const {
+  vk::Surface CreateWindowSurface(VkInstance instance) const {
     VkSurfaceKHR surface;
     PROCEED_ON_VALID_RESULT(
         vkCreateXlibSurfaceKHR(instance,
@@ -29,7 +29,7 @@ class LinuxWindow : public sys::Window {
                                    .SetWindow(window_)
                                    .Build(),
                                nullptr, &surface));
-    return Surface(instance, surface);
+    return vk::Surface(instance, surface);
   }
 
  private:

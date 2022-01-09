@@ -2,6 +2,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 CommandPool::CommandPool() : commandPool(nullptr) {}
 
 CommandPool::CommandPool(VkDevice device, VkQueue queue,
@@ -44,3 +46,5 @@ CommandBuffer CommandPool::AllocateCommandBuffer(
                            .SetCommandPool(commandPool)
                            .SetLevel(level));
 }
+
+}  // namespace vk

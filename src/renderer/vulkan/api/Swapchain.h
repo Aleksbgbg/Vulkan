@@ -13,6 +13,8 @@
 #include "SynchronisationPack.h"
 #include "renderer/vulkan/api/structures/SwapchainCreateInfo.h"
 
+namespace vk {
+
 class Swapchain {
   friend class Queue;
 
@@ -55,5 +57,7 @@ class Swapchain {
   VkFormat imageFormat;
   VkExtent2D imageExtent;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_SWAPCHAIN_H_

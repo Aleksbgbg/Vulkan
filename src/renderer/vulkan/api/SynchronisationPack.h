@@ -4,6 +4,8 @@
 #include "Fence.h"
 #include "Semaphore.h"
 
+namespace vk {
+
 class SynchronisationPack {
  public:
   const Semaphore* GetWaitSemaphore() const;
@@ -19,5 +21,7 @@ class SynchronisationPack {
   const Semaphore* signalSemaphore;
   const Fence* signalFence;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_SYNCHRONISATIONPACK_H_

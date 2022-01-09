@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 RenderPass::RenderPass() : renderPass(nullptr) {}
 
 RenderPass::RenderPass(RenderPass&& other) noexcept
@@ -29,3 +31,5 @@ RenderPass& RenderPass::operator=(RenderPass&& other) noexcept {
   std::swap(renderPass, other.renderPass);
   return *this;
 }
+
+}  // namespace vk

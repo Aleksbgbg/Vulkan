@@ -4,6 +4,8 @@
 
 #include "error.h"
 
+namespace vk {
+
 GraphicsPipeline::GraphicsPipeline() : pipeline(nullptr) {}
 
 GraphicsPipeline::GraphicsPipeline(
@@ -57,3 +59,5 @@ GraphicsPipeline& GraphicsPipeline::operator=(
 const PipelineLayout& GraphicsPipeline::GetLayout() const {
   return pipelineLayout;
 }
+
+}  // namespace vk

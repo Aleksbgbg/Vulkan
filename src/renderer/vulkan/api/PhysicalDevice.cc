@@ -3,6 +3,8 @@
 #include "error.h"
 #include "util.h"
 
+namespace vk {
+
 PhysicalDevice::PhysicalDevice(VkPhysicalDevice physicalDevice)
     : physicalDevice(physicalDevice),
       queues_(
@@ -100,3 +102,5 @@ const VkPhysicalDeviceMemoryProperties* PhysicalDevice::GetMemoryProperties()
     const {
   return &memoryProperties;
 }
+
+}  // namespace vk

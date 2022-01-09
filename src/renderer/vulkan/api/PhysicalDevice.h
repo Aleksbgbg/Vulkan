@@ -10,9 +10,9 @@
 #include "VirtualDevice.h"
 #include "renderer/vulkan/api/structures/DeviceCreateInfo.h"
 
-class PhysicalDevice {
-  friend class ImGuiInstance;
+namespace vk {
 
+class PhysicalDevice {
  public:
   PhysicalDevice() = default;
   explicit PhysicalDevice(VkPhysicalDevice physicalDevice);
@@ -37,5 +37,7 @@ class PhysicalDevice {
   VkPhysicalDeviceMemoryProperties memoryProperties;
   std::vector<VkQueueFamilyProperties> queues_;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_PHYSICALDEVICE_H_

@@ -5,11 +5,12 @@
 
 #include "renderer/vulkan/api/structures/RenderPassCreateInfo.h"
 
+namespace vk {
+
 class RenderPass {
   friend class Swapchain;
   friend class GraphicsPipeline;
   friend class CommandBuffer;
-  friend class ImGuiInstance;
 
  public:
   RenderPass();
@@ -27,5 +28,7 @@ class RenderPass {
   VkDevice device;
   VkRenderPass renderPass;
 };
+
+}  // namespace vk
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_API_RENDERPASS_H_

@@ -41,7 +41,7 @@ Binding BufferStructurePerInstance() {
                  .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER};
 }
 
-Binding TextureSampler(const Sampler& sampler) {
+Binding TextureSampler(const vk::Sampler& sampler) {
   return Binding{.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                  .sampler = &sampler};
 }
