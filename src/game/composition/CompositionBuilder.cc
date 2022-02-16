@@ -1,8 +1,11 @@
 #include "CompositionBuilder.h"
 
-#include "game/actor/property/ParticleController.h"
+#include "game/actor/property/GraphicalInterface.h"
 #include "game/actor/property/SoundEmitter.h"
 #include "game/actor/property/Transform.h"
+#include "game/actor/property/Visibility.h"
+#include "game/ui/parse_xml_tree.h"
+#include "game/ui/produce_ui_tree.h"
 
 CompositionBuilder CompositionBuilder::Actor(
     const SpawnDependencies spawnDependencies) {
@@ -17,7 +20,19 @@ CompositionBuilder CompositionBuilder::ParticleSystem(
     const ParticleBehaviour particleBehaviour) {
   Composition composition = std::make_shared<Composition_T>();
   composition->type = Composition_T::Type::ParticleSystem;
-  composition->infoForType.particleSystem.behaviour = particleBehaviour;
+  composition->particleSystem.behaviour = particleBehaviour;
+
+  return CompositionBuilder(spawnDependencies, std::move(composition));
+}
+
+CompositionBuilder CompositionBuilder::Ui(
+    const SpawnDependencies spawnDependencies, const std::string_view view,
+    std::unique_ptr<ViewModel> viewModel) {
+  Composition composition = std::make_shared<Composition_T>();
+  composition->type = Composition_T::Type::Ui;
+  composition->ui = std::make_shared<Composition_T::UiInfo>();
+  composition->ui->uiTree = ProduceUiTree(ui::ParseXmlTree(view), *viewModel);
+  composition->ui->viewModel = std::move(viewModel);
 
   return CompositionBuilder(spawnDependencies, std::move(composition));
 }
@@ -46,8 +61,8 @@ CompositionBuilder& CompositionBuilder::Mesh(const MeshHandle meshHandle) {
 
 CompositionBuilder& CompositionBuilder::SpawnRegion(
     const glm::vec3 spawnRegionLow, const glm::vec3 spawnRegionHigh) {
-  composition_->infoForType.particleSystem.spawnRegionLow = spawnRegionLow;
-  composition_->infoForType.particleSystem.spawnRegionHigh = spawnRegionHigh;
+  composition_->particleSystem.spawnRegionLow = spawnRegionLow;
+  composition_->particleSystem.spawnRegionHigh = spawnRegionHigh;
   return *this;
 }
 
@@ -70,7 +85,7 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
                                           const Composition& composition,
                                           const game::Actor* parent,
                                           const ActorKey parentKey) {
-  const Transformable* parentTransform;
+  const Transform* parentTransform;
 
   if (parent == nullptr) {
     parentTransform = nullptr;
@@ -85,9 +100,12 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
       {Transform::Key(), std::make_unique<Transform>(parentTransform)});
   properties.insert({SoundEmitter::Key(),
                      std::make_unique<SoundEmitter>(*dependencies.sound)});
+  properties.insert({Visibility::Key(), std::make_unique<Visibility>()});
 
-  const Transformable* selfTransform =
-      reinterpret_cast<Transform*>(properties.at(Transform::Key()).get());
+  const Transform& selfTransform =
+      reinterpret_cast<Transform&>(*properties.at(Transform::Key()));
+  Visibility& visibility =
+      reinterpret_cast<Visibility&>(*properties.at(Visibility::Key()));
 
   if (composition->lightSource.has_value()) {
     resources.push_back(dependencies.renderer->SpawnLightSource(
@@ -95,33 +113,45 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
          .transformable = selfTransform}));
   }
 
+  std::unique_ptr<UiDrawList> drawList = nullptr;
+
   switch (composition->type) {
     case Composition_T::Type::Actor: {
       const bool isRenderable = composition->meshHandle.has_value();
       if (isRenderable) {
-        resources.push_back(dependencies.renderer->SpawnRenderable({
-            .meshHandle = composition->meshHandle.value(),
-            .transformable = selfTransform,
-        }));
+        resources.push_back(dependencies.renderer->SpawnRenderable(
+            {.meshHandle = composition->meshHandle.value(),
+             .transformable = selfTransform,
+             .visible = visibility}));
       }
     } break;
 
-    case Composition_T::Type::ParticleSystem: {
-      properties.insert(
-          {ParticleController::Key(), std::make_unique<ParticleController>()});
-
+    case Composition_T::Type::ParticleSystem:
       resources.push_back(dependencies.renderer->SpawnParticleSystem({
           .meshHandle = composition->meshHandle.value(),
-          .particleBehaviour =
-              composition->infoForType.particleSystem.behaviour,
+          .particleBehaviour = composition->particleSystem.behaviour,
           .transformable = selfTransform,
-          .spawnControllable = reinterpret_cast<ParticleController*>(
-              properties.at(ParticleController::Key()).get()),
-          .spawnRegionLow =
-              composition->infoForType.particleSystem.spawnRegionLow,
-          .spawnRegionHigh =
-              composition->infoForType.particleSystem.spawnRegionHigh,
+          .visible = visibility,
+          .spawnRegionLow = composition->particleSystem.spawnRegionLow,
+          .spawnRegionHigh = composition->particleSystem.spawnRegionHigh,
       }));
+      break;
+
+    case Composition_T::Type::Ui: {
+      properties.insert({GraphicalInterface::Key(),
+                         std::make_unique<GraphicalInterface>(visibility)});
+      if (composition->ui->uiTree.has_value()) {
+        drawList = std::make_unique<UiDrawList>(
+            *dependencies.fontAtlas,
+            reinterpret_cast<GraphicalInterface&>(
+                *properties.at(GraphicalInterface::Key())),
+            std::move(composition->ui->uiTree.value()),
+            dependencies.window->GetSize());
+      }
+      dependencies.window->Consume(*drawList);
+      resources.push_back(dependencies.renderer->SpawnUi(
+          {.drawList = drawList.get(), .visible = visibility}));
+      resources.push_back(std::move(composition->ui->viewModel));
     } break;
   }
 
@@ -130,6 +160,9 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
   std::unique_ptr<game::Actor> actor = std::make_unique<game::Actor>(
       key, *dependencies.actorOwner, std::move(resources),
       std::move(properties));
+  if (drawList != nullptr) {
+    actor->AttachUpdateable(std::move(drawList));
+  }
   for (const auto& scriptFactory : composition->behaviourFactories) {
     actor->AttachBehaviour(scriptFactory(parent, *actor));
   }

@@ -7,7 +7,9 @@
 
 class SoundEmitter : public Property {
  public:
-  static PropertyKey Key();
+  static constexpr PropertyKey Key() {
+    return PropertyKey::SoundEmitter;
+  }
 
   SoundEmitter(sys::Sound& sound);
 

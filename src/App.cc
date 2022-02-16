@@ -5,12 +5,13 @@
 
 #include "general/logging/log.h"
 
-App::App(sys::Window& window, sys::Sound& sound, Vulkan& vulkan)
+App::App(sys::Window& window, sys::Sound& sound, Vulkan& vulkan,
+         const FontAtlas& fontAtlas, Settings& settings)
     : window_(window),
       vulkan_(vulkan),
       controls_(),
       camera_(),
-      scene_(vulkan_, sound, camera_),
+      scene_(vulkan_, window_, sound, camera_, fontAtlas, settings, vulkan),
       previousTime_(std::chrono::high_resolution_clock::time_point::min()),
       threadMessenger_() {}
 

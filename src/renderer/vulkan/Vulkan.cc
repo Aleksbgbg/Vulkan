@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include "GraphicsPipelineTemplateKey.h"
 #include "ParticleComputeHandler.h"
 #include "Pipeline.h"
 #include "TransformDescriptorWriter.h"
@@ -15,9 +16,11 @@
 #include "general/logging/log.h"
 #include "general/math/math.h"
 #include "memory/Alignment.h"
+#include "renderer/vertices/PositionColorVertex.h"
 #include "renderer/vertices/PositionNormalTextureVertex.h"
 #include "renderer/vertices/PositionTextureVertex.h"
 #include "renderer/vertices/PositionVertex.h"
+#include "renderer/vertices/TextVertex.h"
 #include "renderer/vulkan/api/Buffer.h"
 #include "renderer/vulkan/api/DescriptorPool.h"
 #include "renderer/vulkan/api/VulkanInstance.h"
@@ -44,7 +47,16 @@
 #include "util/build_definition.h"
 #include "util/filenames.h"
 
+class AlwaysVisible : public Visible {
+ public:
+  bool IsVisible() const override {
+    return true;
+  }
+};
+
 static constexpr u32 WANTED_SWAPCHAIN_IMAGES = 3u;
+
+static const AlwaysVisible ALWAYS_VISIBLE;
 
 vk::VulkanInstance CreateVulkanInstance(const VulkanSystem& vulkanSystem) {
   const std::vector<VkExtensionProperties> availableExtensions =
@@ -117,8 +129,8 @@ u32 CalculateSwapchainImages(
                                 ? WANTED_SWAPCHAIN_IMAGES
                                 : surfaceCapabilities.maxImageCount;
 
-  return CoerceToRange(WANTED_SWAPCHAIN_IMAGES,
-                       surfaceCapabilities.minImageCount, maxImageCount);
+  return Clamp(WANTED_SWAPCHAIN_IMAGES, surfaceCapabilities.minImageCount,
+               maxImageCount);
 }
 
 u32 ChooseQueueFamily(const vk::PhysicalDevice& physicalDevice,
@@ -235,12 +247,21 @@ VkFormat Vulkan::SelectDepthStencilFormat(
 }
 
 VkSampleCountFlagBits Vulkan::SelectMsaaSamples(
-    const VkSampleCountFlagBits preferred) const {
+    const Settings& settings) const {
+  VkSampleCountFlagBits preferredSamples = static_cast<VkSampleCountFlagBits>(
+      VK_SAMPLE_COUNT_1_BIT
+      << settings.Get<u32>(SettingKey::MsaaSelectedIndex));
+
+  // TODO: No anti-aliasing is not currently supported
+  if (preferredSamples == VK_SAMPLE_COUNT_1_BIT) {
+    preferredSamples = VK_SAMPLE_COUNT_2_BIT;
+  }
+
   const VkSampleCountFlags supportedSamples =
       physicalDeviceProperties_.limits.framebufferColorSampleCounts &
       physicalDeviceProperties_.limits.framebufferDepthSampleCounts;
 
-  for (VkSampleCountFlagBits samples = preferred;
+  for (VkSampleCountFlagBits samples = preferredSamples;
        samples > VK_SAMPLE_COUNT_1_BIT;
        samples = static_cast<VkSampleCountFlagBits>(samples >> 1)) {
     if ((supportedSamples & samples) == samples) {
@@ -248,7 +269,7 @@ VkSampleCountFlagBits Vulkan::SelectMsaaSamples(
     }
   }
 
-  return VK_SAMPLE_COUNT_1_BIT;
+  return VK_SAMPLE_COUNT_2_BIT;
 }
 
 vk::RenderPass Vulkan::CreateRenderPass() const {
@@ -332,6 +353,57 @@ RenderGraph Vulkan::CreateRenderGraph() {
   return RenderGraph(
       *this, swapchain_.GetImageCount(),
       RenderGraphLayoutBuilder()
+          .GraphicsPipelineTemplate(
+              GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D,
+              GraphicsPipelineCreateInfoBuilder()
+                  .SetPDepthStencilState(
+                      PipelineDepthStencilStateCreateInfoBuilder()
+                          .SetDepthTestEnable(VK_TRUE)
+                          .SetDepthWriteEnable(VK_TRUE)
+                          .SetDepthCompareOp(VK_COMPARE_OP_LESS))
+                  .SetPRasterizationState(
+                      PipelineRasterizationStateCreateInfoBuilder()
+                          .SetCullMode(VK_CULL_MODE_BACK_BIT)
+                          .SetFrontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
+                          .SetPolygonMode(VK_POLYGON_MODE_FILL)
+                          .SetLineWidth(1.0f))
+                  .SetPColorBlendState(
+                      PipelineColorBlendStateCreateInfoBuilder()
+                          .SetAttachmentCount(1)
+                          .SetPAttachments(
+                              PipelineColorBlendAttachmentStateBuilder()
+                                  .SetColorWriteMask(
+                                      VK_COLOR_COMPONENT_R_BIT |
+                                      VK_COLOR_COMPONENT_G_BIT |
+                                      VK_COLOR_COMPONENT_B_BIT))))
+          .GraphicsPipelineTemplate(
+              GRAPHICS_PIPELINE_TEMPLATE_KEY_UI,
+              GraphicsPipelineCreateInfoBuilder()
+                  .SetPDepthStencilState(
+                      PipelineDepthStencilStateCreateInfoBuilder())
+                  .SetPRasterizationState(
+                      PipelineRasterizationStateCreateInfoBuilder()
+                          .SetPolygonMode(VK_POLYGON_MODE_FILL)
+                          .SetLineWidth(1.0f))
+                  .SetPColorBlendState(
+                      PipelineColorBlendStateCreateInfoBuilder()
+                          .SetAttachmentCount(1)
+                          .SetPAttachments(
+                              PipelineColorBlendAttachmentStateBuilder()
+                                  .SetBlendEnable(VK_TRUE)
+                                  .SetColorBlendOp(VK_BLEND_OP_ADD)
+                                  .SetSrcColorBlendFactor(
+                                      VK_BLEND_FACTOR_SRC_ALPHA)
+                                  .SetDstColorBlendFactor(
+                                      VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
+                                  .SetAlphaBlendOp(VK_BLEND_OP_ADD)
+                                  .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
+                                  .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
+                                  .SetColorWriteMask(
+                                      VK_COLOR_COMPONENT_R_BIT |
+                                      VK_COLOR_COMPONENT_G_BIT |
+                                      VK_COLOR_COMPONENT_B_BIT |
+                                      VK_COLOR_COMPONENT_A_BIT))))
           .ComputeGlobalDescriptors(DescriptorSetBuilder().AddBinding(
               UniformStructure<GlobalComputeUniform>(
                   STRUCTURE_FLAGS_HOST_ACCESSIBLE)))
@@ -350,7 +422,8 @@ RenderGraph Vulkan::CreateRenderGraph() {
               UniformStructure<GlobalRenderUniform>(
                   STRUCTURE_FLAGS_HOST_ACCESSIBLE)))
           .RenderPipeline(
-              PIPELINE_SKYBOX_RENDER, "skybox",
+              PIPELINE_SKYBOX_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D,
+              "skybox",
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(PositionTextureVertex))
@@ -376,7 +449,8 @@ RenderGraph Vulkan::CreateRenderGraph() {
                   .AddFragmentShader(
                       DescriptorReferenceBuilder().AddLocalSetBindings(0)))
           .RenderPipeline(
-              PIPELINE_LIGHT_RENDER, "light",
+              PIPELINE_LIGHT_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D,
+              "light",
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(PositionTextureVertex))
@@ -405,7 +479,8 @@ RenderGraph Vulkan::CreateRenderGraph() {
                   .AddFragmentShader(
                       DescriptorReferenceBuilder().AddLocalSetBindings(1)))
           .RenderPipeline(
-              PIPELINE_PARTICLE_RENDER, "particles",
+              PIPELINE_PARTICLE_RENDER,
+              GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D, "particles",
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(PositionVertex))
@@ -424,7 +499,8 @@ RenderGraph Vulkan::CreateRenderGraph() {
                                        .AddLocalSetBindings(0))
                   .AddFragmentShader())
           .RenderPipeline(
-              PIPELINE_SPACESHIP_RENDER, "spaceship",
+              PIPELINE_SPACESHIP_RENDER,
+              GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D, "spaceship",
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(PositionNormalTextureVertex))
@@ -462,10 +538,59 @@ RenderGraph Vulkan::CreateRenderGraph() {
                   .AddFragmentShader(DescriptorReferenceBuilder()
                                          .AddGlobalSetBindings(0)
                                          .AddLocalSetBindings({1, 2})))
+          .RenderPipeline(
+              PIPELINE_UI_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_UI, "ui",
+              VertexInputBindingDescriptionBuilder()
+                  .SetBinding(0)
+                  .SetStride(sizeof(PositionColorVertex))
+                  .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
+              VertexAttributesBuilder()
+                  .AddDescription(
+                      VertexInputAttributeDescriptionBuilder()
+                          .SetBinding(0)
+                          .SetLocation(0)
+                          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+                          .SetOffset(offsetof(PositionColorVertex, position)))
+                  .AddDescription(
+                      VertexInputAttributeDescriptionBuilder()
+                          .SetBinding(0)
+                          .SetLocation(1)
+                          .SetFormat(VK_FORMAT_R32G32B32A32_SFLOAT)
+                          .SetOffset(offsetof(PositionColorVertex, color))),
+              DescriptorSetBuilder(),
+              ShaderBuilder().AddVertexShader().AddFragmentShader())
+          .RenderPipeline(
+              PIPELINE_TEXT_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_UI, "text",
+              VertexInputBindingDescriptionBuilder()
+                  .SetBinding(0)
+                  .SetStride(sizeof(TextVertex))
+                  .SetInputRate(VK_VERTEX_INPUT_RATE_VERTEX),
+              VertexAttributesBuilder()
+                  .AddDescription(
+                      VertexInputAttributeDescriptionBuilder()
+                          .SetBinding(0)
+                          .SetLocation(0)
+                          .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+                          .SetOffset(offsetof(TextVertex, position)))
+                  .AddDescription(
+                      VertexInputAttributeDescriptionBuilder()
+                          .SetBinding(0)
+                          .SetLocation(1)
+                          .SetFormat(VK_FORMAT_R32G32_SFLOAT)
+                          .SetOffset(offsetof(TextVertex, textureCoordinate)))
+                  .AddDescription(VertexInputAttributeDescriptionBuilder()
+                                      .SetBinding(0)
+                                      .SetLocation(2)
+                                      .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
+                                      .SetOffset(offsetof(TextVertex, color))),
+              DescriptorSetBuilder().AddBinding(TextureSampler(fontSampler_)),
+              ShaderBuilder().AddVertexShader().AddFragmentShader(
+                  DescriptorReferenceBuilder().AddLocalSetBindings(0)))
           .Build());
 }
 
-Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
+Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window,
+               const FontAtlas& fontAtlas, const Settings& settings)
     : instance_(CreateVulkanInstance(vulkanSystem)),
 #ifdef VALIDATION
       debugMessenger_(instance_.CreateDebugUtilsMessenger(
@@ -515,7 +640,7 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
       depthStencilFormat_(SelectDepthStencilFormat(
           {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
            VK_FORMAT_D24_UNORM_S8_UINT})),
-      samples_(SelectMsaaSamples(VK_SAMPLE_COUNT_16_BIT)),
+      samples_(SelectMsaaSamples(settings)),
       textureSampler_(virtualDevice_.CreateSampler(
           SamplerCreateInfoBuilder()
               .SetMagFilter(VK_FILTER_LINEAR)
@@ -526,6 +651,13 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
               .SetAnisotropyEnable(VK_TRUE)
               .SetMaxAnisotropy(
                   physicalDeviceProperties_.limits.maxSamplerAnisotropy))),
+      fontSampler_(virtualDevice_.CreateSampler(
+          SamplerCreateInfoBuilder()
+              .SetMagFilter(VK_FILTER_LINEAR)
+              .SetMinFilter(VK_FILTER_LINEAR)
+              .SetAddressModeU(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER)
+              .SetAddressModeV(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER)
+              .SetAddressModeW(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER))),
       renderPass_(CreateRenderPass()),
       subpass0_(vk::SubpassReference(renderPass_, 0)),
       renderCommandPool_(graphicsQueue_.CreateCommandPool(
@@ -533,7 +665,11 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
       swapchain_(*this),
       oldSwapchain_(),
       descriptorPool_(MakeDescriptorPool(virtualDevice_)),
-      renderGraph_(CreateRenderGraph()) {
+      renderGraph_(CreateRenderGraph()),
+      sceneData_(),
+      randomNumberGenerator_(),
+      pointLights_(),
+      uiTexture_() {
   for (u32 renderIndex = 0; renderIndex < swapchain_.GetImageCount();
        ++renderIndex) {
     swapchainRenderData_.push_back(
@@ -544,8 +680,16 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window)
          .submitCompleteFence =
              virtualDevice_.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
   }
+  
+  uiTexture_.push_back(LoadTexture(fontAtlas.AsImage(), VK_FORMAT_R8_SRGB));
 
   CalculateProjection();
+}
+
+void Vulkan::SetMsaaIndex(const u32 index) {
+  // TODO: Changing the selected samples requires support for recreating only
+  // the graphics pipelines in the `RenderGraph`, which will be added in the
+  // future.
 }
 
 Vulkan::~Vulkan() {
@@ -587,8 +731,10 @@ VkBool32 Vulkan::DebugCallback(
 }
 
 Texture Vulkan::LoadTexture(const std::string_view filename) {
-  const file::Image image = file::ReadPng(filename);
+  return LoadTexture(file::ReadPng(filename));
+}
 
+Texture Vulkan::LoadTexture(const file::Image& image, const VkFormat format) {
   const vk::Buffer stagingBuffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
           .SetSize(image.size)
@@ -596,11 +742,12 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
   const vk::BoundDeviceMemory stagingBufferMemory = deviceAllocator_.BindMemory(
       stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  stagingBufferMemory.MapCopy(image.data.data(), stagingBuffer.Size());
+
+  stagingBufferMemory.MapCopy(image.data.data(), image.size);
 
   vk::Image textureImage =
       virtualDevice_.CreateImage(ImageCreateInfoBuilder(IMAGE_2D)
-                                     .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
+                                     .SetFormat(format)
                                      .SetExtent(Extent3DBuilder()
                                                     .SetWidth(image.width)
                                                     .SetHeight(image.height)
@@ -641,7 +788,7 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
   vk::ImageView textureView = textureImage.CreateView(
       ImageViewCreateInfoBuilder()
           .SetViewType(VK_IMAGE_VIEW_TYPE_2D)
-          .SetFormat(VK_FORMAT_R8G8B8A8_SRGB)
+          .SetFormat(format)
           .SetSubresourceRange(SUBRESOURCE_RANGE_COLOR_SINGLE_LAYER));
 
   return Texture{.image = BoundImage(std::move(textureImage),
@@ -790,9 +937,10 @@ MeshHandle Vulkan::LoadMesh(const RenderType renderType,
 
 std::unique_ptr<Resource> Vulkan::SpawnLightSource(
     const Renderer::LightSourceInfo& lightSourceInfo) {
-  return pointLights_.Insert(
-      {.transform = lightSourceInfo.transformable,
-       .info = lightSourceInfo.lightSource.info.pointLight});
+  return pointLights_.Insert({
+      .info = lightSourceInfo.lightSource.info.pointLight,
+      .transform = lightSourceInfo.transformable,
+  });
 }
 
 std::unique_ptr<Resource> Vulkan::SpawnParticleSystem(
@@ -807,12 +955,12 @@ std::unique_ptr<Resource> Vulkan::SpawnParticleSystem(
               PIPELINE_PARTICLE_COMPUTE,
               {.instances = PARTICLES,
                .descriptorWriter = std::make_unique<ParticleComputeHandler>(
-                   randomNumberGenerator_,
-                   *particleSystemInfo.spawnControllable,
-                   *particleSystemInfo.transformable,
+                   randomNumberGenerator_, particleSystemInfo.transformable,
+                   particleSystemInfo.visible,
                    particleSystemInfo.spawnRegionLow,
                    particleSystemInfo.spawnRegionHigh)})
-          .Render(PIPELINE_PARTICLE_RENDER, {.instances = PARTICLES,
+          .Render(PIPELINE_PARTICLE_RENDER, {.visible = ALWAYS_VISIBLE,
+                                             .instances = PARTICLES,
                                              .drawBuffer = &mesh.drawBuffer,
                                              .textures = &mesh.textures})
           .ConnectDescriptors(
@@ -820,7 +968,8 @@ std::unique_ptr<Resource> Vulkan::SpawnParticleSystem(
                PipelineDescriptorReference(PIPELINE_PARTICLE_RENDER, 0)}));
 }
 
-std::unique_ptr<Resource> Vulkan::SpawnRenderable(const RenderInfo renderInfo) {
+std::unique_ptr<Resource> Vulkan::SpawnRenderable(
+    const RenderInfo& renderInfo) {
   const VulkanMesh& mesh = meshes_[renderInfo.meshHandle];
 
   Pipeline pipeline;
@@ -832,21 +981,43 @@ std::unique_ptr<Resource> Vulkan::SpawnRenderable(const RenderInfo renderInfo) {
       break;
     case RenderType::Sun:
       pipeline = PIPELINE_LIGHT_RENDER;
-      descriptorWriter = std::make_unique<TransformDescriptorWriter>(
-          *renderInfo.transformable);
+      descriptorWriter =
+          std::make_unique<TransformDescriptorWriter>(renderInfo.transformable);
       break;
     case RenderType::Spaceship:
       pipeline = PIPELINE_SPACESHIP_RENDER;
-      descriptorWriter = std::make_unique<TransformDescriptorWriter>(
-          *renderInfo.transformable);
+      descriptorWriter =
+          std::make_unique<TransformDescriptorWriter>(renderInfo.transformable);
       break;
   }
 
   return renderGraph_.Insert(InsertPipelineBuilder().Render(
-      pipeline, {.instances = 1,
+      pipeline, {.visible = renderInfo.visible,
+                 .instances = 1,
                  .drawBuffer = &mesh.drawBuffer,
                  .textures = &mesh.textures,
                  .descriptorWriter = std::move(descriptorWriter)}));
+}
+
+std::unique_ptr<Resource> Vulkan::SpawnUi(const Renderer::UiInfo& uiInfo) {
+  std::unique_ptr<IndexedVertexBuffer> elementsBuffer =
+      std::make_unique<IndexedVertexBuffer>();
+  std::unique_ptr<IndexedVertexBuffer> textBuffer =
+      std::make_unique<IndexedVertexBuffer>();
+  return CompositeResource(
+      std::array{renderGraph_.Insert(InsertPipelineBuilder().Render(
+                     PIPELINE_UI_RENDER, {.visible = uiInfo.visible,
+                                          .instances = 1,
+                                          .drawBuffer = elementsBuffer.get()})),
+                 renderGraph_.Insert(InsertPipelineBuilder().Render(
+                     PIPELINE_TEXT_RENDER, {.visible = uiInfo.visible,
+                                            .instances = 1,
+                                            .drawBuffer = textBuffer.get(),
+                                            .textures = &uiTexture_})),
+                 uiRenders_.Insert({.visible = uiInfo.visible,
+                                    .drawList = uiInfo.drawList,
+                                    .elementsBuffer = std::move(elementsBuffer),
+                                    .textBuffer = std::move(textBuffer)})});
 }
 
 void Vulkan::ScheduleCompute(const ComputeContext& context) {
@@ -911,7 +1082,7 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
       GlobalRenderUniform::PointLight& pointLight = frame.pointLights[index];
 
       pointLight.position =
-          light.transform->GetTransform() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+          light.transform.GetTransform() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
       pointLight.ambient = light.info.ambient;
       pointLight.diffuse = light.info.diffuse;
       pointLight.specular = light.info.specular;
@@ -923,6 +1094,23 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
     }
 
     frame.pointLightCount = pointLights_.size();
+  }
+
+  // Render UI
+  {
+    for (const UiRender& render : uiRenders_) {
+      if (!render.visible.IsVisible()) {
+        continue;
+      }
+
+      const DrawList::DrawData drawData =
+          render.drawList->Generate(window.GetSize());
+
+      *render.elementsBuffer =
+          AllocateDrawBuffer(drawData.elements->GetRawVertexData());
+      *render.textBuffer =
+          AllocateDrawBuffer(drawData.text->GetRawVertexData());
+    }
   }
 
   swapchainRender.transfer.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT_SECONDARY);
@@ -1036,7 +1224,8 @@ vk::GraphicsPipeline Vulkan::CreateGraphicsPipeline(
     std::vector<vk::ShaderModule> shaders,
     const VkVertexInputBindingDescription& vertexInputBindingDescription,
     const std::vector<VkVertexInputAttributeDescription>&
-        vertexInputAttributeDescriptions) const {
+        vertexInputAttributeDescriptions,
+    GraphicsPipelineCreateInfoBuilder infoBuilder) const {
   constexpr std::array<VkDynamicState, 2> dynamicStates = {
       VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
   return virtualDevice_.CreateGraphicsPipeline(
@@ -1044,12 +1233,7 @@ vk::GraphicsPipeline Vulkan::CreateGraphicsPipeline(
       virtualDevice_.CreatePipelineLayout(descriptorSetLayouts,
                                           PipelineLayoutCreateInfoBuilder()),
       subpass0_,
-      GraphicsPipelineCreateInfoBuilder()
-          .SetPDepthStencilState(PipelineDepthStencilStateCreateInfoBuilder()
-                                     .SetDepthTestEnable(VK_TRUE)
-                                     .SetDepthWriteEnable(VK_TRUE)
-                                     .SetDepthCompareOp(VK_COMPARE_OP_LESS)
-                                     .SetDepthBoundsTestEnable(VK_FALSE))
+      infoBuilder
           .SetPVertexInputState(
               PipelineVertexInputStateCreateInfoBuilder()
                   .SetVertexBindingDescriptionCount(1)
@@ -1067,28 +1251,7 @@ vk::GraphicsPipeline Vulkan::CreateGraphicsPipeline(
           .SetPDynamicState(PipelineDynamicStateCreateInfoBuilder()
                                 .SetDynamicStateCount(dynamicStates.size())
                                 .SetPDynamicStates(dynamicStates.data()))
-          .SetPRasterizationState(
-              PipelineRasterizationStateCreateInfoBuilder()
-                  .SetCullMode(VK_CULL_MODE_BACK_BIT)
-                  .SetFrontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
-                  .SetPolygonMode(VK_POLYGON_MODE_FILL)
-                  .SetLineWidth(1.0f))
           .SetPMultisampleState(PipelineMultisampleStateCreateInfoBuilder()
                                     .SetRasterizationSamples(samples_)
-                                    .SetMinSampleShading(1.0f))
-          .SetPColorBlendState(
-              PipelineColorBlendStateCreateInfoBuilder()
-                  .SetAttachmentCount(1)
-                  .SetPAttachments(
-                      PipelineColorBlendAttachmentStateBuilder()
-                          .SetColorWriteMask(VK_COLOR_COMPONENT_R_BIT |
-                                             VK_COLOR_COMPONENT_G_BIT |
-                                             VK_COLOR_COMPONENT_B_BIT |
-                                             VK_COLOR_COMPONENT_A_BIT)
-                          .SetSrcColorBlendFactor(VK_BLEND_FACTOR_ONE)
-                          .SetDstColorBlendFactor(VK_BLEND_FACTOR_ZERO)
-                          .SetColorBlendOp(VK_BLEND_OP_ADD)
-                          .SetSrcAlphaBlendFactor(VK_BLEND_FACTOR_ONE)
-                          .SetDstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO)
-                          .SetAlphaBlendOp(VK_BLEND_OP_ADD))));
+                                    .SetMinSampleShading(1.0f)));
 }

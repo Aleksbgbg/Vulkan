@@ -1,0 +1,8 @@
+#ifndef VULKAN_SRC_UTIL_INCLUDE_FREETYPE_H_
+#define VULKAN_SRC_UTIL_INCLUDE_FREETYPE_H_
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_OUTLINE_H
+
+#endif  // VULKAN_SRC_UTIL_INCLUDE_FREETYPE_H_

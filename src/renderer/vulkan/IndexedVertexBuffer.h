@@ -2,15 +2,16 @@
 #define VULKAN_SRC_RENDERER_VULKAN_INDEXEDVERTEXBUFFER_H_
 
 #include "BoundBuffer.h"
-#include "renderer/vulkan/api/CommandBuffer.h"
+#include "VertexBuffer.h"
 
-class IndexedVertexBuffer {
+class IndexedVertexBuffer : public VertexBuffer {
  public:
+  IndexedVertexBuffer() = default;
   IndexedVertexBuffer(BoundBuffer vertexIndexBuffer,
                       VkDeviceSize indexDataOffset, u32 indexCount);
 
-  void DrawInstanced(const vk::CommandBuffer& commandBuffer,
-                     u32 instances) const;
+  void Draw(const vk::CommandBuffer& commandBuffer,
+            u32 instances) const override;
 
  private:
   BoundBuffer vertexIndexBuffer_;

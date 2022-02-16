@@ -1,14 +1,13 @@
 #include "ExhaustParticleController.h"
 
-ExhaustParticleController::ExhaustParticleController(
-    Transform& parentTransform, ParticleController& particleController)
+ExhaustParticleController::ExhaustParticleController(Transform& parentTransform,
+                                                     Visibility& visibility)
     : parentTransform_(parentTransform),
-      particleController_(particleController),
+      visibility_(visibility),
       previousParentPosition_() {}
 
 void ExhaustParticleController::UpdateModel(const UpdateContext& context) {
   const glm::vec3 parentPosition = parentTransform_.GetPosition();
-  particleController_.EnableParticles(previousParentPosition_ !=
-                                      parentPosition);
+  visibility_.SetIsVisible(previousParentPosition_ != parentPosition);
   previousParentPosition_ = parentPosition;
 }

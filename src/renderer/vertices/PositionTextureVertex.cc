@@ -1,9 +1,7 @@
 #include "PositionTextureVertex.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
-
 #include "general/files/vertex_loader.h"
+#include "util/include/glm_hash.h"
 
 DrawVertices<PositionTextureVertex> PositionTextureVertex::LoadVertices(
     const std::string_view filename) {

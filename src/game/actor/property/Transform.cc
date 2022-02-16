@@ -1,9 +1,5 @@
 #include "Transform.h"
 
-PropertyKey Transform::Key() {
-  return PropertyKey::Transform;
-}
-
 Transform::Transform(const Transformable* parent)
     : parent_(parent),
       position_(0.0f),

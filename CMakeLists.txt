@@ -44,6 +44,25 @@ function(add_files_to_output DIRECTORY SUBPATH)
   endforeach ()
 endfunction()
 
+function(add_ui_page TARGET PAGE_PATH)
+  get_filename_component(PAGE_NAME ${PAGE_PATH} NAME)
+  set(OUTPUT_PATH ${CMAKE_SOURCE_DIR}/generated/ui_pages/${PAGE_NAME})
+  add_custom_command(
+      OUTPUT ${OUTPUT_PATH}
+      COMMAND ${CMAKE_COMMAND}
+      -D INPUT_PATH=${PAGE_PATH} -D OUTPUT_PATH=${OUTPUT_PATH} -P "${CMAKE_SOURCE_DIR}/file_to_cpp_string.cmake"
+      DEPENDS ${PAGE_PATH}
+      VERBATIM)
+  target_sources(${TARGET} PRIVATE ${OUTPUT_PATH})
+endfunction()
+
+set(FT_DISABLE_ZLIB TRUE)
+set(FT_DISABLE_BZIP2 TRUE)
+set(FT_DISABLE_PNG TRUE)
+set(FT_DISABLE_HARFBUZZ TRUE)
+set(FT_DISABLE_BROTLI TRUE)
+
+add_subdirectory(lib/freetype)
 add_subdirectory(lib/googletest)
 
 add_subdirectory(src)

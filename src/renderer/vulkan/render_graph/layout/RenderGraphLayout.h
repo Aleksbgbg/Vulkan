@@ -1,6 +1,8 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_RENDERGRAPHLAYOUT_H_
 #define VULKAN_SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_RENDERGRAPHLAYOUT_H_
 
+#include <list>
+
 #include "ComputePipelineStructure.h"
 #include "DescriptorSetStructure.h"
 #include "GraphicsPipelineStructure.h"

@@ -17,6 +17,7 @@ struct GraphicsPipelineStructure {
   std::vector<VkVertexInputAttributeDescription> vertexAttributes;
   DescriptorSetStructure descriptors;
   std::list<ShaderStructure> shaders;
+  GraphicsPipelineCreateInfoBuilder graphicsPipelineTemplate;
 };
 
 #endif  // VULKAN_SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_GRAPHICSPIPELINESTRUCTURE_H_

@@ -5,18 +5,23 @@
 #include <unordered_map>
 
 #include "Camera.h"
+#include "GraphicsSettingsConfigurator.h"
 #include "Renderer.h"
+#include "Settings.h"
 #include "UpdateContext.h"
 #include "game/actor/Actor.h"
 #include "game/actor/ActorOwner.h"
 #include "game/composition/ActorConsumer.h"
 #include "game/composition/SceneComposer.h"
 #include "game/composition/SceneGraph.h"
+#include "general/text/FontAtlas.h"
 #include "system/sound/Sound.h"
 
 class Scene : public ActorConsumer, public ActorOwner {
  public:
-  Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera);
+  Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
+        game::Camera& camera, const FontAtlas& fontAtlas, Settings& settings,
+        GraphicsSettingsConfigurator& graphicsSettingsConfigurator);
 
   void Consume(ActorToSpawn value) override;
   void DespawnActor(const ActorKey key) override;

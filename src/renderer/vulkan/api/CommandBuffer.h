@@ -98,6 +98,7 @@ class CommandBuffer {
                             const DescriptorSet& descriptorSet,
                             const u32 dynamicOffset) const;
 
+  void CmdDraw(u32 vertexCount, u32 instanceCount) const;
   void CmdDrawIndexed(const u32 indexCount) const;
   void CmdDrawIndexedInstanced(const u32 indexCount,
                                const u32 instanceCount) const;

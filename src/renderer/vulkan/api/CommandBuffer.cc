@@ -224,6 +224,11 @@ void CommandBuffer::CmdBindDescriptorSet(const VkPipelineBindPoint bindPoint,
                           &descriptorSet.descriptorSet, 1, &dynamicOffset);
 }
 
+void CommandBuffer::CmdDraw(const u32 vertexCount,
+                            const u32 instanceCount) const {
+  vkCmdDraw(commandBuffer, vertexCount, instanceCount, 0, 0);
+}
+
 void CommandBuffer::CmdDrawIndexed(const u32 indexCount) const {
   CmdDrawIndexedInstanced(indexCount, 1);
 }

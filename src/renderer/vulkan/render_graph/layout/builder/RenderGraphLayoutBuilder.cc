@@ -20,7 +20,7 @@ RenderGraphLayoutBuilder& RenderGraphLayoutBuilder::ComputePipeline(
     const ShaderBuilder& shaderBuilder) {
   const ShaderBuilder::ShaderBuildResult result = shaderBuilder.Build();
 
-  ComputePipelineStructure pipelineStructure = {
+  ComputePipelineStructure pipelineStructure{
       .pipelineKey = key,
       .name = name,
       .descriptors = descriptorSetBuilder.Build(),
@@ -34,21 +34,29 @@ RenderGraphLayoutBuilder& RenderGraphLayoutBuilder::ComputePipeline(
   return *this;
 }
 
+RenderGraphLayoutBuilder& RenderGraphLayoutBuilder::GraphicsPipelineTemplate(
+    const TemplateKey key, const GraphicsPipelineCreateInfoBuilder builder) {
+  graphicsPipelineTemplates.insert(std::make_pair(key, builder));
+  return *this;
+}
+
 RenderGraphLayoutBuilder& RenderGraphLayoutBuilder::RenderPipeline(
-    PipelineKey key, const std::string_view name,
+    const PipelineKey key, const TemplateKey templateKey,
+    const std::string_view name,
     const VertexInputBindingDescriptionBuilder& vertexBindingBuilder,
     const VertexAttributesBuilder& vertexAttributesBuilder,
     const DescriptorSetBuilder& descriptorSetBuilder,
     const ShaderBuilder& shaderBuilder) {
   const ShaderBuilder::ShaderBuildResult result = shaderBuilder.Build();
 
-  GraphicsPipelineStructure pipelineStructure = {
+  GraphicsPipelineStructure pipelineStructure{
       .pipelineKey = key,
       .name = name,
       .vertexBinding = vertexBindingBuilder.BuildObject(),
       .vertexAttributes = vertexAttributesBuilder.Build(),
       .descriptors = descriptorSetBuilder.Build(),
-      .shaders = result.shaders};
+      .shaders = result.shaders,
+      .graphicsPipelineTemplate = graphicsPipelineTemplates.at(templateKey)};
   for (const ShaderStructure& shader : pipelineStructure.shaders) {
     for (const u32 reference : shader.localBindings) {
       pipelineStructure.descriptors.bindings[reference].stageFlags |=

@@ -1,0 +1,31 @@
+<ListBox Orientation="Horizontal" TextCase="Uppercase" Margin="0.05*">
+  <Element Title="Settings">
+    <ListBox Orientation="Vertical">
+      <Element Title="Audio">
+        <GridList>
+          <Element Title="SFX Volume">
+            <Slider Default="0.5" Value="{Binding SfxVolume}"/>
+          </Element>
+          <Element Title="Music Volume">
+            <Slider Default="0.5" Value="{Binding MusicVolume}"/>
+          </Element>
+        </GridList>
+      </Element>
+      <Element Title="Graphics">
+        <GridList>
+          <Element Title="MSAA (requires restart)">
+            <ToggleBox SelectedIndex="{Binding MsaaSelectedIndex}">
+              <Element Title="Off"/>
+              <Element Title="2x"/>
+              <Element Title="4x"/>
+              <Element Title="8x"/>
+              <Element Title="16x"/>
+              <Element Title="32x"/>
+              <Element Title="64x"/>
+            </ToggleBox>
+          </Element>
+        </GridList>
+      </Element>
+    </ListBox>
+  </Element>
+</ListBox>

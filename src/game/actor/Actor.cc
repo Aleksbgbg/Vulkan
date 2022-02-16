@@ -10,16 +10,20 @@ Actor::Actor(
       owner_(owner),
       resources_(std::move(resources)),
       properties_(std::move(properties)),
-      behaviours_() {}
+      updateables_() {}
 
 void Actor::AttachBehaviour(std::unique_ptr<Behaviour> behaviour) {
   behaviour->OnSpawn();
-  behaviours_.push_back(std::move(behaviour));
+  updateables_.push_back(std::move(behaviour));
+}
+
+void Actor::AttachUpdateable(std::unique_ptr<Updateable> updateable) {
+  updateables_.push_back(std::move(updateable));
 }
 
 void Actor::UpdateModel(const UpdateContext& context) {
-  for (const auto& behaviour : behaviours_) {
-    behaviour->UpdateModel(context);
+  for (const auto& updateable : updateables_) {
+    updateable->UpdateModel(context);
   }
 }
 

@@ -4,30 +4,22 @@
 #define __STRUCTURE_BUILDER(name, structure, initializer) \
   class name {                                            \
    private:                                               \
-    structure value;                                      \
+    structure value_;                                     \
                                                           \
    public:                                                \
-    constexpr name() : value(initializer) {}              \
-    constexpr name(structure value) : value(value) {}     \
+    constexpr name() : value_(initializer) {}             \
+    constexpr name(structure value) : value_(value) {}    \
                                                           \
     constexpr operator structure() const {                \
-      return value;                                       \
+      return value_;                                      \
     }                                                     \
                                                           \
     constexpr structure BuildObject() const {             \
-      return value;                                       \
+      return value_;                                      \
     }                                                     \
                                                           \
     constexpr const structure* Build() const {            \
-      return &value;                                      \
-    }                                                     \
-                                                          \
-    constexpr structure* Build() {                        \
-      return &value;                                      \
-    }                                                     \
-                                                          \
-    constexpr name& Reference() {                         \
-      return *this;                                       \
+      return &value_;                                     \
     }
 
 #define STRUCTURE_BUILDER(name, structure, structureType) \
@@ -38,21 +30,21 @@
 
 #define STRUCTURE_SETTER(methodName, argumentType, argumentName) \
   constexpr auto& Set##methodName(argumentType argumentName) {   \
-    value.argumentName = argumentName;                           \
+    value_.argumentName = argumentName;                          \
     return *this;                                                \
   }
 
-#define STRUCTURE_SETTER_POINTER_FROM_BUILDER(methodName, builderType, \
-                                              argumentName)            \
-  constexpr auto& Set##methodName(builderType& argumentNameBuilder) {  \
-    value.argumentName = argumentNameBuilder.Build();                  \
-    return *this;                                                      \
+#define STRUCTURE_SETTER_POINTER_FROM_BUILDER(methodName, builderType,      \
+                                              argumentName)                 \
+  constexpr auto& Set##methodName(const builderType& argumentNameBuilder) { \
+    value_.argumentName = argumentNameBuilder.Build();                      \
+    return *this;                                                           \
   }
 
 #define STRUCTURE_SETTER_CUSTOM_ASSIGNMENT(methodName, argumentType, \
                                            argumentName, assignment) \
   constexpr auto& Set##methodName(argumentType argumentName) {       \
-    value.assignment = argumentName;                                 \
+    value_.assignment = argumentName;                                \
     return *this;                                                    \
   }
 

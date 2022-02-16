@@ -17,14 +17,10 @@ class System : public VulkanSystem {
   virtual ~System() = default;
 
   std::unique_ptr<Window> SpawnWindow(const u32 width, const u32 height) const;
-  Sound& GetSound();
 
  private:
   virtual std::unique_ptr<Window> CreateWindow(
       SDL_Window* const window, const Recti windowRect) const = 0;
-
- private:
-  Sound sound_;
 };
 
 }  // namespace sys

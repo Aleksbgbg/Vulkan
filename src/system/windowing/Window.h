@@ -1,6 +1,9 @@
 #ifndef VULKAN_SRC_SYSTEM_WINDOWING_WINDOW_H_
 #define VULKAN_SRC_SYSTEM_WINDOWING_WINDOW_H_
 
+#include <vector>
+
+#include "WindowEventConsumerConsumer.h"
 #include "general/geometry/Rect.h"
 #include "renderer/vulkan/api/SurfaceFactory.h"
 #include "system/windowing/input/Keyboard.h"
@@ -8,7 +11,7 @@
 
 namespace sys {
 
-class Window : public vk::SurfaceFactory {
+class Window : public vk::SurfaceFactory, public WindowEventConsumerConsumer {
  public:
   enum class Event {
     None,
@@ -28,12 +31,13 @@ class Window : public vk::SurfaceFactory {
   Window& operator=(const Window&) = delete;
   Window& operator=(Window&& other) noexcept;
 
+  void Consume(WindowEventConsumer& consumer) override;
+
   bool IsFocused() const;
 
   glm::vec2 GetSize() const;
   Recti GetRect() const;
 
-  Keyboard& GetKeyboard();
   const Keyboard& GetKeyboard() const;
   const Mouse& GetMouse() const;
 
@@ -47,6 +51,7 @@ class Window : public vk::SurfaceFactory {
   SDL_Window* window_;
   Keyboard keyboard_;
   Mouse mouse_;
+  std::vector<WindowEventConsumer*> windowEventConsumers_;
 };
 
 }  // namespace sys

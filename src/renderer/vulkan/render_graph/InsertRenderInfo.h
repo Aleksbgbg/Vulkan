@@ -5,11 +5,13 @@
 #include <vector>
 
 #include "HostDescriptorWriter.h"
+#include "game/Visible.h"
 #include "renderer/vulkan/IndexedVertexBuffer.h"
 #include "renderer/vulkan/Texture.h"
 #include "util/types.h"
 
 struct InsertRenderInfo {
+  const Visible& visible;
   u32 instances;
   const IndexedVertexBuffer* drawBuffer;
   const std::vector<Texture>* textures;

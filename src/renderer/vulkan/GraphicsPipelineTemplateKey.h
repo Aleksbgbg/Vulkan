@@ -1,0 +1,11 @@
+#ifndef VULKAN_SRC_RENDERER_VULKAN_GRAPHICSPIPELINETEMPLATEKEY_H_
+#define VULKAN_SRC_RENDERER_VULKAN_GRAPHICSPIPELINETEMPLATEKEY_H_
+
+#include "renderer/vulkan/render_graph/layout/builder/RenderGraphLayoutBuilder.h"
+
+enum GraphicsPipelineTemplateKey : RenderGraphLayoutBuilder::TemplateKey {
+  GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D,
+  GRAPHICS_PIPELINE_TEMPLATE_KEY_UI,
+};
+
+#endif  // VULKAN_SRC_RENDERER_VULKAN_GRAPHICSPIPELINETEMPLATEKEY_H_

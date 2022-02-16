@@ -5,9 +5,6 @@
 #include "game/LightSource.h"
 #include "util/include/glm.h"
 
-inline constexpr glm::vec3 BLACK = glm::vec3(0.0f);
-inline constexpr glm::vec3 WHITE = glm::vec3(1.0f);
-
 class PointLight : public LightSourceComposition {
  public:
   PointLight();

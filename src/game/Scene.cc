@@ -5,17 +5,23 @@
 #include "game/behaviours/DespawnAfterPeriod.h"
 #include "game/behaviours/ExhaustParticleController.h"
 #include "game/behaviours/LaserEmitter.h"
+#include "game/behaviours/PauseMenuToggle.h"
 #include "game/behaviours/PlayerMovement.h"
 #include "game/behaviours/SunMovement.h"
 #include "game/composition/ParticleBehaviour.h"
 #include "game/composition/PointLight.h"
 #include "game/composition/SceneComposer.h"
 #include "game/composition/behaviour_utils.h"
+#include "game/viewmodels/PauseMenuViewModel.h"
 #include "general/math/math.h"
+#include "ui_pages.h"
 #include "util/filenames.h"
 
-Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
-    : scene_(camera, *this, *this, renderer, sound),
+Scene::Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
+             game::Camera& camera, const FontAtlas& fontAtlas,
+             Settings& settings,
+             GraphicsSettingsConfigurator& graphicsSettingsConfigurator)
+    : scene_(camera, *this, *this, renderer, window, sound, fontAtlas),
       sceneGraph_(),
       actorsToSpawn_(),
       actorsToDespawn_() {
@@ -72,13 +78,13 @@ Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
       sound.LoadSound(BACKGROUND_MUSIC_FILENAME);
   const SoundHandle laserSoundEffect = sound.LoadSound(LASER_SOUND_FILENAME);
 
-  const CompositionBuilder spaceshipExhaust = std::move(
-      scene_.ParticleSystem(ParticleBehaviour::SpaceshipExhaust)
-          .Attach(BEHAVIOUR(ExhaustParticleController,
-                            parent->RetrieveProperty<Transform>(),
-                            actor.RetrieveProperty<ParticleController>()))
-          .Mesh(exhaustParticleMesh)
-          .SpawnRegion(glm::vec3(x1, y1, z1), glm::vec3(x2, y2, z2)));
+  const CompositionBuilder spaceshipExhaust =
+      std::move(scene_.ParticleSystem(ParticleBehaviour::SpaceshipExhaust)
+                    .Attach(BEHAVIOUR(ExhaustParticleController,
+                                      parent->RetrieveProperty<Transform>(),
+                                      actor.RetrieveProperty<Visibility>()))
+                    .Mesh(exhaustParticleMesh)
+                    .SpawnRegion(glm::vec3(x1, y1, z1), glm::vec3(x2, y2, z2)));
 
   scene_.Actor()
       .Attach(BEHAVIOUR(BackgroundMusic, actor.RetrieveProperty<SoundEmitter>(),
@@ -93,7 +99,6 @@ Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
                        .AttenuationQuadratic(0.0f))
       .Mesh(sunMesh)
       .Attach(BEHAVIOUR(SunMovement, actor.RetrieveProperty<Transform>()))
-      .Child(scene_.Actor().Mesh(npcMesh))
       .Spawn();
   scene_.Actor()
       .Attach(BEHAVIOUR(ConstantMovement,
@@ -122,6 +127,13 @@ Scene::Scene(Renderer& renderer, sys::Sound& sound, game::Camera& camera)
       .Mesh(playerMesh)
       .Child(scene_.Camera())
       .Child(spaceshipExhaust)
+      .Spawn();
+
+  scene_
+      .UiElement(PAUSE_MENU, std::make_unique<PauseMenuViewModel>(
+                                 settings, graphicsSettingsConfigurator))
+      .Attach(BEHAVIOUR(PauseMenuToggle,
+                        actor.RetrieveProperty<GraphicalInterface>()))
       .Spawn();
 }
 

@@ -25,7 +25,7 @@ template <typename T>
 class VertexDataOfType : public StructuredVertexData {
  public:
   VertexDataOfType(DrawVertices<T> indexedVertices)
-      : indexedVertices_(indexedVertices) {}
+      : indexedVertices_(std::move(indexedVertices)) {}
 
   void Apply(const glm::mat4& transformation) override {
     for (T& vertex : indexedVertices_.vertices) {

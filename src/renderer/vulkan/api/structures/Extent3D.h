@@ -8,10 +8,8 @@
 
 STRUCTURE_BUILDER_NO_STYPE(Extent3DBuilder, VkExtent3D)
 public:
-explicit Extent3DBuilder(const VkExtent2D extent2d) : Extent3DBuilder() {
-  value.width = extent2d.width;
-  value.height = extent2d.height;
-}
+explicit Extent3DBuilder(const VkExtent2D extent2d)
+    : value_({.width = extent2d.width, .height = extent2d.height}) {}
 STRUCTURE_SETTER(Width, const u32, width)
 STRUCTURE_SETTER(Height, const u32, height)
 STRUCTURE_SETTER(Depth, const u32, depth)

@@ -27,7 +27,7 @@ void PlayerMovement::UpdateModel(const UpdateContext& context) {
     velocity_ -= acceleration * context.deltaTime;
   }
 
-  velocity_ = CoerceToRange(velocity_, 0.0f, 50.0f);
+  velocity_ = Clamp(velocity_, 0.0f, 50.0f);
 
   transform_.Rotate(rotation_);
   transform_.MoveBy(glm::toMat4(rotation_) *

@@ -3,29 +3,9 @@
 #include <fstream>
 #include <string>
 
+#include "general/strings/split.h"
+
 namespace file {
-
-std::vector<std::string> Split(const std::string& string,
-                               const std::string_view delimiter) {
-  std::vector<std::string> parts;
-
-  size_t lastMatch = 0;
-
-  while (true) {
-    size_t newMatch = string.find(delimiter, lastMatch);
-
-    if (newMatch == std::string::npos) {
-      parts.push_back(string.substr(lastMatch, string.size() - lastMatch));
-      break;
-    } else {
-      parts.push_back(string.substr(lastMatch, newMatch - lastMatch));
-    }
-
-    lastMatch = newMatch + delimiter.size();
-  }
-
-  return parts;
-}
 
 float AsFloat(const std::string_view string) {
   return std::stof(string.data());

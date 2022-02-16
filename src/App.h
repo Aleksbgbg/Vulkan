@@ -4,6 +4,7 @@
 #include <chrono>
 
 #include "game/Scene.h"
+#include "general/text/FontAtlas.h"
 #include "general/threading/MultithreadedMessageQueue.h"
 #include "renderer/vulkan/Vulkan.h"
 #include "system/sound/Sound.h"
@@ -11,7 +12,8 @@
 
 class App {
  public:
-  App(sys::Window& window, sys::Sound& sound, Vulkan& vulkan);
+  App(sys::Window& window, sys::Sound& sound, Vulkan& vulkan,
+      const FontAtlas& fontAtlas, Settings& settings);
 
   int Run();
 

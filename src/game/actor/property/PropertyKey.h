@@ -3,8 +3,9 @@
 
 enum class PropertyKey {
   Transform = 1,
-  ParticleController,
   SoundEmitter,
+  Visibility,
+  GraphicalInterface,
 };
 
 #endif  // VULKAN_SRC_GAME_ACTOR_PROPERTY_PROPERTYKEY_H_

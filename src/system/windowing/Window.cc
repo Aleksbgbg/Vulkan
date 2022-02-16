@@ -7,13 +7,15 @@ Window::Window(const Recti windowRect, SDL_Window* window)
       windowRect_(windowRect),
       window_(window),
       keyboard_(),
-      mouse_() {}
+      mouse_(),
+      windowEventConsumers_() {}
 
 Window::Window(Window&& other) noexcept
     : windowRect_(other.windowRect_),
       window_(other.window_),
       keyboard_(std::move(other.keyboard_)),
-      mouse_(std::move(other.mouse_)) {
+      mouse_(std::move(other.mouse_)),
+      windowEventConsumers_(std::move(other.windowEventConsumers_)) {
   other.window_ = nullptr;
 }
 
@@ -22,7 +24,7 @@ Window& Window::operator=(Window&& other) noexcept {
   std::swap(window_, other.window_);
   keyboard_ = std::move(other.keyboard_);
   mouse_ = std::move(other.mouse_);
-
+  windowEventConsumers_ = std::move(other.windowEventConsumers_);
   return *this;
 }
 
@@ -30,6 +32,10 @@ Window::~Window() {
   if (window_ != nullptr) {
     SDL_Quit();
   }
+}
+
+void Window::Consume(WindowEventConsumer& consumer) {
+  windowEventConsumers_.push_back(&consumer);
 }
 
 bool Window::IsFocused() const {
@@ -44,10 +50,6 @@ Recti Window::GetRect() const {
   return windowRect_;
 }
 
-Keyboard& Window::GetKeyboard() {
-  return keyboard_;
-}
-
 const Keyboard& Window::GetKeyboard() const {
   return keyboard_;
 }
@@ -59,6 +61,10 @@ const Mouse& Window::GetMouse() const {
 Window::Event Window::WaitAndProcessEvent() {
   SDL_Event event;
   SDL_WaitEvent(&event);
+
+  for (WindowEventConsumer* consumer : windowEventConsumers_) {
+    consumer->Consume(event);
+  }
 
   switch (event.type) {
     case SDL_QUIT:

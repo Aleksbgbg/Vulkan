@@ -2,6 +2,7 @@
 #define VULKAN_SRC_RENDERER_VULKAN_RENDER_GRAPH_RENDERGRAPH_H_
 
 #include <list>
+#include <map>
 #include <memory>
 #include <unordered_map>
 
@@ -9,6 +10,7 @@
 #include "InsertComputeInfo.h"
 #include "InsertPipelineBuilder.h"
 #include "InsertRenderInfo.h"
+#include "game/Visible.h"
 #include "game/actor/resource/Resource.h"
 #include "game/actor/resource/ResourceList.h"
 #include "renderer/vulkan/IndexedVertexBuffer.h"
@@ -47,7 +49,8 @@ class RenderGraph {
         std::vector<vk::ShaderModule> shaders,
         const VkVertexInputBindingDescription& vertexInputBindingDescription,
         const std::vector<VkVertexInputAttributeDescription>&
-            vertexInputAttributeDescriptions) const = 0;
+            vertexInputAttributeDescriptions,
+        GraphicsPipelineCreateInfoBuilder infoBuilder) const = 0;
   };
 
  private:
@@ -77,6 +80,7 @@ class RenderGraph {
   };
 
   struct RenderInstance {
+    const Visible& visible;
     std::unique_ptr<HostDescriptorWriter> descriptorWriter;
     Descriptor descriptor;
     const IndexedVertexBuffer* drawBuffer;
@@ -93,13 +97,13 @@ class RenderGraph {
 
   template <typename TPipeline>
   struct PipelineGraph {
-    std::unordered_map<PipelineKey, TPipeline> pipelines;
+    std::map<PipelineKey, TPipeline> pipelines;
     const vk::PipelineLayout* rootPipelineLayout;
     vk::DescriptorSetLayout descriptorLayout;
     Descriptor descriptor;
   };
 
-  ResourceAllocator& allocator_;
+  ResourceAllocator* allocator_;
   std::vector<vk::DescriptorSet::WriteDescriptorSet> descriptorSetWrites_;
   PipelineGraph<ComputePipeline> computePipelineGraph_;
   PipelineGraph<RenderPipeline> graphicsPipelineGraph_;

@@ -1,0 +1,10 @@
+#ifndef VULKAN_SRC_GAME_UI_ELEMENTS_GRIDLIST_GRIDLISTPARSE_H_
+#define VULKAN_SRC_GAME_UI_ELEMENTS_GRIDLIST_GRIDLISTPARSE_H_
+
+#include "game/ui/Element.h"
+
+struct GridListParse {
+  ElementList elements;
+};
+
+#endif  // VULKAN_SRC_GAME_UI_ELEMENTS_GRIDLIST_GRIDLISTPARSE_H_

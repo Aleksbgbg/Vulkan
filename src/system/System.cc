@@ -2,12 +2,9 @@
 
 namespace sys {
 
-Sound CreateSound() {
+System::System() {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO);
-  return Sound();
 }
-
-System::System() : sound_(CreateSound()) {}
 
 std::unique_ptr<Window> System::SpawnWindow(const u32 width,
                                             const u32 height) const {
@@ -19,10 +16,6 @@ std::unique_ptr<Window> System::SpawnWindow(const u32 width,
       SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
   return CreateWindow(window, windowRect);
-}
-
-Sound& System::GetSound() {
-  return sound_;
 }
 
 }  // namespace sys

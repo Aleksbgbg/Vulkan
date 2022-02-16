@@ -7,6 +7,7 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "Settings.h"
 #include "util/types.h"
 
 typedef u32 SoundHandle;
@@ -24,13 +25,14 @@ class Sound {
 
   struct SoundToPlay {
     bool repeat;
+    const float* volume;
     u32 remaining;
     u32 position;
     SoundType* data;
   };
 
  public:
-  Sound();
+  Sound(const Settings& settings);
 
   Sound(Sound&) = delete;
   Sound(Sound&&) = delete;
@@ -46,7 +48,8 @@ class Sound {
   void Play(SoundHandle soundHandle);
 
  private:
-  void QueueSound(SoundHandle soundHandle, bool repeat);
+  void QueueSound(const SoundHandle soundHandle, const bool repeat,
+                  const float* const volume);
 
   static void Callback(void* userData, u8* stream, i32 length);
   void InstanceCallback(u8* streamBytes, u32 length);
@@ -54,6 +57,7 @@ class Sound {
   void Play(SoundToPlay& sound, SoundType* buffer, u32 samples);
 
  private:
+  const Settings& settings_;
   SDL_AudioDeviceID audioDeviceId_;
   SoundHandle currentSoundHandle_;
   std::unordered_map<SoundHandle, LoadedSound> sounds_;

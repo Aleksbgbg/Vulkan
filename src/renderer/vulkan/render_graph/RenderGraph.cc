@@ -53,7 +53,7 @@ vk::DescriptorSetLayout DescriptorSetStructureAsLayout(
 }
 
 void RenderGraph::FlushDescriptors() {
-  allocator_.UpdateDescriptorSets(descriptorSetWrites_);
+  allocator_->UpdateDescriptorSets(descriptorSetWrites_);
   descriptorSetWrites_.clear();
 }
 
@@ -73,10 +73,10 @@ RenderGraph::BufferDescriptor RenderGraph::AllocateBufferDescriptor(
   const std::size_t size = binding.size * instances;
   BufferDescriptor bufferDescriptor;
   if (binding.hostAccessible) {
-    bufferDescriptor.hostBuffer = allocator_.AllocateHostBuffer(
+    bufferDescriptor.hostBuffer = allocator_->AllocateHostBuffer(
         size, binding.bufferUsage | VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
   }
-  bufferDescriptor.deviceBuffer = allocator_.AllocateDeviceBuffer(
+  bufferDescriptor.deviceBuffer = allocator_->AllocateDeviceBuffer(
       size, binding.bufferUsage | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
   return bufferDescriptor;
 }
@@ -84,7 +84,7 @@ RenderGraph::BufferDescriptor RenderGraph::AllocateBufferDescriptor(
 RenderGraph::Descriptor RenderGraph::CreateDescriptor(
     const vk::DescriptorSetLayout& layout,
     const DescriptorSetStructure& structure) {
-  Descriptor descriptor{.set = allocator_.CreateDescriptorSet(layout)};
+  Descriptor descriptor{.set = allocator_->CreateDescriptorSet(layout)};
 
   for (const auto& binding : structure.bindings) {
     BufferDescriptor bufferDescriptor = AllocateBufferDescriptor(binding, 1);
@@ -105,13 +105,14 @@ RenderGraph::Descriptor RenderGraph::CreateDescriptor(
 RenderGraph::RenderGraph(RenderGraph::ResourceAllocator& allocator,
                          const u32 framesInFlight,
                          const RenderGraphLayout& layout)
-    : allocator_(allocator),
+    : allocator_(&allocator),
       descriptorSetWrites_(),
-      computePipelineGraph_({.descriptorLayout = DescriptorSetStructureAsLayout(
-                                 layout.globalComputeDescriptors, allocator_)}),
+      computePipelineGraph_(
+          {.descriptorLayout = DescriptorSetStructureAsLayout(
+               layout.globalComputeDescriptors, *allocator_)}),
       graphicsPipelineGraph_(
           {.descriptorLayout = DescriptorSetStructureAsLayout(
-               layout.globalGraphicsDescriptors, allocator_)}) {
+               layout.globalGraphicsDescriptors, *allocator_)}) {
   computePipelineGraph_.descriptor = CreateDescriptor(
       computePipelineGraph_.descriptorLayout, layout.globalComputeDescriptors);
   graphicsPipelineGraph_.descriptor =
@@ -120,14 +121,14 @@ RenderGraph::RenderGraph(RenderGraph::ResourceAllocator& allocator,
 
   for (const auto& pipelineStructure : layout.computePipelines) {
     vk::DescriptorSetLayout descriptorLayout = DescriptorSetStructureAsLayout(
-        pipelineStructure.descriptors, allocator_);
+        pipelineStructure.descriptors, *allocator_);
 
     computePipelineGraph_.pipelines.insert(std::make_pair(
         pipelineStructure.pipelineKey,
         ComputePipeline{
-            .pipeline = allocator_.CreateComputePipeline(
+            .pipeline = allocator_->CreateComputePipeline(
                 {&computePipelineGraph_.descriptorLayout, &descriptorLayout},
-                allocator_.LoadComputeShader(
+                allocator_->LoadComputeShader(
                     ShaderName(pipelineStructure.name,
                                pipelineStructure.shader.shaderStage))),
             .descriptorLayout = std::move(descriptorLayout),
@@ -135,10 +136,10 @@ RenderGraph::RenderGraph(RenderGraph::ResourceAllocator& allocator,
   }
   for (const auto& pipelineStructure : layout.graphicsPipelines) {
     vk::DescriptorSetLayout descriptorLayout = DescriptorSetStructureAsLayout(
-        pipelineStructure.descriptors, allocator_);
+        pipelineStructure.descriptors, *allocator_);
     std::vector<vk::ShaderModule> shaders;
     for (const auto& shader : pipelineStructure.shaders) {
-      shaders.push_back(allocator_.LoadGraphicsShader(
+      shaders.push_back(allocator_->LoadGraphicsShader(
           ShaderName(pipelineStructure.name, shader.shaderStage),
           shader.shaderStage));
     }
@@ -146,10 +147,11 @@ RenderGraph::RenderGraph(RenderGraph::ResourceAllocator& allocator,
     graphicsPipelineGraph_.pipelines.insert(std::make_pair(
         pipelineStructure.pipelineKey,
         RenderPipeline{
-            .pipeline = allocator_.CreateGraphicsPipeline(
+            .pipeline = allocator_->CreateGraphicsPipeline(
                 {&graphicsPipelineGraph_.descriptorLayout, &descriptorLayout},
                 std::move(shaders), pipelineStructure.vertexBinding,
-                pipelineStructure.vertexAttributes),
+                pipelineStructure.vertexAttributes,
+                pipelineStructure.graphicsPipelineTemplate),
             .descriptorLayout = std::move(descriptorLayout),
             .descriptorStructure = pipelineStructure.descriptors,
             .instancesToReleasePerFrame =
@@ -172,7 +174,7 @@ std::unique_ptr<Resource> RenderGraph::Insert(
   for (const auto& compute : result.computes) {
     ComputePipeline& pipeline = computePipelineGraph_.pipelines.at(compute.key);
     Descriptor descriptor{
-        .set = allocator_.CreateDescriptorSet(pipeline.descriptorLayout)};
+        .set = allocator_->CreateDescriptorSet(pipeline.descriptorLayout)};
     for (const auto& binding : pipeline.descriptorStructure.bindings) {
       switch (binding.type) {
         case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
@@ -237,7 +239,7 @@ std::unique_ptr<Resource> RenderGraph::Insert(
   for (const auto& render : result.renders) {
     RenderPipeline& pipeline = graphicsPipelineGraph_.pipelines.at(render.key);
     Descriptor descriptor{
-        .set = allocator_.CreateDescriptorSet(pipeline.descriptorLayout)};
+        .set = allocator_->CreateDescriptorSet(pipeline.descriptorLayout)};
     u32 textureIndex = 0;
     for (const auto& binding : pipeline.descriptorStructure.bindings) {
       switch (binding.type) {
@@ -338,7 +340,8 @@ std::unique_ptr<Resource> RenderGraph::InsertRender(const PipelineKey key,
                                                     Descriptor descriptor) {
   RenderPipeline& pipeline = graphicsPipelineGraph_.pipelines.at(key);
   return pipeline.instances.Insert(
-      {.descriptorWriter = std::move(insertInfo.descriptorWriter),
+      {.visible = insertInfo.visible,
+       .descriptorWriter = std::move(insertInfo.descriptorWriter),
        .descriptor = std::move(descriptor),
        .drawBuffer = insertInfo.drawBuffer,
        .drawInstances = insertInfo.instances});
@@ -417,6 +420,10 @@ void RenderGraph::ExecuteRenderPipelines(const vk::CommandBuffer& transfer,
     const vk::PipelineLayout& layout = pipeline.pipeline.GetLayout();
 
     for (const RenderInstance& instance : pipeline.instances) {
+      if (!instance.visible.IsVisible()) {
+        continue;
+      }
+
       graphics.CmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1,
                                     instance.descriptor.set);
 
@@ -440,7 +447,7 @@ void RenderGraph::ExecuteRenderPipelines(const vk::CommandBuffer& transfer,
         instance.descriptorWriter->Fill(availableHostDescriptors);
       }
 
-      instance.drawBuffer->DrawInstanced(graphics, instance.drawInstances);
+      instance.drawBuffer->Draw(graphics, instance.drawInstances);
     }
   }
 }

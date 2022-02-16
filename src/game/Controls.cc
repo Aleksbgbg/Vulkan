@@ -13,6 +13,7 @@ Controls::Controls()
       singleKeyControls_({
           {Control::SpawnPlayer, SDLK_g},
           {Control::Shoot, SDLK_f},
+          {Control::TogglePauseMenu, SDLK_ESCAPE},
       }),
       activeControls_(),
       normalizedAxisValues_() {}
@@ -62,17 +63,17 @@ void Controls::Update(const sys::Window& window) {
       constexpr float Deadzone = 0.1f;
       if (mouseInputNormalized.x < 0.0f) {
         mouseInputNormalized.x =
-            CoerceToRange(mouseInputNormalized.x + Deadzone, -1.0f, 0.0f);
+            Clamp(mouseInputNormalized.x + Deadzone, -1.0f, 0.0f);
       } else if (mouseInputNormalized.x > 0.0f) {
         mouseInputNormalized.x =
-            CoerceToRange(mouseInputNormalized.x - Deadzone, 0.0f, 1.0f);
+            Clamp(mouseInputNormalized.x - Deadzone, 0.0f, 1.0f);
       }
       if (mouseInputNormalized.y < 0.0f) {
         mouseInputNormalized.y =
-            CoerceToRange(mouseInputNormalized.y + Deadzone, -1.0f, 0.0f);
+            Clamp(mouseInputNormalized.y + Deadzone, -1.0f, 0.0f);
       } else if (mouseInputNormalized.y > 0.0f) {
         mouseInputNormalized.y =
-            CoerceToRange(mouseInputNormalized.y - Deadzone, 0.0f, 1.0f);
+            Clamp(mouseInputNormalized.y - Deadzone, 0.0f, 1.0f);
       }
       mouseInputNormalized.x =
           AffineTransform(mouseInputNormalized.x, -0.9f, 0.9f, -1.0f, 1.0f);

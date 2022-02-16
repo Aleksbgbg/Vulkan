@@ -110,7 +110,7 @@ GraphicsPipeline VirtualDevice::CreateGraphicsPipeline(
 }
 
 Semaphore VirtualDevice::CreateSemaphore() const {
-  return Semaphore(device, SemaphoreCreateInfoBuilder().Reference());
+  return Semaphore(device, SemaphoreCreateInfoBuilder());
 }
 
 ComputePipeline VirtualDevice::CreateComputePipeline(
@@ -167,7 +167,7 @@ Sampler VirtualDevice::CreateSampler(
 }
 
 PipelineCache VirtualDevice::CreatePipelineCache() const {
-  return PipelineCache(device, PipelineCacheCreateInfoBuilder().Reference());
+  return PipelineCache(device, PipelineCacheCreateInfoBuilder());
 }
 
 PipelineCache VirtualDevice::LoadPipelineCache(

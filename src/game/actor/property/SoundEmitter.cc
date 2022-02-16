@@ -1,9 +1,5 @@
 #include "SoundEmitter.h"
 
-PropertyKey SoundEmitter::Key() {
-  return PropertyKey::SoundEmitter;
-}
-
 SoundEmitter::SoundEmitter(sys::Sound& sound) : sound_(sound) {}
 
 void SoundEmitter::Loop(const SoundHandle sound) {

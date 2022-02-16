@@ -1,25 +1,19 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_API_UTIL_H_
 #define VULKAN_SRC_RENDERER_VULKAN_API_UTIL_H_
 
-#include <functional>
 #include <set>
+#include <string>
+#include <type_traits>
 #include <vector>
 
+#include "general/adapters/function_traits.h"
 #include "util/types.h"
 
 namespace vk {
 
-template <typename>
-struct second_arg;
-
-template <typename T2>
-struct second_arg<std::function<void(u32*, T2*)>> {
-  using type = T2;
-};
-
 template <typename TFunc>
 auto LoadArray(const TFunc& func) {
-  using TElement = typename second_arg<decltype(std::function{func})>::type;
+  using TElement = std::remove_pointer_t<NthArgType<1U, TFunc>>;
 
   u32 count;
   func(&count, nullptr);

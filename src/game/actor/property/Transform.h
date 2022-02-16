@@ -8,7 +8,9 @@
 
 class Transform : public Property, public Transformable {
  public:
-  static PropertyKey Key();
+  static constexpr PropertyKey Key() {
+    return PropertyKey::Transform;
+  }
 
   Transform(const Transformable* parent);
 

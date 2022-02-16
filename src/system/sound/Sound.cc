@@ -11,8 +11,12 @@ constexpr u32 SamplesPerSecond = 48000;
 
 namespace sys {
 
-Sound::Sound()
-    : audioDeviceId_(0), currentSoundHandle_(0), sounds_(), soundsToPlay_() {
+Sound::Sound(const Settings& settings)
+    : settings_(settings),
+      audioDeviceId_(0),
+      currentSoundHandle_(0),
+      sounds_(),
+      soundsToPlay_() {
   SDL_AudioSpec desired{};
   desired.freq = SamplesPerSecond;
   desired.format = AUDIO_S16SYS;
@@ -60,16 +64,20 @@ SoundHandle Sound::LoadSound(const std::string_view filename) {
 }
 
 void Sound::Loop(const SoundHandle soundHandle) {
-  QueueSound(soundHandle, true);
+  QueueSound(soundHandle, true,
+             settings_.GetPointer<float>(SettingKey::SfxVolume));
 }
 
 void Sound::Play(const SoundHandle soundHandle) {
-  QueueSound(soundHandle, false);
+  QueueSound(soundHandle, false,
+             settings_.GetPointer<float>(SettingKey::SfxVolume));
 }
 
-void Sound::QueueSound(const SoundHandle soundHandle, const bool repeat) {
+void Sound::QueueSound(const SoundHandle soundHandle, const bool repeat,
+                       const float* const volume) {
   const LoadedSound& sound = sounds_[soundHandle];
   soundsToPlay_.push_back({.repeat = repeat,
+                           .volume = volume,
                            .remaining = sound.size,
                            .position = 0,
                            .data = sound.data});
@@ -114,7 +122,7 @@ void Sound::InstanceCallback(u8* const streamBytes, const u32 length) {
 void Sound::Play(Sound::SoundToPlay& sound, SoundType* const buffer,
                  const u32 samples) {
   for (u32 sample = 0; sample < samples; ++sample) {
-    buffer[sample] += sound.data[sound.position + sample] * Volume;
+    buffer[sample] += sound.data[sound.position + sample] * (*sound.volume);
   }
 
   sound.remaining -= samples;

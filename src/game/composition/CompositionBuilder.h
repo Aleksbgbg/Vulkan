@@ -9,9 +9,12 @@
 #include "MeshHandle.h"
 #include "ParticleBehaviour.h"
 #include "SpawnDependencies.h"
+#include "game/DrawList.h"
 #include "game/LightSource.h"
 #include "game/actor/Actor.h"
 #include "game/actor/behaviour/Behaviour.h"
+#include "game/ui/UiDrawList.h"
+#include "game/ui/ViewModel.h"
 
 class CompositionBuilder {
  private:
@@ -31,27 +34,34 @@ class CompositionBuilder {
     enum class Type {
       Actor,
       ParticleSystem,
+      Ui,
     };
     Type type;
 
-    union TypedInfo {
-      struct ActorInfo {};
-      ActorInfo actor;
+    struct ActorInfo {};
+    ActorInfo actor;
 
-      struct ParticleSystemInfo {
-        ParticleBehaviour behaviour;
-        glm::vec3 spawnRegionLow;
-        glm::vec3 spawnRegionHigh;
-      };
-      ParticleSystemInfo particleSystem;
+    struct ParticleSystemInfo {
+      ParticleBehaviour behaviour;
+      glm::vec3 spawnRegionLow;
+      glm::vec3 spawnRegionHigh;
     };
-    TypedInfo infoForType;
+    ParticleSystemInfo particleSystem;
+
+    struct UiInfo {
+      std::optional<UiTree> uiTree;
+      std::unique_ptr<ViewModel> viewModel;
+    };
+    std::shared_ptr<UiInfo> ui;
   };
 
  public:
   static CompositionBuilder Actor(SpawnDependencies spawnDependencies);
   static CompositionBuilder ParticleSystem(SpawnDependencies spawnDependencies,
                                            ParticleBehaviour particleBehaviour);
+  static CompositionBuilder Ui(SpawnDependencies spawnDependencies,
+                               std::string_view view,
+                               std::unique_ptr<ViewModel> viewModel);
 
   CompositionBuilder Copy() const;
 
