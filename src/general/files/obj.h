@@ -29,6 +29,7 @@ struct ModelTextureVertex {
 
 struct ModelFaceVertex {
   bool operator==(const ModelFaceVertex other) const;
+  bool operator!=(const ModelFaceVertex other) const;
 
   u32 vertexIndex;
   u32 normalVertexIndex;

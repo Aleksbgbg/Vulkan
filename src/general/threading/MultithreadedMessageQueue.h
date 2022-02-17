@@ -2,8 +2,9 @@
 #define VULKAN_SRC_GENERAL_THREADING_MULTITHREADEDMESSAGEQUEUE_H_
 
 #include <queue>
-#include <semaphore>
 #include <unordered_map>
+
+#include "BinarySemaphore.h"
 
 template <typename TMessage>
 class MultithreadedMessageQueue {
@@ -12,8 +13,7 @@ class MultithreadedMessageQueue {
 
   void PostMessage(TMessage message) {
     if (messageAwaiters.contains(message)) {
-      std::binary_semaphore* semaphore = messageAwaiters.at(message);
-      semaphore->release();
+      messageAwaiters.at(message)->Release();
     } else {
       messageQueue.emplace(message);
     }
@@ -28,15 +28,15 @@ class MultithreadedMessageQueue {
     return message;
   }
   void WaitMessage(TMessage message) {
-    std::binary_semaphore semaphore(0);
+    BinarySemaphore semaphore;
     messageAwaiters.emplace(message, &semaphore);
-    semaphore.acquire();
+    semaphore.Acquire();
     messageAwaiters.erase(message);
   }
 
  private:
   std::queue<TMessage> messageQueue;
-  std::unordered_map<TMessage, std::binary_semaphore*> messageAwaiters;
+  std::unordered_map<TMessage, BinarySemaphore*> messageAwaiters;
 };
 
 #endif  // VULKAN_SRC_GENERAL_THREADING_MULTITHREADEDMESSAGEQUEUE_H_

@@ -205,6 +205,11 @@ bool ModelFaceVertex::operator==(const ModelFaceVertex other) const {
          (normalVertexIndex == other.normalVertexIndex) &&
          (textureVertexIndex == other.textureVertexIndex);
 }
+
+bool ModelFaceVertex::operator!=(const ModelFaceVertex other) const {
+  return !(*this == other);
+}
+
 bool ModelFace::operator==(const ModelFace& other) const {
   for (u32 index = 0; index < faceVertices.size(); ++index) {
     if (faceVertices[index] != other.faceVertices[index]) {

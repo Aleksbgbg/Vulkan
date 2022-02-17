@@ -680,7 +680,7 @@ Vulkan::Vulkan(const VulkanSystem& vulkanSystem, const sys::Window& window,
          .submitCompleteFence =
              virtualDevice_.CreateFence(VK_FENCE_CREATE_SIGNALED_BIT)});
   }
-  
+
   uiTexture_.push_back(LoadTexture(fontAtlas.AsImage(), VK_FORMAT_R8_SRGB));
 
   CalculateProjection();
@@ -1059,10 +1059,10 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
                                        .SetFloat1(0.0f)
                                        .SetFloat2(0.0f)
                                        .SetFloat3(1.0f));
-  constexpr VkClearValue depthClear = ClearValueBuilder().SetDepthStencil(
+  const VkClearValue depthClear = ClearValueBuilder().SetDepthStencil(
       ClearDepthStencilValueBuilder().SetDepth(1.0f));
 
-  constexpr std::array<VkClearValue, 3> clearValues{
+  const std::array<VkClearValue, 3> clearValues{
       colorClear,
       colorClear,
       depthClear,

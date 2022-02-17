@@ -1,6 +1,7 @@
 #ifndef VULKAN_SRC_SETTINGS_H_
 #define VULKAN_SRC_SETTINGS_H_
 
+#include <cstring>
 #include <memory>
 #include <unordered_map>
 

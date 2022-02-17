@@ -4,6 +4,7 @@
 #include <SDL_audio.h>
 
 #include <list>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 

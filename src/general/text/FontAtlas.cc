@@ -1,6 +1,7 @@
 #include "FontAtlas.h"
 
 #include <cassert>
+#include <list>
 
 #include "general/adapters/MapValueIterator.h"
 #include "util/filenames.h"
