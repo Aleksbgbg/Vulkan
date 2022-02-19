@@ -734,23 +734,23 @@ Texture Vulkan::LoadTexture(const std::string_view filename) {
   return LoadTexture(file::ReadPng(filename));
 }
 
-Texture Vulkan::LoadTexture(const file::Image& image, const VkFormat format) {
+Texture Vulkan::LoadTexture(const Bitmap& image, const VkFormat format) {
   const vk::Buffer stagingBuffer = virtualDevice_.CreateBuffer(
       BufferCreateInfoBuilder(BUFFER_EXCLUSIVE)
-          .SetSize(image.size)
+          .SetSize(image.Size())
           .SetUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
   const vk::BoundDeviceMemory stagingBufferMemory = deviceAllocator_.BindMemory(
       stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-  stagingBufferMemory.MapCopy(image.data.data(), image.size);
+  stagingBufferMemory.MapCopy(image.Data(), image.Size());
 
   vk::Image textureImage =
       virtualDevice_.CreateImage(ImageCreateInfoBuilder(IMAGE_2D)
                                      .SetFormat(format)
                                      .SetExtent(Extent3DBuilder()
-                                                    .SetWidth(image.width)
-                                                    .SetHeight(image.height)
+                                                    .SetWidth(image.Width())
+                                                    .SetHeight(image.Height())
                                                     .SetDepth(1))
                                      .SetUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                                                VK_IMAGE_USAGE_SAMPLED_BIT));
@@ -772,8 +772,8 @@ Texture Vulkan::LoadTexture(const file::Image& image, const VkFormat format) {
       BufferImageCopyBuilder()
           .SetImageSubresource(SUBRESOURCE_LAYERS_COLOR_SINGLE_LAYER)
           .SetImageExtent(Extent3DBuilder(EXTENT3D_SINGLE_DEPTH)
-                              .SetWidth(image.width)
-                              .SetHeight(image.height)));
+                              .SetWidth(image.Width())
+                              .SetHeight(image.Height())));
   shortExecutionCommandBuffer_.CmdImageMemoryBarrier(
       textureImage, VK_PIPELINE_STAGE_TRANSFER_BIT,
       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,

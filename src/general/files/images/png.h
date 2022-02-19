@@ -3,11 +3,11 @@
 
 #include <string_view>
 
-#include "Image.h"
+#include "general/images/Bitmap.h"
 
 namespace file {
 
-Image ReadPng(const std::string_view path);
+Bitmap ReadPng(const std::string_view path);
 
 }  // namespace file
 

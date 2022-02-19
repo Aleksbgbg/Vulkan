@@ -16,8 +16,8 @@
 #include "game/Transformable.h"
 #include "game/actor/resource/ResourceList.h"
 #include "general/algorithms/RandomNumberGenerator.h"
-#include "general/files/images/Image.h"
 #include "general/geometry/Rect.h"
+#include "general/images/Bitmap.h"
 #include "general/text/FontAtlas.h"
 #include "renderer/vertices/StructuredVertexData.h"
 #include "renderer/vulkan/api/Swapchain.h"
@@ -51,7 +51,7 @@ class Vulkan : public Renderer,
   RenderGraph CreateRenderGraph();
 
   Texture LoadTexture(std::string_view filename);
-  Texture LoadTexture(const file::Image& image,
+  Texture LoadTexture(const Bitmap& image,
                       VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
   IndexedVertexBuffer AllocateDrawBuffer(
       const StructuredVertexData::RawVertexData& vertexData);

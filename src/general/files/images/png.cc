@@ -438,64 +438,60 @@ void DecompressZlib(ByteStreamReader& streamReader,
 
 class UnboundedScanlineReadWriter {
  public:
-  UnboundedScanlineReadWriter(Image& image)
+  UnboundedScanlineReadWriter(Bitmap& image)
       : image(image),
-        writeScanline(image.data.data()),
-        virtualScanlineSize(image.scanlineSize + image.bytesPerPixel),
-        virtualScanlineBuffer(new u8[virtualScanlineSize * 2]),
+        writeScanline(image.Data()),
+        virtualScanlineSize(image.Stride() + image.BytesPerPixel()),
+        virtualScanlineBuffer(std::make_unique<u8[]>(virtualScanlineSize * 2)),
         previousScanline(virtualScanlineBuffer.get()),
-        currentScanline(virtualScanlineBuffer.get() + virtualScanlineSize) {
-    // Set scanline -1 as well as the first byte on scanline 0 to 0
-    std::memset(previousScanline, 0, virtualScanlineSize + image.bytesPerPixel);
-  }
+        currentScanline(virtualScanlineBuffer.get() + virtualScanlineSize) {}
 
   void MoveToNextScanline() {
-    std::memcpy(writeScanline, currentScanline + image.bytesPerPixel,
-                image.scanlineSize);
+    std::memcpy(writeScanline, currentScanline + image.BytesPerPixel(),
+                image.Stride());
 
     std::swap(previousScanline, currentScanline);
 
-    writeScanline += image.scanlineSize;
+    writeScanline += image.Stride();
   }
 
   void Copy(const u8* const data) const {
-    std::memcpy(currentScanline + image.bytesPerPixel, data,
-                image.scanlineSize);
+    std::memcpy(currentScanline + image.BytesPerPixel(), data, image.Stride());
   }
 
   void WriteByte(const u32 byte, const u8 value) const {
-    currentScanline[byte + image.bytesPerPixel] = value;
+    currentScanline[byte + image.BytesPerPixel()] = value;
   }
 
   u8 ReadBytePreviousScanline(const i32 byte) const {
-    return previousScanline[byte + image.bytesPerPixel];
+    return previousScanline[byte + image.BytesPerPixel()];
   }
 
   u8 ReadByteCurrentScanline(const i32 byte) const {
-    return currentScanline[byte + image.bytesPerPixel];
+    return currentScanline[byte + image.BytesPerPixel()];
   }
 
  private:
-  Image& image;
+  Bitmap& image;
   u8* writeScanline;
 
   u32 virtualScanlineSize;
 
-  std::unique_ptr<u8> virtualScanlineBuffer;
+  std::unique_ptr<u8[]> virtualScanlineBuffer;
   u8* previousScanline;
   u8* currentScanline;
 };
 
 class PngDefilter {
  public:
-  PngDefilter(Image& image, const std::vector<u8> filteredData)
+  PngDefilter(Bitmap& image, const std::vector<u8> filteredData)
       : image(image),
         filteredData(std::move(filteredData)),
         source(this->filteredData.data()),
         scanlineReadWriter(image) {}
 
   void Run() {
-    for (u32 scanline = 0; scanline < image.height; ++scanline) {
+    for (u32 scanline = 0; scanline < image.Height(); ++scanline) {
       const u8 filterType = source[0];
       ++source;
 
@@ -527,7 +523,7 @@ class PngDefilter {
 
       scanlineReadWriter.MoveToNextScanline();
 
-      source += image.scanlineSize;
+      source += image.Stride();
     }
   }
 
@@ -537,21 +533,21 @@ class PngDefilter {
   }
 
   void DecodeSubFilter() const {
-    for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
+    for (u32 byte = 0; byte < image.Stride(); ++byte) {
       const u8 outputByte = source[byte] + ReadPixelA(byte);
       scanlineReadWriter.WriteByte(byte, outputByte);
     }
   }
 
   void DecodeUpFilter() const {
-    for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
+    for (u32 byte = 0; byte < image.Stride(); ++byte) {
       const u8 outputByte = source[byte] + ReadPixelB(byte);
       scanlineReadWriter.WriteByte(byte, outputByte);
     }
   }
 
   void DecodeAverageFilter() const {
-    for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
+    for (u32 byte = 0; byte < image.Stride(); ++byte) {
       const u8 a = ReadPixelA(byte);
       const u8 b = ReadPixelB(byte);
 
@@ -563,7 +559,7 @@ class PngDefilter {
   }
 
   void DecodePaethFilter() const {
-    for (u32 byte = 0; byte < image.scanlineSize; ++byte) {
+    for (u32 byte = 0; byte < image.Stride(); ++byte) {
       const u8 a = ReadPixelA(byte);
       const u8 b = ReadPixelB(byte);
       const u8 c = ReadPixelC(byte);
@@ -576,7 +572,7 @@ class PngDefilter {
 
   u8 ReadPixelA(const u32 byte) const {
     return scanlineReadWriter.ReadByteCurrentScanline(byte -
-                                                      image.bytesPerPixel);
+                                                      image.BytesPerPixel());
   }
 
   u8 ReadPixelB(const u32 byte) const {
@@ -585,7 +581,7 @@ class PngDefilter {
 
   u8 ReadPixelC(const u32 byte) const {
     return scanlineReadWriter.ReadBytePreviousScanline(byte -
-                                                       image.bytesPerPixel);
+                                                       image.BytesPerPixel());
   }
 
   static u8 PaethPredictor(const u8 a, const u8 b, const u8 c) {
@@ -607,7 +603,7 @@ class PngDefilter {
   }
 
  private:
-  Image& image;
+  Bitmap& image;
   std::vector<u8> filteredData;
   u8* source;
   UnboundedScanlineReadWriter scanlineReadWriter;
@@ -621,7 +617,7 @@ class PngReader {
         image(),
         compressedData() {}
 
-  Image Read() {
+  Bitmap Read() {
     if (!IsValidSignature()) {
       throw std::runtime_error("Not a valid PNG image");
     }
@@ -634,8 +630,8 @@ class PngReader {
           break;
 
         case ChunkType::IHDR: {
-          image.width = streamReader.ReadInt();
-          image.height = streamReader.ReadInt();
+          const u32 width = streamReader.ReadInt();
+          const u32 height = streamReader.ReadInt();
           const u8 bitDepth = streamReader.ReadByte();
           const u8 colourType = streamReader.ReadByte();
           const u8 compressionMethod = streamReader.ReadByte();
@@ -662,10 +658,7 @@ class PngReader {
             throw std::runtime_error("Unsupported PNG interlace method");
           }
 
-          image.bytesPerPixel = (bitDepth / 8) * 4;
-          image.scanlineSize = image.bytesPerPixel * image.width;
-          image.size = image.scanlineSize * image.height;
-          image.data.resize(image.size);
+          image = Bitmap(width, height, BitsPerPixel(bitDepth * 4));
         } break;
 
         case ChunkType::PLTE:
@@ -677,8 +670,8 @@ class PngReader {
 
         case ChunkType::IEND:
           ByteStreamReader dataStreamReader(compressedData.data());
-          std::vector<u8> filteredData((image.width + 1) * image.height *
-                                       image.bytesPerPixel);
+          std::vector<u8> filteredData((image.Width() + 1) * image.Height() *
+                                       image.BytesPerPixel());
           ByteStreamReadWriter decompressedStreamReadWriter(
               filteredData.data());
           DecompressZlib(dataStreamReader, decompressedStreamReadWriter);
@@ -760,10 +753,10 @@ class PngReader {
   std::vector<u8> pngData;
   ByteStreamReader streamReader;
   std::vector<u8> compressedData;
-  Image image;
+  Bitmap image;
 };
 
-Image ReadPng(const std::string_view path) {
+Bitmap ReadPng(const std::string_view path) {
   return PngReader(path).Read();
 }
 

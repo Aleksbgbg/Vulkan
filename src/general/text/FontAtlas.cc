@@ -42,7 +42,7 @@ FontAtlas FontAtlas::Create() {
   files.push_back(std::move(ui));
   files.push_back(std::move(fontawesome));
 
-  std::unordered_map<GlyphCode, file::Image> glyphImages;
+  std::unordered_map<GlyphCode, Bitmap> glyphImages;
   u32 totalWidth = 0;
   u32 maxHeight = 0;
 
@@ -75,13 +75,9 @@ FontAtlas FontAtlas::Create() {
 
       const FT_Bitmap glyph = slot->bitmap;
 
-      file::Image& image = glyphImages[charCode];
-      image.width = glyph.width;
-      image.height = glyph.rows;
-      image.bytesPerPixel = 1;
-      image.scanlineSize = image.width * image.bytesPerPixel;
-      image.size = image.scanlineSize * image.height;
-      image.data = std::vector<u8>(image.size);
+      Bitmap& image = glyphImages[charCode];
+      image = Bitmap(glyph.width, glyph.rows, glyph.pitch, glyph.buffer,
+                     BytesPerPixel(1));
 
       Glyph& glyphData = glyphs[charCode];
       glyphData.width = glyph.width;
@@ -89,57 +85,36 @@ FontAtlas FontAtlas::Create() {
       glyphData.advance = slot->advance.x / 64;
       glyphData.bearing = glm::vec2(slot->bitmap_left, slot->bitmap_top);
 
-      totalWidth += image.width;
-      maxHeight = std::max(maxHeight, image.height);
-
-      u8* const write = image.data.data();
-      for (u32 y = 0; y < image.height; ++y) {
-        for (u32 x = 0; x < image.width; ++x) {
-          write[(y * image.scanlineSize) + x] =
-              glyph.buffer[(y * glyph.pitch) + x];
-        }
-      }
+      totalWidth += image.Width();
+      maxHeight = std::max(maxHeight, image.Height());
     }
   }
 
   u32 currentWidth = 0;
   for (const auto& pair : glyphImages) {
     const GlyphCode charCode = pair.first;
-    const file::Image& image = pair.second;
+    const Bitmap& image = pair.second;
 
     Glyph& glyphData = glyphs[charCode];
     glyphData.textureCoordinate = Rectf::FromPoints(
         static_cast<float>(currentWidth) / totalWidth, 0.0f,
         static_cast<float>(currentWidth + glyphData.width) / totalWidth,
         static_cast<float>(glyphData.height) / maxHeight);
-    currentWidth += image.width;
+    currentWidth += image.Width();
   }
 
-  file::Image atlas;
-  atlas.width = totalWidth;
-  atlas.height = maxHeight;
-  atlas.bytesPerPixel = 1;
-  atlas.scanlineSize = atlas.width * atlas.bytesPerPixel;
-  atlas.size = atlas.scanlineSize * atlas.height;
-  atlas.data = std::vector<u8>(atlas.size);
+  Bitmap atlas(totalWidth, maxHeight, BytesPerPixel(1));
 
   u32 widthAlong = 0;
-  for (const file::Image& image : IterateValues(glyphImages)) {
-    u8* const write = atlas.data.data() + (atlas.bytesPerPixel * widthAlong);
-    for (u32 y = 0; y < image.height; ++y) {
-      for (u32 x = 0; x < image.width; ++x) {
-        const u8 color = image.data.data()[(y * image.scanlineSize) + x];
-        write[(y * atlas.scanlineSize) + x] = color;
-      }
-    }
-
-    widthAlong += image.width;
+  for (const Bitmap& image : IterateValues(glyphImages)) {
+    Bitmap::Copy(image, atlas, Offset(widthAlong, 0));
+    widthAlong += image.Width();
   }
 
   return FontAtlas(fontHeight / 64, std::move(atlas), std::move(glyphs));
 }
 
-FontAtlas::FontAtlas(const u32 fontHeight, file::Image image,
+FontAtlas::FontAtlas(const u32 fontHeight, Bitmap image,
                      std::unordered_map<GlyphCode, Glyph> glyphs)
     : fontHeight_(fontHeight),
       image_(std::move(image)),
@@ -149,7 +124,7 @@ u32 FontAtlas::GetFontHeight() const {
   return fontHeight_;
 }
 
-const file::Image& FontAtlas::AsImage() const {
+const Bitmap& FontAtlas::AsImage() const {
   return image_;
 }
 

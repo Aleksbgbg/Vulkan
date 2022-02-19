@@ -4,8 +4,8 @@
 #include <unordered_map>
 
 #include "GlyphString.h"
-#include "general/files/images/Image.h"
 #include "general/geometry/Rect.h"
+#include "general/images/Bitmap.h"
 #include "util/include/glm.h"
 #include "util/types.h"
 
@@ -22,16 +22,16 @@ class FontAtlas {
   static FontAtlas Create();
 
   u32 GetFontHeight() const;
-  const file::Image& AsImage() const;
+  const Bitmap& AsImage() const;
   const Glyph& RetrieveGlyph(GlyphCode charCode) const;
 
  private:
-  FontAtlas(u32 fontHeight, file::Image image,
+  FontAtlas(u32 fontHeight, Bitmap image,
             std::unordered_map<GlyphCode, Glyph> glyphs);
 
  private:
   u32 fontHeight_;
-  file::Image image_;
+  Bitmap image_;
   std::unordered_map<GlyphCode, Glyph> glyphs_;
 };
 
