@@ -65,7 +65,7 @@ SoundHandle Sound::LoadSound(const std::string_view filename) {
 
 void Sound::Loop(const SoundHandle soundHandle) {
   QueueSound(soundHandle, true,
-             settings_.GetPointer<float>(SettingKey::SfxVolume));
+             settings_.GetPointer<float>(SettingKey::MusicVolume));
 }
 
 void Sound::Play(const SoundHandle soundHandle) {
