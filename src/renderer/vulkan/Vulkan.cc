@@ -1034,6 +1034,11 @@ void Vulkan::ScheduleCompute(const ComputeContext& context) {
 
   computeMainCommandBuffer_.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
   computeMainCommandBuffer_.CmdExecuteCommands(computeTransferCommandBuffer_);
+  computeMainCommandBuffer_.CmdGlobalMemoryBarrier(
+      VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+      MemoryBarrierBuilder()
+          .SetSrcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
+          .SetDstAccessMask(VK_ACCESS_SHADER_READ_BIT));
   computeMainCommandBuffer_.CmdExecuteCommands(computeCommandBuffer_);
   computeMainCommandBuffer_.End().SubmitCompute(computeCompleteFence_);
 }
@@ -1140,6 +1145,11 @@ void Vulkan::ScheduleRender(const game::Camera& camera,
 
   commandBuffer.Begin(COMMAND_BUFFER_ONE_TIME_SUBMIT);
   commandBuffer.CmdExecuteCommands(swapchainRender.transfer);
+  commandBuffer.CmdGlobalMemoryBarrier(
+      VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+      MemoryBarrierBuilder()
+          .SetSrcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
+          .SetDstAccessMask(VK_ACCESS_SHADER_READ_BIT));
   commandBuffer.CmdBeginRenderPass(
       RenderPassBeginInfoBuilder()
           .SetRenderArea(Rect2DBuilder().SetExtent(swapchain_.GetImageExtent()))
