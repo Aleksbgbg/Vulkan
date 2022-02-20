@@ -6,7 +6,7 @@
 #include "game/ui/Margin.h"
 #include "game/ui/Orientation.h"
 #include "game/ui/TextCase.h"
-#include "general/geometry/Rect.h"
+#include "general/math/Rect.h"
 
 struct ListBox {
   Orientation orientation;

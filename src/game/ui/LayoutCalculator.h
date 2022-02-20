@@ -9,7 +9,7 @@
 #include "game/ui/elements/slider/SliderLayout.h"
 #include "game/ui/elements/togglebox/ToggleBox.h"
 #include "game/ui/elements/togglebox/ToggleBoxLayout.h"
-#include "general/geometry/Rect.h"
+#include "general/math/Rect.h"
 #include "general/text/FontAtlas.h"
 
 class LayoutCalculator {

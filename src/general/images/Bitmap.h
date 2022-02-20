@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "general/geometry/Rect.h"
+#include "general/math/Rect.h"
 #include "util/types.h"
 
 struct BitsPerPixel {

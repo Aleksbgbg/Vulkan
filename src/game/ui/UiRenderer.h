@@ -7,7 +7,7 @@
 #include "game/ui/elements/listbox/ListBox.h"
 #include "game/ui/elements/slider/Slider.h"
 #include "game/ui/elements/togglebox/ToggleBox.h"
-#include "general/geometry/Rect.h"
+#include "general/math/Rect.h"
 
 class UiRenderer {
  public:

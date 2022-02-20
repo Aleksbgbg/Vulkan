@@ -4,7 +4,7 @@
 #include <optional>
 #include <vector>
 
-#include "general/geometry/Rect.h"
+#include "general/math/Rect.h"
 
 struct ListBoxLayout {
   struct Header {

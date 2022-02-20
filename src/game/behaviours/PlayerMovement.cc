@@ -1,6 +1,6 @@
 #include "PlayerMovement.h"
 
-#include "general/math/math.h"
+#include "general/math/clamp.h"
 
 PlayerMovement::PlayerMovement(Transform& transform)
     : transform_(transform), rotation_(IDENTITY_ROTATION), velocity_(0.0f) {}
@@ -27,7 +27,7 @@ void PlayerMovement::UpdateModel(const UpdateContext& context) {
     velocity_ -= acceleration * context.deltaTime;
   }
 
-  velocity_ = Clamp(velocity_, 0.0f, 50.0f);
+  Clamp(&velocity_, 0.0f, 50.0f);
 
   transform_.Rotate(rotation_);
   transform_.MoveBy(glm::toMat4(rotation_) *

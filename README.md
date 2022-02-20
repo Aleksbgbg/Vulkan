@@ -58,7 +58,7 @@ Here is an example of adding an NPC spaceship which moves constantly forward:
 scene_.Actor()
   .Attach(BEHAVIOUR(ConstantMovement,
                     ConstantMovement::ParameterPack()
-                        .SetTransform(actor.RetrieveProperty<Transform>())
+                        .SetTransform(actor.RetrieveProperty<AffineTransform>())
                         .SetForwardVelocity(1.0f)))
   .Mesh(npcMesh)
   .Child(spaceshipExhaust)

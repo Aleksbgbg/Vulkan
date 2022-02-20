@@ -6,7 +6,7 @@
 #include "Color.h"
 #include "TextAlignment.h"
 #include "TextCase.h"
-#include "general/geometry/Rect.h"
+#include "general/math/Rect.h"
 #include "general/text/FontAtlas.h"
 #include "general/text/GlyphString.h"
 #include "renderer/vertices/PositionColorVertex.h"

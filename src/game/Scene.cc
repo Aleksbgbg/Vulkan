@@ -13,7 +13,6 @@
 #include "game/composition/SceneComposer.h"
 #include "game/composition/behaviour_utils.h"
 #include "game/viewmodels/PauseMenuViewModel.h"
-#include "general/math/math.h"
 #include "ui_pages.h"
 #include "util/filenames.h"
 
@@ -25,31 +24,6 @@ Scene::Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
       sceneGraph_(),
       actorsToSpawn_(),
       actorsToDespawn_() {
-  constexpr float ShipMinX = -1.7f;
-  constexpr float ShipMaxX = 1.7f;
-  constexpr float ShipMinY = -0.8f;
-  constexpr float ShipMaxY = 0.8f;
-  constexpr float ShipMinZ = -2.4f;
-  constexpr float ShipMaxZ = 2.8f;
-
-  constexpr float ModelMaxX = 34.0f;
-  constexpr float ModelMaxY = 16.0f;
-  constexpr float ModelMaxZ = 56.0f;
-
-  // Ship exhaust spawn position
-  constexpr float x1 =
-      AffineTransform(6.0f, 0.0f, ModelMaxX, ShipMinX, ShipMaxX);
-  constexpr float y1 =
-      AffineTransform(5.0f, 0.0f, ModelMaxY, ShipMinY, ShipMaxY);
-  constexpr float z1 =
-      AffineTransform(ModelMaxZ - 56.0f, 0.0f, ModelMaxZ, ShipMinZ, ShipMaxZ);
-  constexpr float x2 =
-      AffineTransform(27.0f, 0.0f, ModelMaxX, ShipMinX, ShipMaxX);
-  constexpr float y2 =
-      AffineTransform(7.0f, 0.0f, ModelMaxY, ShipMinY, ShipMaxY);
-  constexpr float z2 =
-      AffineTransform(ModelMaxZ - 55.0f, 0.0f, ModelMaxZ, ShipMinZ, ShipMaxZ);
-
   const MeshHandle skyboxMesh = scene_.LoadMesh(
       RenderType::Skybox,
       {.model = SKYBOX_MODEL_FILENAME,
@@ -84,7 +58,8 @@ Scene::Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
                                       parent->RetrieveProperty<Transform>(),
                                       actor.RetrieveProperty<Visibility>()))
                     .Mesh(exhaustParticleMesh)
-                    .SpawnRegion(glm::vec3(x1, y1, z1), glm::vec3(x2, y2, z2)));
+                    .SpawnRegion(glm::vec3(-1.1f, -0.3f, -2.4f),
+                                 glm::vec3(1.0f, -0.1f, -2.31f)));
 
   scene_.Actor()
       .Attach(BEHAVIOUR(BackgroundMusic, actor.RetrieveProperty<SoundEmitter>(),

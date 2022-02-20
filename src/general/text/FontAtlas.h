@@ -4,8 +4,8 @@
 #include <unordered_map>
 
 #include "GlyphString.h"
-#include "general/geometry/Rect.h"
 #include "general/images/Bitmap.h"
+#include "general/math/Rect.h"
 #include "util/include/glm.h"
 #include "util/types.h"
 

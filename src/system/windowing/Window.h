@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "WindowEventConsumerConsumer.h"
-#include "general/geometry/Rect.h"
+#include "general/math/Rect.h"
 #include "renderer/vulkan/api/SurfaceFactory.h"
 #include "system/windowing/input/Keyboard.h"
 #include "system/windowing/input/Mouse.h"

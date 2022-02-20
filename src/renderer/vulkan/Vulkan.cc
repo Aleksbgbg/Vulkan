@@ -14,7 +14,7 @@
 #include "general/files/file.h"
 #include "general/files/images/png.h"
 #include "general/logging/log.h"
-#include "general/math/math.h"
+#include "general/math/clamp.h"
 #include "memory/Alignment.h"
 #include "renderer/vertices/PositionColorVertex.h"
 #include "renderer/vertices/PositionNormalTextureVertex.h"

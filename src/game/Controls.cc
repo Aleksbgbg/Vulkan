@@ -1,6 +1,7 @@
 #include "Controls.h"
 
-#include "general/math/math.h"
+#include "general/math/clamp.h"
+#include "general/math/transform.h"
 
 Controls::Controls()
     : continuousKeyControls_({
@@ -60,25 +61,28 @@ void Controls::Update(const sys::Window& window) {
       normalizedAxisValues_[Axis::Movement] = glm::vec2(0.0f);
       normalizedAxisValues_[Axis::View] = mouseInputNormalized;
     } else {
-      constexpr float Deadzone = 0.1f;
+      static constexpr float Deadzone = 0.1f;
       if (mouseInputNormalized.x < 0.0f) {
-        mouseInputNormalized.x =
-            Clamp(mouseInputNormalized.x + Deadzone, -1.0f, 0.0f);
+        mouseInputNormalized.x += Deadzone;
+        Clamp(&mouseInputNormalized.x, -1.0f, 0.0f);
       } else if (mouseInputNormalized.x > 0.0f) {
-        mouseInputNormalized.x =
-            Clamp(mouseInputNormalized.x - Deadzone, 0.0f, 1.0f);
+        mouseInputNormalized.x -= Deadzone;
+        Clamp(&mouseInputNormalized.x, 0.0f, 1.0f);
       }
       if (mouseInputNormalized.y < 0.0f) {
-        mouseInputNormalized.y =
-            Clamp(mouseInputNormalized.y + Deadzone, -1.0f, 0.0f);
+        mouseInputNormalized.y += Deadzone;
+        Clamp(&mouseInputNormalized.y, -1.0f, 0.0f);
       } else if (mouseInputNormalized.y > 0.0f) {
-        mouseInputNormalized.y =
-            Clamp(mouseInputNormalized.y - Deadzone, 0.0f, 1.0f);
+        mouseInputNormalized.y -= Deadzone;
+        Clamp(&mouseInputNormalized.y, 0.0f, 1.0f);
       }
-      mouseInputNormalized.x =
-          AffineTransform(mouseInputNormalized.x, -0.9f, 0.9f, -1.0f, 1.0f);
-      mouseInputNormalized.y =
-          AffineTransform(mouseInputNormalized.y, -0.9f, 0.9f, -1.0f, 1.0f);
+
+      static constexpr Range MouseInputRange = Range(-0.9f, 0.9f);
+      static constexpr Range MouseOutputRange = Range(-1.0f, 1.0f);
+      AffineTransform(&mouseInputNormalized.x, MouseInputRange,
+                      MouseOutputRange);
+      AffineTransform(&mouseInputNormalized.y, MouseInputRange,
+                      MouseOutputRange);
 
       if (glm::length(mouseInputNormalized) > 1.0f) {
         mouseInputNormalized = glm::normalize(mouseInputNormalized);

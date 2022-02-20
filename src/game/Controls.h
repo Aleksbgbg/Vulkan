@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "general/geometry/Rect.h"
+#include "general/math/Rect.h"
 #include "system/windowing/Window.h"
 
 enum class Control {
