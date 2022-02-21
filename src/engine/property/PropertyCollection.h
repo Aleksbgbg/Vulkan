@@ -4,8 +4,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "game/actor/property/Property.h"
-#include "game/actor/property/PropertyKey.h"
+#include "Property.h"
+#include "PropertyKey.h"
 
 namespace game {
 

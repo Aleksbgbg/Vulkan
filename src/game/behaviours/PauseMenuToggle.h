@@ -1,8 +1,8 @@
 #ifndef VULKAN_SRC_GAME_BEHAVIOURS_PAUSEMENUTOGGLE_H_
 #define VULKAN_SRC_GAME_BEHAVIOURS_PAUSEMENUTOGGLE_H_
 
-#include "game/actor/behaviour/Behaviour.h"
-#include "game/actor/property/GraphicalInterface.h"
+#include "engine/behaviour/Behaviour.h"
+#include "engine/property/type/GraphicalInterface.h"
 
 class PauseMenuToggle : public Behaviour {
  public:

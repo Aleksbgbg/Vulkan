@@ -1,7 +1,7 @@
 #include "LaserEmitter.h"
 
 #include "ConstantMovement.h"
-#include "game/composition/behaviour_utils.h"
+#include "engine/composition/behaviour_utils.h"
 
 LaserEmitter::LaserEmitter(const ParameterPack& parameters)
     : parentTransform_(parameters.GetParentTransform()),

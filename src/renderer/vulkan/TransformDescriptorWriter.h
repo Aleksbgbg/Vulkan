@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "game/Transformable.h"
+#include "engine/property/traits/Transformable.h"
 #include "renderer/vulkan/render_graph/HostDescriptorWriter.h"
 
 class TransformDescriptorWriter : public HostDescriptorWriter {

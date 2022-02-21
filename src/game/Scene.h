@@ -6,15 +6,15 @@
 
 #include "Camera.h"
 #include "GraphicsSettingsConfigurator.h"
-#include "Renderer.h"
 #include "Settings.h"
-#include "UpdateContext.h"
 #include "core/text/FontAtlas.h"
-#include "game/actor/Actor.h"
-#include "game/actor/ActorOwner.h"
-#include "game/composition/ActorConsumer.h"
-#include "game/composition/SceneComposer.h"
-#include "game/composition/SceneGraph.h"
+#include "engine/actor/Actor.h"
+#include "engine/actor/ActorOwner.h"
+#include "engine/behaviour/UpdateContext.h"
+#include "engine/composition/ActorConsumer.h"
+#include "engine/composition/Renderer.h"
+#include "engine/composition/SceneComposer.h"
+#include "engine/composition/SceneGraph.h"
 #include "system/sound/Sound.h"
 
 class Scene : public ActorConsumer, public ActorOwner {

@@ -6,7 +6,7 @@
 
 #include "HostDescriptorWriter.h"
 #include "core/types.h"
-#include "game/Visible.h"
+#include "engine/property/traits/Visible.h"
 #include "renderer/vulkan/IndexedVertexBuffer.h"
 #include "renderer/vulkan/Texture.h"
 

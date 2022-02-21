@@ -2,8 +2,8 @@
 #define VULKAN_SRC_RENDERER_VULKAN_PARTICLECOMPUTEHANDLER_H_
 
 #include "core/algorithms/RandomNumberGenerator.h"
-#include "game/Transformable.h"
-#include "game/Visible.h"
+#include "engine/property/traits/Transformable.h"
+#include "engine/property/traits/Visible.h"
 #include "renderer/vulkan/render_graph/HostDescriptorWriter.h"
 
 class ParticleComputeHandler : public HostDescriptorWriter {

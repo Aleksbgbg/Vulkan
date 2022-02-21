@@ -1,9 +1,9 @@
 #ifndef VULKAN_SRC_GAME_BEHAVIOURS_EXHAUSTPARTICLECONTROLLER_H_
 #define VULKAN_SRC_GAME_BEHAVIOURS_EXHAUSTPARTICLECONTROLLER_H_
 
-#include "game/actor/behaviour/Behaviour.h"
-#include "game/actor/property/Transform.h"
-#include "game/actor/property/Visibility.h"
+#include "engine/behaviour/Behaviour.h"
+#include "engine/property/type/Transform.h"
+#include "engine/property/type/Visibility.h"
 
 class ExhaustParticleController : public Behaviour {
  public:

@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include "game/actor/resource/Resource.h"
+#include "Resource.h"
 
 namespace game {
 

@@ -1,9 +1,9 @@
 #ifndef VULKAN_SRC_GAME_BEHAVIOURS_CONSTANTMOVEMENT_H_
 #define VULKAN_SRC_GAME_BEHAVIOURS_CONSTANTMOVEMENT_H_
 
-#include "game/actor/behaviour/Behaviour.h"
-#include "game/actor/property/Transform.h"
-#include "game/composition/parameter_utils.h"
+#include "engine/behaviour/Behaviour.h"
+#include "engine/composition/parameter_utils.h"
+#include "engine/property/type/Transform.h"
 
 class ConstantMovement : public Behaviour {
  public:

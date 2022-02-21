@@ -1,8 +1,8 @@
 #include "RenderGraph.h"
 
 #include "core/adapters/MapValueIterator.h"
-#include "game/actor/CompositeResource.h"
-#include "game/actor/resource/ReleaseListResource.h"
+#include "engine/resource/CompositeResource.h"
+#include "engine/resource/ReleaseListResource.h"
 #include "renderer/vulkan/buffer_structures/ModelTransform.h"
 
 namespace {

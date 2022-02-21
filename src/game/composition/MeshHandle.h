@@ -1,8 +1,0 @@
-#ifndef VULKAN_SRC_GAME_COMPOSITION_MESHHANDLE_H_
-#define VULKAN_SRC_GAME_COMPOSITION_MESHHANDLE_H_
-
-#include "core/types.h"
-
-typedef u32 MeshHandle;
-
-#endif  // VULKAN_SRC_GAME_COMPOSITION_MESHHANDLE_H_

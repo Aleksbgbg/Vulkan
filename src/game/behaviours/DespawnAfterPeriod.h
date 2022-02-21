@@ -1,8 +1,8 @@
 #ifndef VULKAN_SRC_GAME_BEHAVIOURS_DESPAWNAFTERPERIOD_H_
 #define VULKAN_SRC_GAME_BEHAVIOURS_DESPAWNAFTERPERIOD_H_
 
-#include "game/actor/Actor.h"
-#include "game/actor/behaviour/Behaviour.h"
+#include "engine/actor/Actor.h"
+#include "engine/behaviour/Behaviour.h"
 
 class DespawnAfterPeriod : public Behaviour {
  public:

@@ -1,8 +1,8 @@
 #ifndef VULKAN_SRC_GAME_BEHAVIOURS_SUNMOVEMENT_H_
 #define VULKAN_SRC_GAME_BEHAVIOURS_SUNMOVEMENT_H_
 
-#include "game/actor/behaviour/Behaviour.h"
-#include "game/actor/property/Transform.h"
+#include "engine/behaviour/Behaviour.h"
+#include "engine/property/type/Transform.h"
 
 class SunMovement : public Behaviour {
  public:

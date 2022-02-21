@@ -1,9 +1,9 @@
 #ifndef VULKAN_SRC_GAME_BEHAVIOURS_CAMERACONTROLLER_H_
 #define VULKAN_SRC_GAME_BEHAVIOURS_CAMERACONTROLLER_H_
 
+#include "engine/behaviour/Behaviour.h"
+#include "engine/property/type/Transform.h"
 #include "game/Camera.h"
-#include "game/actor/behaviour/Behaviour.h"
-#include "game/actor/property/Transform.h"
 
 class CameraController : public Behaviour {
  public:

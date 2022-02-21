@@ -13,8 +13,9 @@
 #include "core/files/images/png.h"
 #include "core/logging/log.h"
 #include "core/math/clamp.h"
-#include "game/actor/CompositeResource.h"
-#include "game/actor/resource/ReleaseListResource.h"
+#include "engine/property/traits/default/AlwaysVisible.h"
+#include "engine/resource/CompositeResource.h"
+#include "engine/resource/ReleaseListResource.h"
 #include "memory/Alignment.h"
 #include "renderer/vertices/PositionColorVertex.h"
 #include "renderer/vertices/PositionNormalTextureVertex.h"
@@ -46,13 +47,6 @@
 #include "renderer/vulkan/render_graph/layout/builder/bindings.h"
 #include "util/build_definition.h"
 #include "util/filenames.h"
-
-class AlwaysVisible : public Visible {
- public:
-  bool IsVisible() const override {
-    return true;
-  }
-};
 
 static constexpr u32 WANTED_SWAPCHAIN_IMAGES = 3u;
 

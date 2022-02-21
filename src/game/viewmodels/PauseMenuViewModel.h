@@ -3,9 +3,9 @@
 
 #include "Settings.h"
 #include "core/types.h"
+#include "engine/ui/Bound.h"
+#include "engine/ui/ViewModel.h"
 #include "game/GraphicsSettingsConfigurator.h"
-#include "game/ui/Bound.h"
-#include "game/ui/ViewModel.h"
 
 class PauseMenuViewModel : public ViewModel {
  public:
