@@ -14,7 +14,6 @@
 #include "core/logging/log.h"
 #include "core/math/clamp.h"
 #include "engine/property/traits/default/AlwaysVisible.h"
-#include "engine/resource/CompositeResource.h"
 #include "engine/resource/ReleaseListResource.h"
 #include "memory/Alignment.h"
 #include "renderer/vertices/PositionColorVertex.h"
@@ -998,7 +997,7 @@ std::unique_ptr<Resource> Vulkan::SpawnUi(const Renderer::UiInfo& uiInfo) {
       std::make_unique<IndexedVertexBuffer>();
   std::unique_ptr<IndexedVertexBuffer> textBuffer =
       std::make_unique<IndexedVertexBuffer>();
-  return CompositeResource(
+  return std::make_unique<game::ResourceCollection>(
       std::array{renderGraph_.Insert(InsertPipelineBuilder().Render(
                      PIPELINE_UI_RENDER, {.visible = uiInfo.visible,
                                           .instances = 1,

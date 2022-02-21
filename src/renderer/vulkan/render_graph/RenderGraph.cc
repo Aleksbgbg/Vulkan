@@ -1,8 +1,8 @@
 #include "RenderGraph.h"
 
 #include "core/adapters/MapValueIterator.h"
-#include "engine/resource/CompositeResource.h"
 #include "engine/resource/ReleaseListResource.h"
+#include "engine/resource/ResourceCollection.h"
 #include "renderer/vulkan/buffer_structures/ModelTransform.h"
 
 namespace {
@@ -307,23 +307,24 @@ std::unique_ptr<Resource> RenderGraph::Insert(
     descriptors.insert(std::make_pair(render.key, std::move(descriptor)));
   }
 
-  std::list<std::unique_ptr<Resource>> resources;
+  std::unique_ptr<game::ResourceCollection> resources =
+      std::make_unique<game::ResourceCollection>();
 
   for (auto& compute : result.computes) {
     const PipelineKey key = compute.key;
-    resources.push_back(InsertCompute(key, std::move(compute.insertInfo),
-                                      std::move(descriptors.at(key))));
+    resources->push_back(InsertCompute(key, std::move(compute.insertInfo),
+                                       std::move(descriptors.at(key))));
   }
 
   for (auto& render : result.renders) {
     const PipelineKey key = render.key;
-    resources.push_back(InsertRender(key, std::move(render.insertInfo),
-                                     std::move(descriptors.at(key))));
+    resources->push_back(InsertRender(key, std::move(render.insertInfo),
+                                      std::move(descriptors.at(key))));
   }
 
   FlushDescriptors();
 
-  return CompositeResource(std::move(resources));
+  return resources;
 }
 
 std::unique_ptr<Resource> RenderGraph::InsertCompute(
