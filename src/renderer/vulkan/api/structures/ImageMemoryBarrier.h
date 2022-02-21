@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "ImageSubresourceRange.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(ImageMemoryBarrierBuilder, VkImageMemoryBarrier,
                   VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER)

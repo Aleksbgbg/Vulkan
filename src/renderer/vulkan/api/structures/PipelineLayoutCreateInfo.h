@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "PushConstantRange.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(PipelineLayoutCreateInfoBuilder, VkPipelineLayoutCreateInfo,
                   VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO)

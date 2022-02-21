@@ -1,6 +1,6 @@
 #include "PlayerMovement.h"
 
-#include "general/math/clamp.h"
+#include "core/math/clamp.h"
 
 PlayerMovement::PlayerMovement(Transform& transform)
     : transform_(transform), rotation_(IDENTITY_ROTATION), velocity_(0.0f) {}

@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "CommandBufferInheritanceInfo.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(CommandBufferBeginInfoBuilder, VkCommandBufferBeginInfo,
                   VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO)

@@ -5,8 +5,8 @@
 
 #include "Extent2D.h"
 #include "Offset2D.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER_NO_STYPE(Rect2DBuilder, VkRect2D)
 STRUCTURE_SETTER(Offset, const VkOffset2D, offset)

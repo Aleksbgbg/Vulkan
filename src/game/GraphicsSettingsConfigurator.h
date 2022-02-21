@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_GAME_GRAPHICSSETTINGSCONFIGURATOR_H_
 #define VULKAN_SRC_GAME_GRAPHICSSETTINGSCONFIGURATOR_H_
 
-#include "util/types.h"
+#include "core/types.h"
 
 class GraphicsSettingsConfigurator {
  public:

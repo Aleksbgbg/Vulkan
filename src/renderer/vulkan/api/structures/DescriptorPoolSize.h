@@ -3,8 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER_NO_STYPE(DescriptorPoolSizeBuilder, VkDescriptorPoolSize)
 STRUCTURE_SETTER(Type, VkDescriptorType, type)

@@ -1,10 +1,10 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_BOUNDBUFFER_H_
 #define VULKAN_SRC_RENDERER_VULKAN_BOUNDBUFFER_H_
 
+#include "core/types.h"
 #include "renderer/vulkan/api/Buffer.h"
 #include "renderer/vulkan/api/DescriptorSet.h"
 #include "renderer/vulkan/api/memory/BoundDeviceMemory.h"
-#include "util/types.h"
 
 class BoundBuffer {
  public:

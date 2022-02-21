@@ -1,6 +1,6 @@
 #include "SliderUiElement.h"
 
-#include "general/math/clamp.h"
+#include "core/math/clamp.h"
 
 Slider ToSlider(const SliderParse& parse) {
   return {.value = Bindable(parse.valueBinding)};

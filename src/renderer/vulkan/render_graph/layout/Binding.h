@@ -5,8 +5,8 @@
 
 #include <cstddef>
 
+#include "core/types.h"
 #include "renderer/vulkan/api/Sampler.h"
-#include "util/types.h"
 
 struct Binding {
   u32 index;

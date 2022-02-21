@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_PIPELINE_H_
 #define VULKAN_SRC_RENDERER_VULKAN_PIPELINE_H_
 
-#include "util/types.h"
+#include "core/types.h"
 
 enum Pipeline : u32 {
   PIPELINE_SKYBOX_RENDER = 1,

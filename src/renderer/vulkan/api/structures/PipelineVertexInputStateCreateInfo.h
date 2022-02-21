@@ -5,8 +5,8 @@
 
 #include "VertexInputAttributeDescription.h"
 #include "VertexInputBindingDescription.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(PipelineVertexInputStateCreateInfoBuilder,
                   VkPipelineVertexInputStateCreateInfo,

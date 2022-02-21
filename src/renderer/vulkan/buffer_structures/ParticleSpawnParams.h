@@ -1,8 +1,8 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_BUFFER_STRUCTURES_PARTICLESPAWNPARAMS_H_
 #define VULKAN_SRC_RENDERER_VULKAN_BUFFER_STRUCTURES_PARTICLESPAWNPARAMS_H_
 
+#include "core/types.h"
 #include "util/include/glm.h"
-#include "util/types.h"
 
 struct ParticleSpawnParams {
   alignas(4) u32 randomSeed;

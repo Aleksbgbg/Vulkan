@@ -2,7 +2,7 @@
 #define VULKAN_SRC_GAME_UI_MARGIN_H_
 
 #include "DistanceUnit.h"
-#include "general/math/Rect.h"
+#include "core/math/Rect.h"
 
 struct Margin {
   DistanceUnit unit;

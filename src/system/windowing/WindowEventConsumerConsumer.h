@@ -2,7 +2,7 @@
 #define VULKAN_SRC_SYSTEM_WINDOWING_WINDOWEVENTCONSUMERCONSUMER_H_
 
 #include "WindowEventConsumer.h"
-#include "general/operations/Consumer.h"
+#include "core/operations/Consumer.h"
 
 using WindowEventConsumerConsumer = Consumer<WindowEventConsumer&>;
 

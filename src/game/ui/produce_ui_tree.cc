@@ -2,12 +2,12 @@
 
 #include "Orientation.h"
 #include "TextCase.h"
+#include "core/strings/split.h"
+#include "core/types.h"
 #include "game/ui/elements/gridlist/GridListUiElement.h"
 #include "game/ui/elements/listbox/ListBoxUiElement.h"
 #include "game/ui/elements/slider/SliderUiElement.h"
 #include "game/ui/elements/togglebox/ToggleBoxUiElement.h"
-#include "general/strings/split.h"
-#include "util/types.h"
 
 template <typename TEnum>
 TEnum ParseEnum(const std::string& value);

@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_MEMORY_MEMORYBLOCK_H_
 #define VULKAN_SRC_MEMORY_MEMORYBLOCK_H_
 
-#include "util/types.h"
+#include "core/types.h"
 
 struct MemoryBlock {
   u64 offset;

@@ -1,6 +1,6 @@
 #include "PositionTextureVertex.h"
 
-#include "general/files/vertex_loader.h"
+#include "core/files/vertex_loader.h"
 #include "util/include/glm_hash.h"
 
 DrawVertices<PositionTextureVertex> PositionTextureVertex::LoadVertices(

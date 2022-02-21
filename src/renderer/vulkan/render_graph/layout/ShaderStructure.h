@@ -5,7 +5,7 @@
 
 #include <list>
 
-#include "util/types.h"
+#include "core/types.h"
 
 struct ShaderStructure {
   VkShaderStageFlagBits shaderStage;

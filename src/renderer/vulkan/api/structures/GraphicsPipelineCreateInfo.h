@@ -15,8 +15,8 @@
 #include "PipelineTessellationStateCreateInfo.h"
 #include "PipelineVertexInputStateCreateInfo.h"
 #include "PipelineViewportStateCreateInfo.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(GraphicsPipelineCreateInfoBuilder,
                   VkGraphicsPipelineCreateInfo,

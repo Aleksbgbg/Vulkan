@@ -2,12 +2,12 @@
 #define VULKAN_SRC_GAME_UI_UIRENDERER_H_
 
 #include "Canvas.h"
+#include "core/math/Rect.h"
 #include "game/ui/SelectionState.h"
 #include "game/ui/elements/gridlist/GridList.h"
 #include "game/ui/elements/listbox/ListBox.h"
 #include "game/ui/elements/slider/Slider.h"
 #include "game/ui/elements/togglebox/ToggleBox.h"
-#include "general/math/Rect.h"
 
 class UiRenderer {
  public:

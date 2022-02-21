@@ -1,6 +1,6 @@
 #include "PositionVertex.h"
 
-#include "general/files/vertex_loader.h"
+#include "core/files/vertex_loader.h"
 #include "util/include/glm_hash.h"
 
 std::unique_ptr<StructuredVertexData> PositionVertex::LoadVertexData(

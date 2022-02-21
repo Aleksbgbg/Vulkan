@@ -6,8 +6,8 @@
 // Must come after windows.h
 #include <vulkan/vulkan_win32.h>
 
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(Win32SurfaceCreateInfoBuilder, VkWin32SurfaceCreateInfoKHR,
                   VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR)

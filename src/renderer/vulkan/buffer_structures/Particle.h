@@ -1,8 +1,8 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_BUFFER_STRUCTURES_PARTICLE_H_
 #define VULKAN_SRC_RENDERER_VULKAN_BUFFER_STRUCTURES_PARTICLE_H_
 
+#include "core/types.h"
 #include "util/include/glm.h"
-#include "util/types.h"
 
 struct Particle {
   alignas(16) glm::mat4 baseTransform;

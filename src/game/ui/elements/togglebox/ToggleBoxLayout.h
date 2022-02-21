@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_GAME_UI_ELEMENTS_TOGGLEBOX_TOGGLEBOXLAYOUT_H_
 #define VULKAN_SRC_GAME_UI_ELEMENTS_TOGGLEBOX_TOGGLEBOXLAYOUT_H_
 
-#include "general/math/Rect.h"
+#include "core/math/Rect.h"
 
 struct ToggleBoxLayout {
   Rectu renderArea;

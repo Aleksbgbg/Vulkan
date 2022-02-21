@@ -7,9 +7,9 @@
 #include "PhysicalDevice.h"
 #include "Surface.h"
 #include "SurfaceFactory.h"
+#include "core/types.h"
 #include "renderer/vulkan/api/structures/DebugUtilsMessengerCreateInfo.h"
 #include "renderer/vulkan/api/structures/InstanceCreateInfo.h"
-#include "util/types.h"
 
 namespace vk {
 

@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "Rect2D.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(RenderPassBeginInfoBuilder, VkRenderPassBeginInfo,
                   VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO)

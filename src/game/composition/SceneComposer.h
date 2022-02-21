@@ -6,9 +6,9 @@
 #include "MeshHandle.h"
 #include "MeshLoadParams.h"
 #include "ParticleBehaviour.h"
+#include "core/text/FontAtlas.h"
 #include "game/Camera.h"
 #include "game/Renderer.h"
-#include "general/text/FontAtlas.h"
 
 class SceneComposer {
  public:

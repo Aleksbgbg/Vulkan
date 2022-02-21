@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "HostDescriptorWriter.h"
-#include "util/types.h"
+#include "core/types.h"
 
 struct InsertComputeInfo {
   u32 instances;

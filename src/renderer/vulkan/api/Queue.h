@@ -6,7 +6,7 @@
 #include "CommandPool.h"
 #include "Semaphore.h"
 #include "Swapchain.h"
-#include "util/types.h"
+#include "core/types.h"
 
 namespace vk {
 

@@ -5,7 +5,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "util/types.h"
+#include "core/types.h"
 
 #define DEFAULT_SETTING(MAP, KEY, TYPE, DEFAULT)                               \
   {                                                                            \

@@ -8,7 +8,7 @@
 #include "ReleaseListResource.h"
 #include "Resource.h"
 #include "ResourceKey.h"
-#include "general/adapters/MapValueIterator.h"
+#include "core/adapters/MapValueIterator.h"
 
 template <typename TResource>
 class ResourceList {

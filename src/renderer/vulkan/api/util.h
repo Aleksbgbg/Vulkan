@@ -6,8 +6,8 @@
 #include <type_traits>
 #include <vector>
 
-#include "general/adapters/function_traits.h"
-#include "util/types.h"
+#include "core/adapters/function_traits.h"
+#include "core/types.h"
 
 namespace vk {
 

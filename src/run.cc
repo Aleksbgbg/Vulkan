@@ -4,8 +4,8 @@
 
 #include "App.h"
 #include "Settings.h"
-#include "general/files/file.h"
-#include "general/logging/log.h"
+#include "core/files/file.h"
+#include "core/logging/log.h"
 #include "util/build_definition.h"
 
 std::unordered_map<SettingKey, Setting> DefaultSettings() {

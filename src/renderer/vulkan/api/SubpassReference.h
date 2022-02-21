@@ -1,8 +1,8 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_API_SUBPASSREFERENCE_H_
 #define VULKAN_SRC_RENDERER_VULKAN_API_SUBPASSREFERENCE_H_
 
+#include "core/types.h"
 #include "renderer/vulkan/api/RenderPass.h"
-#include "util/types.h"
 
 namespace vk {
 

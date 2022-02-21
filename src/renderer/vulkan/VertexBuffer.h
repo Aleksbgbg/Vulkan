@@ -1,8 +1,8 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_VERTEXBUFFER_H_
 #define VULKAN_SRC_RENDERER_VULKAN_VERTEXBUFFER_H_
 
+#include "core/types.h"
 #include "renderer/vulkan/api/CommandBuffer.h"
-#include "util/types.h"
 
 class VertexBuffer {
  public:

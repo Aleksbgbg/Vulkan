@@ -1,8 +1,8 @@
 #ifndef VULKAN_SRC_RENDERER_VULKAN_BUFFER_STRUCTURES_GLOBALRENDERUNIFORM_H_
 #define VULKAN_SRC_RENDERER_VULKAN_BUFFER_STRUCTURES_GLOBALRENDERUNIFORM_H_
 
+#include "core/types.h"
 #include "util/include/glm.h"
-#include "util/types.h"
 
 inline constexpr u32 MAX_LIGHTS = 128;
 

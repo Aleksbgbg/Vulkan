@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_GAME_UI_ACTION_H_
 #define VULKAN_SRC_GAME_UI_ACTION_H_
 
-#include "util/types.h"
+#include "core/types.h"
 
 struct Action {
   enum class Type {

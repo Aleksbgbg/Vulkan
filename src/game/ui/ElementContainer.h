@@ -6,7 +6,7 @@
 #include "Bindable.h"
 #include "Element.h"
 #include "SelectionState.h"
-#include "general/math/wrap.h"
+#include "core/math/wrap.h"
 
 template <typename T>
 class ContainerElement;

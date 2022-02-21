@@ -1,6 +1,6 @@
 #include "glm.h"
 
-#include "util/types.h"
+#include "core/types.h"
 
 glm::quat Rotation(const float angle, glm::vec3 axis) {
   axis = glm::normalize(axis);

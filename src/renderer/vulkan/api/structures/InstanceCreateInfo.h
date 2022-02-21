@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "ApplicationInfo.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(InstanceCreateInfoBuilder, VkInstanceCreateInfo,
                   VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO)

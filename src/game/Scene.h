@@ -9,12 +9,12 @@
 #include "Renderer.h"
 #include "Settings.h"
 #include "UpdateContext.h"
+#include "core/text/FontAtlas.h"
 #include "game/actor/Actor.h"
 #include "game/actor/ActorOwner.h"
 #include "game/composition/ActorConsumer.h"
 #include "game/composition/SceneComposer.h"
 #include "game/composition/SceneGraph.h"
-#include "general/text/FontAtlas.h"
 #include "system/sound/Sound.h"
 
 class Scene : public ActorConsumer, public ActorOwner {

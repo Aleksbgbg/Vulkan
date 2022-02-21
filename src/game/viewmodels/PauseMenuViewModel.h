@@ -2,10 +2,10 @@
 #define VULKAN_SRC_GAME_VIEWMODELS_PAUSEMENUVIEWMODEL_H_
 
 #include "Settings.h"
+#include "core/types.h"
 #include "game/GraphicsSettingsConfigurator.h"
 #include "game/ui/Bound.h"
 #include "game/ui/ViewModel.h"
-#include "util/types.h"
 
 class PauseMenuViewModel : public ViewModel {
  public:

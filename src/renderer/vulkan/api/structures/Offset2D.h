@@ -3,8 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER_NO_STYPE(Offset2DBuilder, VkOffset2D)
 STRUCTURE_SETTER(X, const i32, x)

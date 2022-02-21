@@ -5,10 +5,10 @@
 #include <vector>
 
 #include "HostDescriptorWriter.h"
+#include "core/types.h"
 #include "game/Visible.h"
 #include "renderer/vulkan/IndexedVertexBuffer.h"
 #include "renderer/vulkan/Texture.h"
-#include "util/types.h"
 
 struct InsertRenderInfo {
   const Visible& visible;

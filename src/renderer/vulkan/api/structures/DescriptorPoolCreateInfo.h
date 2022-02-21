@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "DescriptorPoolSize.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(DescriptorPoolCreateInfoBuilder, VkDescriptorPoolCreateInfo,
                   VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO)

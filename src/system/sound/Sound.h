@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 #include "Settings.h"
-#include "util/types.h"
+#include "core/types.h"
 
 typedef u32 SoundHandle;
 

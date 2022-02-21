@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "PipelineShaderStageCreateInfo.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(ComputePipelineCreateInfoBuilder, VkComputePipelineCreateInfo,
                   VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO)

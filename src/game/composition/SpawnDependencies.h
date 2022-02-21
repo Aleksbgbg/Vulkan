@@ -2,9 +2,9 @@
 #define VULKAN_SRC_GAME_COMPOSITION_SPAWNDEPENDENCIES_H_
 
 #include "ActorConsumer.h"
+#include "core/text/FontAtlas.h"
 #include "game/Renderer.h"
 #include "game/actor/ActorOwner.h"
-#include "general/text/FontAtlas.h"
 #include "system/sound/Sound.h"
 #include "system/windowing/Window.h"
 

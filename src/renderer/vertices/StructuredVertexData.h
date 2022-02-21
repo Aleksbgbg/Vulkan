@@ -1,9 +1,9 @@
 #ifndef VULKAN_SRC_RENDERER_VERTICES_STRUCTUREDVERTEXDATA_H_
 #define VULKAN_SRC_RENDERER_VERTICES_STRUCTUREDVERTEXDATA_H_
 
-#include "general/files/DrawVertices.h"
+#include "core/files/DrawVertices.h"
+#include "core/types.h"
 #include "util/include/glm.h"
-#include "util/types.h"
 
 class StructuredVertexData {
  public:

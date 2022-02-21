@@ -5,7 +5,7 @@
 #include <string_view>
 
 #include "StructuredVertexData.h"
-#include "general/files/DrawVertices.h"
+#include "core/files/DrawVertices.h"
 #include "util/include/glm.h"
 
 struct PositionTextureVertex {

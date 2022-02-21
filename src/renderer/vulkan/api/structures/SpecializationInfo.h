@@ -3,8 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER_NO_STYPE(SpecializationInfoBuilder, VkSpecializationInfo)
 STRUCTURE_SETTER(MapEntryCount, const u32, mapEntryCount)

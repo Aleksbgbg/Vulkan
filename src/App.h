@@ -3,9 +3,9 @@
 
 #include <chrono>
 
+#include "core/text/FontAtlas.h"
+#include "core/threading/MultithreadedMessageQueue.h"
 #include "game/Scene.h"
-#include "general/text/FontAtlas.h"
-#include "general/threading/MultithreadedMessageQueue.h"
 #include "renderer/vulkan/Vulkan.h"
 #include "system/sound/Sound.h"
 #include "system/windowing/Window.h"

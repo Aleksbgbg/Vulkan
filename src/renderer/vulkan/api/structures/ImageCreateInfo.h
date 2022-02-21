@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "Extent3D.h"
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(ImageCreateInfoBuilder, VkImageCreateInfo,
                   VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO)

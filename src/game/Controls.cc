@@ -1,7 +1,7 @@
 #include "Controls.h"
 
-#include "general/math/clamp.h"
-#include "general/math/transform.h"
+#include "core/math/clamp.h"
+#include "core/math/transform.h"
 
 Controls::Controls()
     : continuousKeyControls_({

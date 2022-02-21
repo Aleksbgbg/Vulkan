@@ -3,8 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "core/types.h"
 #include "define_structure.h"
-#include "util/types.h"
 
 STRUCTURE_BUILDER(PresentInfoKhrBuilder, VkPresentInfoKHR,
                   VK_STRUCTURE_TYPE_PRESENT_INFO_KHR)

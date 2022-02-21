@@ -7,8 +7,8 @@
 
 #include "Binding.h"
 #include "Bound.h"
+#include "core/adapters/function_traits.h"
 #include "game/actor/resource/Resource.h"
-#include "general/adapters/function_traits.h"
 
 #define BIND(NAME)                                                       \
   Bind<NthArgType<                                                       \

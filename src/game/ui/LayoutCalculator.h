@@ -1,6 +1,8 @@
 #ifndef VULKAN_SRC_GAME_UI_LAYOUTCALCULATOR_H_
 #define VULKAN_SRC_GAME_UI_LAYOUTCALCULATOR_H_
 
+#include "core/math/Rect.h"
+#include "core/text/FontAtlas.h"
 #include "game/ui/elements/gridlist/GridList.h"
 #include "game/ui/elements/gridlist/GridListLayout.h"
 #include "game/ui/elements/listbox/ListBox.h"
@@ -9,8 +11,6 @@
 #include "game/ui/elements/slider/SliderLayout.h"
 #include "game/ui/elements/togglebox/ToggleBox.h"
 #include "game/ui/elements/togglebox/ToggleBoxLayout.h"
-#include "general/math/Rect.h"
-#include "general/text/FontAtlas.h"
 
 class LayoutCalculator {
  public:

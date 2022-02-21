@@ -1,7 +1,7 @@
 #ifndef VULKAN_SRC_MEMORY_MEMORYALLOCATION_H_
 #define VULKAN_SRC_MEMORY_MEMORYALLOCATION_H_
 
-#include "util/types.h"
+#include "core/types.h"
 
 struct MemoryAllocation {
   u64 size;
