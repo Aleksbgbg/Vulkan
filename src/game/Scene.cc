@@ -112,8 +112,8 @@ Scene::Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
       .Spawn();
 }
 
-void Scene::Consume(ActorToSpawn value) {
-  actorsToSpawn_.push_back(std::move(value));
+void Scene::Consume(ActorToSpawn actor) {
+  actorsToSpawn_.push_back(std::move(actor));
 }
 
 void Scene::DespawnActor(const ActorKey key) {

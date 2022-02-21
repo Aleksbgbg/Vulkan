@@ -23,7 +23,7 @@ class Scene : public ActorConsumer, public ActorOwner {
         game::Camera& camera, const FontAtlas& fontAtlas, Settings& settings,
         GraphicsSettingsConfigurator& graphicsSettingsConfigurator);
 
-  void Consume(ActorToSpawn value) override;
+  void Consume(ActorToSpawn actor) override;
   void DespawnActor(const ActorKey key) override;
 
   void Update(const UpdateContext& context);
