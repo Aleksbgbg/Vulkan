@@ -3,14 +3,12 @@
 
 #include <list>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include "ActorOwner.h"
+#include "engine/property/PropertyCollection.h"
 #include "game/UpdateContext.h"
 #include "game/actor/behaviour/Behaviour.h"
-#include "game/actor/property/Property.h"
-#include "game/actor/property/PropertyKey.h"
 #include "game/actor/resource/Resource.h"
 
 namespace game {
@@ -19,25 +17,29 @@ class Actor {
  public:
   Actor(ActorKey key, ActorOwner& owner,
         std::list<std::unique_ptr<Resource>> resources,
-        std::unordered_map<PropertyKey, std::unique_ptr<Property>> properties);
+        PropertyCollection properties);
 
   void AttachBehaviour(std::unique_ptr<Behaviour> behaviour);
   void AttachUpdateable(std::unique_ptr<Updateable> updateable);
 
   void UpdateModel(const UpdateContext& context);
 
-  template <typename T>
-  T& RetrieveProperty() const {
-    return *reinterpret_cast<T*>(properties_.at(T::Key()).get());
-  }
-
   void Despawn();
+
+  template <typename T>
+  const T& RetrieveProperty() const {
+    return properties_.RetrieveProperty<T>();
+  }
+  template <typename T>
+  T& RetrieveProperty() {
+    return properties_.RetrieveProperty<T>();
+  }
 
  private:
   ActorKey key_;
   ActorOwner& owner_;
   std::list<std::unique_ptr<Resource>> resources_;
-  std::unordered_map<PropertyKey, std::unique_ptr<Property>> properties_;
+  game::PropertyCollection properties_;
   std::vector<std::unique_ptr<Updateable>> updateables_;
 };
 

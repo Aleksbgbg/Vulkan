@@ -83,7 +83,7 @@ CompositionBuilder::CompositionBuilder(SpawnDependencies spawnDependencies,
 
 void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
                                           const Composition& composition,
-                                          const game::Actor* parent,
+                                          game::Actor* parent,
                                           const ActorKey parentKey) {
   const Transform* parentTransform;
 
@@ -95,17 +95,13 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
 
   std::list<std::unique_ptr<Resource>> resources;
 
-  std::unordered_map<PropertyKey, std::unique_ptr<Property>> properties;
-  properties.insert(
-      {Transform::Key(), std::make_unique<Transform>(parentTransform)});
-  properties.insert({SoundEmitter::Key(),
-                     std::make_unique<SoundEmitter>(*dependencies.sound)});
-  properties.insert({Visibility::Key(), std::make_unique<Visibility>()});
+  game::PropertyCollection properties;
+  properties.EmplaceProperty<Transform>(parentTransform);
+  properties.EmplaceProperty<SoundEmitter>(*dependencies.sound);
+  properties.EmplaceProperty<Visibility>();
 
-  const Transform& selfTransform =
-      reinterpret_cast<Transform&>(*properties.at(Transform::Key()));
-  Visibility& visibility =
-      reinterpret_cast<Visibility&>(*properties.at(Visibility::Key()));
+  const Transform& selfTransform = properties.RetrieveProperty<Transform>();
+  Visibility& visibility = properties.RetrieveProperty<Visibility>();
 
   if (composition->lightSource.has_value()) {
     resources.push_back(dependencies.renderer->SpawnLightSource(
@@ -138,13 +134,12 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
       break;
 
     case Composition_T::Type::Ui: {
-      properties.insert({GraphicalInterface::Key(),
-                         std::make_unique<GraphicalInterface>(visibility)});
+      properties.EmplaceProperty<GraphicalInterface>(visibility);
+
       if (composition->ui->uiTree.has_value()) {
         drawList = std::make_unique<UiDrawList>(
             *dependencies.fontAtlas,
-            reinterpret_cast<GraphicalInterface&>(
-                *properties.at(GraphicalInterface::Key())),
+            properties.RetrieveProperty<GraphicalInterface>(),
             std::move(composition->ui->uiTree.value()),
             dependencies.window->GetSize());
       }

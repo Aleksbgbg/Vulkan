@@ -2,10 +2,9 @@
 
 namespace game {
 
-Actor::Actor(
-    ActorKey key, ActorOwner& owner,
-    std::list<std::unique_ptr<Resource>> resources,
-    std::unordered_map<PropertyKey, std::unique_ptr<Property>> properties)
+Actor::Actor(ActorKey key, ActorOwner& owner,
+             std::list<std::unique_ptr<Resource>> resources,
+             PropertyCollection properties)
     : key_(key),
       owner_(owner),
       resources_(std::move(resources)),

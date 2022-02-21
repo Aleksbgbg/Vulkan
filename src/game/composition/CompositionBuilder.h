@@ -19,11 +19,10 @@
 class CompositionBuilder {
  private:
   struct Composition_T;
-  typedef std::shared_ptr<Composition_T> Composition;
 
-  typedef std::function<std::unique_ptr<Behaviour>(const game::Actor*,
-                                                   game::Actor&)>
-      BehaviourFactory;
+  using Composition = std::shared_ptr<Composition_T>;
+  using BehaviourFactory = std::function<std::unique_ptr<Behaviour>(
+      game::Actor* const, game::Actor&)>;
 
   struct Composition_T {
     std::optional<MeshHandle> meshHandle;
@@ -81,8 +80,7 @@ class CompositionBuilder {
 
   static void SpawnComposition(const SpawnDependencies& dependencies,
                                const Composition& composition,
-                               const game::Actor* parent,
-                               const ActorKey parentKey);
+                               game::Actor* parent, const ActorKey parentKey);
 
  private:
   ActorKeyGenerator actorKeyGenerator_;
