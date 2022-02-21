@@ -7,16 +7,15 @@
 
 #include "ActorOwner.h"
 #include "engine/property/PropertyCollection.h"
+#include "engine/resource/ResourceCollection.h"
 #include "game/UpdateContext.h"
 #include "game/actor/behaviour/Behaviour.h"
-#include "game/actor/resource/Resource.h"
 
 namespace game {
 
 class Actor {
  public:
-  Actor(ActorKey key, ActorOwner& owner,
-        std::list<std::unique_ptr<Resource>> resources,
+  Actor(ActorKey key, ActorOwner& owner, ResourceCollection resources,
         PropertyCollection properties);
 
   void AttachBehaviour(std::unique_ptr<Behaviour> behaviour);
@@ -38,7 +37,7 @@ class Actor {
  private:
   ActorKey key_;
   ActorOwner& owner_;
-  std::list<std::unique_ptr<Resource>> resources_;
+  game::ResourceCollection resources_;
   game::PropertyCollection properties_;
   std::vector<std::unique_ptr<Updateable>> updateables_;
 };

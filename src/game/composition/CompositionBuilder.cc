@@ -93,8 +93,6 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
     parentTransform = &parent->RetrieveProperty<Transform>();
   }
 
-  std::list<std::unique_ptr<Resource>> resources;
-
   game::PropertyCollection properties;
   properties.EmplaceProperty<Transform>(parentTransform);
   properties.EmplaceProperty<SoundEmitter>(*dependencies.sound);
@@ -102,6 +100,8 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
 
   const Transform& selfTransform = properties.RetrieveProperty<Transform>();
   Visibility& visibility = properties.RetrieveProperty<Visibility>();
+
+  game::ResourceCollection resources;
 
   if (composition->lightSource.has_value()) {
     resources.push_back(dependencies.renderer->SpawnLightSource(

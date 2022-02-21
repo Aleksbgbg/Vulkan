@@ -2,8 +2,7 @@
 
 namespace game {
 
-Actor::Actor(ActorKey key, ActorOwner& owner,
-             std::list<std::unique_ptr<Resource>> resources,
+Actor::Actor(ActorKey key, ActorOwner& owner, ResourceCollection resources,
              PropertyCollection properties)
     : key_(key),
       owner_(owner),
