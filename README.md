@@ -46,6 +46,8 @@ Vulkan has a built-in UI framework which takes large inspiration from Microsoft'
 
 See the example [pause menu in XML syntax](/resources/ui/pause_menu.xml), as well as the [ViewModel](/src/game/viewmodels/PauseMenuViewModel.cc).
 
+When deciding the rendering style of the menu, I went with a near-identical copy of GTA V's pause menu. GTA V is one of my favourite video games, and the GTA franchise has been a big inspiration whilst developing my programming and mathematics skills. I've been impressed for years at the amount of detail and technological marvel in GTA V at launch, and it has been a dream of mine to one day lead the development of a programming project with reach as large as GTA, and use the reach to have a positive effect on its audience. I've never tried implementing anything from GTA, though I've always wanted to see if I'm up to the challenge - so I thought the pause menu would be a good start.
+
 A video of the pause menu working is included at the top of the videos section.
 
 ### Scene Composition Syntax
@@ -58,7 +60,7 @@ Here is an example of adding an NPC spaceship which moves constantly forward:
 scene_.Actor()
   .Attach(BEHAVIOUR(ConstantMovement,
                     ConstantMovement::ParameterPack()
-                        .SetTransform(actor.RetrieveProperty<AffineTransform>())
+                        .SetTransform(actor.RetrieveProperty<Transform>())
                         .SetForwardVelocity(1.0f)))
   .Mesh(npcMesh)
   .Child(spaceshipExhaust)
@@ -71,14 +73,14 @@ The ConstantMovement behaviour can have parameters set on it, such as the forwar
 You can see the [Scene](/src/game/Scene.cc) constructor where the entire game is described using this syntax.
 
 ### PNG Decoder
-Near the start of the project, I was using bitmap images for textures but noticed that those take up a lot of space. Deciding that at some point I would need to implement PNG images to save space during deployment, I deep dived into implementing a [barebones PNG decoder](/core/files/images/png.cc) for the textures I was using, based directly off of [the PNG specification](https://www.w3.org/TR/2003/REC-PNG-20031110/), [the ZLIB specification](https://www.ietf.org/rfc/rfc1950.txt), and [the DEFLATE specification](https://www.ietf.org/rfc/rfc1951.txt), without any other supplementary material.
+Near the start of the project, I was using bitmap images for textures but noticed that those take up a lot of space. Deciding that at some point I would need to implement PNG images to save space during deployment, I deep dived into implementing a [barebones PNG decoder](/src/core/files/images/png.cc) for the textures I was using, based directly off of [the PNG specification](https://www.w3.org/TR/2003/REC-PNG-20031110/), [the ZLIB specification](https://www.ietf.org/rfc/rfc1950.txt), and [the DEFLATE specification](https://www.ietf.org/rfc/rfc1951.txt), without any other supplementary material.
 
 The minimal implementation took a week to write as some parts of the specifications were particularly tricky to understand (in particular the encoding format in DEFLATE). The decoder is not particularly efficient, as the decoding algorithm is used directly as described in the DEFLATE specification. Some other implementations like the LiteSpeed Web Server use [fast huffman decoding](https://blog.litespeedtech.com/2019/09/16/fast-huffman-decoder/) (via more efficient data structures) which drastically speeds up the decoding process. Decoding a PNG texture in the game takes about 1 second in debug, which is unsatisfactory. In the future, I will adjust the implementation to use better data structures to achieve fast huffman decoding.
 
 ### Key Generator
 Keys were required to keep track of resources and actors in a scene, so that resources can be released by key when they run out of scope, and actors can be deleted from the scene graph when they are despawned.
 
-I wrote a [key generator](/core/algorithms/KeyGenerator.cc) which encodes the current time, thread ID, and sequence number (a number which increases on every key generation) into a 64-bit number to use as a key, with the bit widths of these values set so that the generator could run in a loop on multiple threads and still not produce duplicate keys (on modern hardware). The code is well abstracted, so the bit width of the number and encoded values could be varied and optimised for a particular use if necessary. 64-bit was just an easy choice without much optimisation.
+I wrote a [key generator](/src/core/algorithms/KeyGenerator.cc) which encodes the current time, thread ID, and sequence number (a number which increases on every key generation) into a 64-bit number to use as a key, with the bit widths of these values set so that the generator could run in a loop on multiple threads and still not produce duplicate keys (on modern hardware). The code is well abstracted, so the bit width of the number and encoded values could be varied and optimised for a particular use if necessary. 64-bit was just an easy choice without much optimisation.
 
 The idea is based on [Twitter's snowflake format](https://blog.twitter.com/engineering/en_us/a/2010/announcing-snowflake). Although it may be slightly overkill since there is no multi-threaded key generation in the game and separate instances of the generator are used where needed (so clashes are unlikely in the first place), it was fun to implement and play around with this idea. As the game stands, the key could have been implemented just as a monotonically increasing sequence and sufficed.
 
@@ -91,7 +93,7 @@ For simplicity, my memory manager is a growing allocator (no deallocations, only
 The [archived networking branch](https://github.com/Aleksbgbg/Vulkan/tree/archived/networking) demonstrates the first working trial of a multiplayer implementation of the game, where players can join the same server and fly together. Although the implementation was very naive and unoptimised (and was only implemented on Windows), it worked really well and was very fun to make and play test with friends. In particular, I was surprised to find that playing with my friends in South Korea (very far from the UK!) worked without any noticeable lag! In the future, networking will be implemented again, this time using server time steps and client-side prediction.
 
 ### Vulkan Struct Builder Generation
-I wrote a light object-oriented (RAII) wrapper on top of Vulkan to somewhat isolate my C++ code from the C-style API. One of the main issues I wanted to address was filling out structs in C-style - I wanted to be able to fill in struct parameters inline, in the same statement as my Vulkan calls, and also sometimes modify these parameters as they passed through the call stack of my Vulkan wrapper. To do this, I used the builder pattern, creating a builder class for every Vulkan struct I use, which has methods setting each of the struct's values. I took extra care to ensure the structs were composable, so that nested structs could be set in one full, readable statement. This was an excellent solution, resulting in some [very readable code](https://github.com/Aleksbgbg/Vulkan/blob/331273a1e47d9b509a2de6c8dac6fba355ed188f/src/renderer/vulkan/Vulkan.cc#L364-L411) when creating Vulkan objects.
+I wrote a light object-oriented (RAII) wrapper on top of Vulkan to somewhat isolate my C++ code from the C-style API. One of the main issues I wanted to address was filling out structs in C-style - I wanted to be able to fill in struct parameters inline, in the same statement as my Vulkan calls, and also sometimes modify these parameters as they pass through the call stack of my Vulkan wrapper. To do this, I used the builder pattern, creating a builder class for every Vulkan struct I use, which has methods setting each of the struct's values. I took extra care to ensure the structs were composable, so that nested structs could be set in one full, readable statement. This was an excellent solution, resulting in some [very readable code](https://github.com/Aleksbgbg/Vulkan/blob/331273a1e47d9b509a2de6c8dac6fba355ed188f/src/renderer/vulkan/Vulkan.cc#L364-L411) when creating Vulkan objects.
 
 However, creating over 70 individual structs manually seemed too time consuming. Instead, I wrote [a small Python script](/create_vulkan_struct_builder.py), which given a Vulkan C-style struct definition straight from the specification, generates the relevant builder class. It worked great and as a result I have very readable Vulkan structs.
 
@@ -107,7 +109,7 @@ Although this is an interesting problem to solve, it would require deep design t
 
 Still, there is space to solve this problem in the future should the game become inefficient when running single-threaded.
 
-On a related note, heavy computations such as the particle exhaust from a spaceship are ran multithreaded on the GPU via compute shaders, so there is no heavy processing currently done by the CPU.
+On a related note, heavy computations such as the particle exhaust from a spaceship are run multithreaded on the GPU via compute shaders, so no heavy processing is currently done by the CPU.
 
 ### CPU Memory Management
 Although the project contains a GPU memory manager, there is no CPU memory manager which optimises memory allocations and deallocations for the engine. Everything is allocated through the C++ standard runtime library. Surprisingly, even without optimising this process, memory allocations are pretty fast and my attempt at writing a CPU memory manager was slower than the standard library, so there is no reason to spend time solving this problem at the moment.
