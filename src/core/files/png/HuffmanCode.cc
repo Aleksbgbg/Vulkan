@@ -1,27 +1,10 @@
-#include "HuffmanTree.h"
+#include "HuffmanCode.h"
 
 #include <cmath>
 #include <queue>
 #include <unordered_map>
 
-void HuffmanNode::Insert(HuffmanNode& tree, const u32 code, const u32 value,
-                         const u32 bits) {
-  HuffmanNode* node = &tree;
-
-  for (i32 bitIndex = bits - 1; bitIndex >= 0; --bitIndex) {
-    const bool bitValue = (code >> bitIndex) & 0b1;
-
-    std::unique_ptr<HuffmanNode>& branch = node->branches[bitValue];
-
-    if (branch == nullptr) {
-      branch = std::make_unique<HuffmanNode>();
-    }
-
-    node = branch.get();
-  }
-
-  node->value = value;
-}
+#include "core/math/bits.h"
 
 std::vector<u32> CountCodesPerBitLength(const std::vector<u32>& bitLengths,
                                         const u32 maxBitLength) {
@@ -48,8 +31,8 @@ std::vector<u32> CalculateSmallestCodePerBitLength(
   return nextCodeForBitLength;
 }
 
-HuffmanNode HuffmanNode::BuildTree(const std::vector<u32>& alphabet,
-                                   const std::vector<u32>& bitLengths) {
+HuffmanCode HuffmanCode::Build(const std::vector<u32>& alphabet,
+                               const std::vector<u32>& bitLengths) {
   using priority_queue =
       std::priority_queue<u32, std::vector<u32>, std::greater<u32>>;
   std::unordered_map<u32, priority_queue> alphabetSymbolForBitLength;
@@ -74,29 +57,48 @@ HuffmanNode HuffmanNode::BuildTree(const std::vector<u32>& alphabet,
   std::vector<u32> nextCodeForBitLength =
       CalculateSmallestCodePerBitLength(codeCountPerBitLength, maxBitLength);
 
-  HuffmanNode huffmanTree;
+  u32 minBits = 0;
+  std::vector<DecodeResult> decodeResultForCode(std::pow(2, maxBitLength + 1));
 
   for (const u32 bitLength : bitLengths) {
     if (bitLength != 0) {
       const u32 code = nextCodeForBitLength[bitLength]++;
       const u32 value = alphabetSymbolForBitLength[bitLength].top();
 
-      Insert(huffmanTree, code, value, bitLength);
+      if (minBits > bitLength) {
+        minBits = bitLength;
+      }
+
+      for (u32 index = 0; index <= ValueOfBits(bitLength); ++index) {
+        if (LowerBitsEqual(bitLength, index, code)) {
+          decodeResultForCode[index] = {.value = value, .bits = bitLength};
+        }
+      }
+
       alphabetSymbolForBitLength[bitLength].pop();
     }
   }
 
-  return huffmanTree;
+  return HuffmanCode(std::move(decodeResultForCode), minBits);
 }
 
-const HuffmanNode* HuffmanNode::VisitSubNode(const bool nodeValue) const {
-  return branches[static_cast<u32>(nodeValue)].get();
-}
+HuffmanCode::HuffmanCode(std::vector<DecodeResult> decodeResultForCode,
+                         const u32 minBits)
+    : decodeResultForCode_(std::move(decodeResultForCode)), minBits_(minBits) {}
 
-bool HuffmanNode::IsLeafNode() const {
-  return (branches[0] == nullptr) && (branches[1] == nullptr);
-}
+u32 HuffmanCode::DecodeNextValue(BitStreamReader& bits) const {
+  u32 bitsRead = minBits_;
+  u32 value = bits.ReadBitsMsbFirst(bitsRead);
 
-u32 HuffmanNode::GetValue() const {
-  return value;
+  while (true) {
+    const DecodeResult result = decodeResultForCode_[value];
+
+    if (result.bits == bitsRead) {
+      return result.value;
+    }
+
+    value <<= 1;
+    value |= static_cast<u32>(bits.ReadBit());
+    ++bitsRead;
+  }
 }

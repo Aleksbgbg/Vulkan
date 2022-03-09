@@ -7,7 +7,11 @@
 #include "util/filenames.h"
 #include "util/include/freetype.h"
 
+#ifdef DEBUG
 #define PROCEED_ON_VALID_RESULT(CALL) assert(CALL == 0)
+#else
+#define PROCEED_ON_VALID_RESULT(CALL) CALL
+#endif
 
 using GlyphList = std::list<GlyphCode>;
 

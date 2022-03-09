@@ -1,7 +1,8 @@
+#include "core/files/png/png.h"
+
 #include <gtest/gtest.h>
 
-#include "core/files/images/bmp.h"
-#include "core/files/images/png.h"
+#include "core/files/bmp.h"
 #include "matchers.h"
 
 namespace {
@@ -10,7 +11,7 @@ using matchers::EqualsMemoryRegion;
 
 }  // namespace
 
-TEST(ReadPngTest, ReadsBasicSrgbPng) {
+TEST(PngTest, ReadsBasicSrgbPng) {
   const Bitmap expectedImage =
       file::ReadBitmap("data/images/SpaceshipTexture.bmp");
 
@@ -25,7 +26,7 @@ TEST(ReadPngTest, ReadsBasicSrgbPng) {
               EqualsMemoryRegion(expectedImage.Data(), expectedImage.Size()));
 }
 
-TEST(ReadPngTest, ReadsLargePng) {
+TEST(PngTest, ReadsLargePng) {
   const Bitmap expectedImage = file::ReadBitmap("data/images/Alice.bmp");
 
   const Bitmap actualImage = file::ReadPng("data/images/Alice.png");
@@ -39,7 +40,7 @@ TEST(ReadPngTest, ReadsLargePng) {
               EqualsMemoryRegion(expectedImage.Data(), expectedImage.Size()));
 }
 
-TEST(ReadPngTest, ReadsPngUsingUpAndAverageFilter) {
+TEST(PngTest, ReadsPngUsingUpAndAverageFilter) {
   const Bitmap expectedImage = file::ReadBitmap("data/images/Space.bmp");
 
   const Bitmap actualImage = file::ReadPng("data/images/Space.png");
@@ -53,7 +54,7 @@ TEST(ReadPngTest, ReadsPngUsingUpAndAverageFilter) {
               EqualsMemoryRegion(expectedImage.Data(), expectedImage.Size()));
 }
 
-TEST(ReadPngTest, ReadsPngUsingPaethAndSubFilters) {
+TEST(PngTest, ReadsPngUsingPaethAndSubFilters) {
   const Bitmap expectedImage = file::ReadBitmap("data/images/Nebula.bmp");
 
   const Bitmap actualImage = file::ReadPng("data/images/Nebula.png");

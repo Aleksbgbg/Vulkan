@@ -67,3 +67,4 @@ add_subdirectory(lib/googletest)
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(profiling)

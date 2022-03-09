@@ -10,7 +10,7 @@
 #include "TransformDescriptorWriter.h"
 #include "core/adapters/MapValueIterator.h"
 #include "core/files/file.h"
-#include "core/files/images/png.h"
+#include "core/files/png/png.h"
 #include "core/logging/log.h"
 #include "core/math/clamp.h"
 #include "engine/property/traits/default/AlwaysVisible.h"

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "core/files/images/bmp.h"
+#include "core/files/bmp.h"
 #include "matchers.h"
 
 namespace {

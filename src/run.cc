@@ -6,7 +6,7 @@
 #include "Settings.h"
 #include "core/files/file.h"
 #include "core/logging/log.h"
-#include "util/build_definition.h"
+#include "core/profiling/profile.h"
 
 std::unordered_map<SettingKey, Setting> DefaultSettings() {
   std::unordered_map<SettingKey, Setting> settings;
@@ -17,9 +17,7 @@ std::unordered_map<SettingKey, Setting> DefaultSettings() {
 }
 
 int RunVulkanApp(sys::System& system) {
-#if defined(PROFILING)
-  const auto startTime = std::chrono::high_resolution_clock::now();
-#endif
+  PROFILING_BEGIN("Startup")
 
   Settings settings(DefaultSettings());
 
@@ -31,15 +29,7 @@ int RunVulkanApp(sys::System& system) {
   Vulkan vulkan(system, *window, fontAtlas, settings);
   App app(*window, sound, vulkan, fontAtlas, settings);
 
-#if defined(PROFILING)
-  const auto endTime = std::chrono::high_resolution_clock::now();
-  const float startupDuration =
-      std::chrono::duration<float, std::chrono::milliseconds::period>(endTime -
-                                                                      startTime)
-          .count();
-  ImmediateLog(std::string("Startup took ") + std::to_string(startupDuration) +
-               "ms");
-#endif
+  PROFILING_END
 
   return app.Run();
 }

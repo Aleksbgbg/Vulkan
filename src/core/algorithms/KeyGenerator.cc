@@ -3,11 +3,9 @@
 #include <chrono>
 #include <thread>
 
-namespace {
+#include "core/math/bits.h"
 
-constexpr std::size_t MaxValueForBits(const std::size_t bits) {
-  return (0b1ull << (bits + 1)) - 1;
-}
+namespace {
 
 constexpr std::size_t SetBitRange(const std::size_t value,
                                   const std::size_t bits,
@@ -18,15 +16,15 @@ constexpr std::size_t SetBitRange(const std::size_t value,
 constexpr std::size_t MAX_BITS = sizeof(Key) * 8;
 
 constexpr std::size_t TIMESTAMP_SIZE = 42;
-constexpr std::size_t TIMESTAMP_MAX = MaxValueForBits(TIMESTAMP_SIZE);
+constexpr std::size_t TIMESTAMP_MAX = ValueOfBits(TIMESTAMP_SIZE);
 constexpr std::size_t TIMESTAMP_SHIFT = MAX_BITS - TIMESTAMP_SIZE;
 
 constexpr std::size_t THREAD_ID_SIZE = 10;
-constexpr std::size_t THREAD_ID_MAX = MaxValueForBits(THREAD_ID_SIZE);
+constexpr std::size_t THREAD_ID_MAX = ValueOfBits(THREAD_ID_SIZE);
 constexpr std::size_t THREAD_ID_SHIFT = TIMESTAMP_SHIFT - THREAD_ID_SIZE;
 
 constexpr std::size_t SEQUENCE_ID_SIZE = 12;
-constexpr std::size_t SEQUENCE_ID_MAX = MaxValueForBits(SEQUENCE_ID_SIZE);
+constexpr std::size_t SEQUENCE_ID_MAX = ValueOfBits(SEQUENCE_ID_SIZE);
 constexpr std::size_t SEQUENCE_ID_SHIFT = THREAD_ID_SHIFT - SEQUENCE_ID_SIZE;
 
 }  // namespace
