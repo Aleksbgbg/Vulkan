@@ -6,12 +6,11 @@
 
 #include "vorbis.h"
 
-constexpr float Volume = 0.5f;
 constexpr u32 SamplesPerSecond = 48000;
 
 namespace sys {
 
-Sound::Sound(const Settings& settings)
+Sound::Sound(const Settings& settings, SoundErrorReporter& errorReporter)
     : settings_(settings),
       audioDeviceId_(0),
       currentSoundHandle_(0),
@@ -30,11 +29,12 @@ Sound::Sound(const Settings& settings)
   audioDeviceId_ = SDL_OpenAudioDevice(nullptr, 0, &desired, &obtained, 0);
 
   if (audioDeviceId_ == 0) {
-    throw std::runtime_error(std::string("Error in opening audio device: ") +
-                             SDL_GetError());
-  }
+    errorReporter.ReportOpenAudioDeviceFailed(
+        CREATE_ERROR_REPORT(SDL_GetError()));
 
-  SDL_PauseAudioDevice(audioDeviceId_, 0);
+  } else {
+    SDL_PauseAudioDevice(audioDeviceId_, 0);
+  }
 }
 
 Sound::~Sound() {

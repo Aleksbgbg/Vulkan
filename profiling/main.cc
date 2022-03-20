@@ -1,5 +1,5 @@
+#include "core/diagnostics/profile.h"
 #include "core/files/png/png.h"
-#include "core/profiling/profile.h"
 #include "core/types.h"
 
 int main() {

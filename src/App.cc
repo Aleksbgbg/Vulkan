@@ -3,7 +3,7 @@
 #include <array>
 #include <thread>
 
-#include "core/logging/log.h"
+#include "core/diagnostics/log.h"
 
 App::App(sys::Window& window, sys::Sound& sound, Vulkan& vulkan,
          const FontAtlas& fontAtlas, Settings& settings)

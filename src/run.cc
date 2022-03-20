@@ -4,9 +4,10 @@
 
 #include "App.h"
 #include "Settings.h"
+#include "core/diagnostics/ErrorReporter.h"
+#include "core/diagnostics/log.h"
+#include "core/diagnostics/profile.h"
 #include "core/files/file.h"
-#include "core/logging/log.h"
-#include "core/profiling/profile.h"
 
 std::unordered_map<SettingKey, Setting> DefaultSettings() {
   std::unordered_map<SettingKey, Setting> settings;
@@ -19,10 +20,12 @@ std::unordered_map<SettingKey, Setting> DefaultSettings() {
 int RunVulkanApp(sys::System& system) {
   PROFILING_BEGIN("Startup")
 
+  ErrorReporter errorReporter;
+
   Settings settings(DefaultSettings());
 
   const std::unique_ptr<sys::Window> window = system.SpawnWindow(1920, 1080);
-  sys::Sound sound(settings);
+  sys::Sound sound(settings, errorReporter);
 
   const FontAtlas fontAtlas = FontAtlas::Create();
 

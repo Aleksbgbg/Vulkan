@@ -5,7 +5,12 @@
 namespace format {
 
 template <>
-std::string ToString<const char*>(const char* const value) {
+std::string ToString(const char* const value) {
+  return std::string(value);
+}
+
+template <>
+std::string format::ToString(std::string_view value) {
   return std::string(value);
 }
 

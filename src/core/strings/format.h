@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <string>
+#include <string_view>
 
 namespace format {
 
@@ -12,7 +13,10 @@ std::string ToString(const T value) {
 }
 
 template <>
-std::string ToString<const char*>(const char* value);
+std::string ToString(const char* value);
+
+template <>
+std::string ToString(std::string_view value);
 
 template <typename TArg0, typename... TArgs>
 struct SerializeArgs {

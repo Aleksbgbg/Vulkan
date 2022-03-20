@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "Settings.h"
+#include "core/diagnostics/SoundErrorReporter.h"
 #include "core/types.h"
 
 typedef u32 SoundHandle;
@@ -33,7 +34,7 @@ class Sound {
   };
 
  public:
-  Sound(const Settings& settings);
+  Sound(const Settings& settings, SoundErrorReporter& errorReporter);
 
   Sound(Sound&) = delete;
   Sound(Sound&&) = delete;
