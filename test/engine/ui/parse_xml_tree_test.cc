@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include "engine/ui/parse_xml_tree.h"
+
+#include <gtest/gtest.h>
 
 const ui::ParseTree::Node& NodeAtIndex(
     const std::list<ui::ParseTree::Node>& nodes, std::size_t index) {
