@@ -17,8 +17,11 @@ target_include_directories(${CORE_LIBRARY_NAME} PUBLIC .)
 if (WIN32)
   add_executable(${CORE_BINARY_NAME} WIN32 windows_main.cc)
 
-  target_link_libraries(${CORE_BINARY_NAME} PRIVATE ${DEPENDENCIES_DIR}/sdl/lib/windows/SDL2.lib)
-  target_link_libraries(${CORE_BINARY_NAME} PRIVATE ${DEPENDENCIES_DIR}/vulkan/lib/windows/vulkan-1.lib)
+  target_link_libraries(
+      ${CORE_BINARY_NAME}
+      PRIVATE
+      SDL2::SDL2-static
+      ${DEPENDENCIES_DIR}/vulkan/lib/windows/vulkan-1.lib)
 elseif (APPLE)
   add_executable(${CORE_BINARY_NAME} macos_main.cc)
 
@@ -30,10 +33,13 @@ elseif (UNIX)
   add_executable(${CORE_BINARY_NAME} linux_main.cc)
 
   find_package(Threads REQUIRED)
-  find_package(SDL2 REQUIRED SDL2)
-  target_link_libraries(${CORE_LIBRARY_NAME} PRIVATE Threads::Threads)
-  target_link_libraries(${CORE_BINARY_NAME} PRIVATE SDL2)
-  target_link_libraries(${CORE_BINARY_NAME} PRIVATE ${DEPENDENCIES_DIR}/vulkan/lib/linux/libvulkan.so)
+
+  target_link_libraries(
+      ${CORE_LIBRARY_NAME}
+      PRIVATE
+      Threads::Threads
+      SDL2::SDL2
+      ${DEPENDENCIES_DIR}/vulkan/lib/linux/libvulkan.so)
 endif ()
 target_link_libraries(${CORE_BINARY_NAME} PRIVATE ${CORE_LIBRARY_NAME} freetype)
 

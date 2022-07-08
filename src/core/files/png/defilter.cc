@@ -1,6 +1,7 @@
 #include "defilter.h"
 
 #include <cstring>
+#include <memory>
 #include <utility>
 
 #include "core/strings/format.h"

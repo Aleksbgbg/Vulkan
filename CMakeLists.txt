@@ -71,6 +71,7 @@ set(FT_DISABLE_BROTLI TRUE)
 
 add_subdirectory(${DEPENDENCIES_DIR}/freetype)
 add_subdirectory(${DEPENDENCIES_DIR}/googletest)
+add_subdirectory(${DEPENDENCIES_DIR}/sdl)
 
 add_subdirectory(src)
 add_subdirectory(test)

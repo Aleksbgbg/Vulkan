@@ -9,6 +9,11 @@ A spaceship MMO RPG-style game is included in this project which is built using 
 See the end of this document for a bunch of videos which show off the development progress.
 
 ## How to Build and Run
+Clone with:
+```bash
+git clone --recurse-submodules https://github.com/Aleksbgbg/Vulkan
+```
+
 For UNIX systems (MacOS, Linux), install SDL, cmake, and C and C++ compilers on your system if needed, then run these commands from the project directory:
 ```bash
 cmake -B cmake-build-debug
