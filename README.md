@@ -1,35 +1,33 @@
-# Vulkan
-Vulkan is a C++ game engine project built entirely from scratch, named after the GPU backend used for rendering and GPU operation, Vulkan.
-
-Vulkan was built with the intent to learn what goes into the heart of a game engine.
+# Yomi
+Yomi is a C++ 3D game engine project built entirely from scratch, with the intent to learn what goes into the heart of a game engine.
 
 ## Game
-A spaceship MMO RPG-style game is included in this project which is built using the engine, currently a work in progress.
+A space game is included in this project which is built using the engine, currently a work in progress.
 
 See the end of this document for a bunch of videos which show off the development progress.
 
 ## How to Build and Run
 Clone with:
 ```bash
-git clone --recurse-submodules https://github.com/Aleksbgbg/Vulkan
+git clone --recurse-submodules https://github.com/Aleksbgbg/Yomi
 ```
 
-For UNIX systems (MacOS, Linux), install SDL, cmake, and C and C++ compilers on your system if needed, then run these commands from the project directory:
+For UNIX systems (MacOS, Linux), download and install the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/), cmake, and C and C++ compilers on your system if needed, then run these commands from the project directory:
 ```bash
 cmake -B cmake-build-debug
-cmake --build cmake-build-debug
+cmake --build cmake-build-debug -j 8
 
-cd cmake-build-debug/src && ./vulkan
+cd cmake-build-debug/src && ./yomi
 ```
 
 On Windows, open the project in Visual Studio and run it.
 
-Alternatively, on any platform use JetBrains CLion which will automatically figure out building and running for you, as long as you have the packages listed above installed.
+Alternatively, on any platform use JetBrains CLion which will automatically figure out building and running for you, as long as you have the dependencies listed above installed.
 
 ## Dependencies
-Vulkan has very few dependencies:
+Yomi has very few dependencies:
 - C++ standard runtime library
-- Vulkan (rendering backend)
+- Vulkan (for its rendering backend)
 - GoogleTest (for unit tests where appropriate)
 - SDL (for cross-platform abstraction and windowing)
 - FreeType (for text rasterization)
@@ -39,15 +37,15 @@ Vulkan has very few dependencies:
 glm will definitely be removed in the future, and stb_vorbis could potentially be removed in the future (in favour of a custom OPUS implementation) if time allows. However, the other dependencies would take too much time to implement from scratch.
 
 ## Portability
-Vulkan is portable and currently runs on Windows, Linux, and MacOS. More platforms may be added in the future and the porting process is fairly straightforward.
+Yomi is portable and currently runs on Windows, Linux, and MacOS. More platforms may be added in the future and the porting process is fairly straightforward.
 
 ## Points of Interest
-Many interesting programming problems have been solved during the development of Vulkan.
+Many interesting programming problems have been solved during the development of Yomi.
 
 Some of my favourites are listed below, in no particular order.
 
 ### UI Framework
-Vulkan has a built-in UI framework which takes large inspiration from Microsoft's WPF framework, using a similar XML syntax, as well as binding syntax, and encouraging use of the MVVM (Model-View-ViewModel) pattern. Everything in the framework is built from scratch, including the XML parser. Calls from the ViewModel can update the view and changes in the view are fed back to the ViewModel.
+Yomi has a built-in UI framework which takes large inspiration from Microsoft's WPF framework, using a similar XML syntax, as well as binding syntax, and encouraging use of the MVVM (Model-View-ViewModel) pattern. Everything in the framework is built from scratch, including the XML parser. Calls from the ViewModel can update the view and changes in the view are fed back to the ViewModel.
 
 See the example [pause menu in XML syntax](/resources/ui/pause_menu.xml), as well as the [ViewModel](/src/game/viewmodels/PauseMenuViewModel.cc).
 
@@ -98,11 +96,11 @@ For simplicity, my memory manager is a growing allocator (no deallocations, only
 The [archived networking branch](https://github.com/Aleksbgbg/Vulkan/tree/archived/networking) demonstrates the first working trial of a multiplayer implementation of the game, where players can join the same server and fly together. Although the implementation was very naive and unoptimised (and was only implemented on Windows), it worked really well and was very fun to make and play test with friends. In particular, I was surprised to find that playing with my friends in South Korea (very far from the UK!) worked without any noticeable lag! In the future, networking will be implemented again, this time using server time steps and client-side prediction.
 
 ### Vulkan Struct Builder Generation
-I wrote a light object-oriented (RAII) wrapper on top of Vulkan to somewhat isolate my C++ code from the C-style API. One of the main issues I wanted to address was filling out structs in C-style - I wanted to be able to fill in struct parameters inline, in the same statement as my Vulkan calls, and also sometimes modify these parameters as they pass through the call stack of my Vulkan wrapper. To do this, I used the builder pattern, creating a builder class for every Vulkan struct I use, which has methods setting each of the struct's values. I took extra care to ensure the structs were composable, so that nested structs could be set in one full, readable statement. This was an excellent solution, resulting in some [very readable code](https://github.com/Aleksbgbg/Vulkan/blob/331273a1e47d9b509a2de6c8dac6fba355ed188f/src/renderer/vulkan/Vulkan.cc#L364-L411) when creating Vulkan objects.
+I wrote a light object-oriented (RAII) wrapper on top of Vulkan to somewhat isolate my C++ code from the C-style API. One of the main issues I wanted to address was filling out structs in C-style - I wanted to be able to fill in struct parameters inline, in the same statement as my Vulkan calls, and also sometimes modify these parameters as they pass through the call stack of my Vulkan wrapper. To do this, I used the builder pattern, creating a builder class for every Vulkan struct I use, which has methods setting each of the struct's values. I took extra care to ensure the structs were composable, so that nested structs could be set in one full, readable statement. This was an excellent solution, resulting in some [very readable code](https://github.com/Aleksbgbg/Yomi/blob/331273a1e47d9b509a2de6c8dac6fba355ed188f/src/renderer/vulkan/Vulkan.cc#L364-L411) when creating Vulkan objects.
 
 However, creating over 70 individual structs manually seemed too time consuming. Instead, I wrote [a small Python script](/create_vulkan_struct_builder.py), which given a Vulkan C-style struct definition straight from the specification, generates the relevant builder class. It worked great and as a result I have very readable Vulkan structs.
 
-All of the structs are in [this directory](/src/renderer/vulkan/api/structures). The structs are generated with macros (defined in [this file](/src/renderer/vulkan/api/structures/define_structure.h)) to allow me to modify the bodies of all the builders at the same time. A bonus advantage of these structs is that template objects can be built ahead of time, then used with a builder and have only some properties customised. For an example, see [this file](/src/renderer/vulkan/api/structures/default.h) which contains all of my frequently used template objects, and [an example](https://github.com/Aleksbgbg/Vulkan/blob/06e5f83d119f1296e6f4ae6346d4386675c94a72/src/renderer/vulkan/Vulkan.cc#L764-L769) of them being consumed by a builder and then modified further.
+All of the structs are in [this directory](/src/renderer/vulkan/api/structures). The structs are generated with macros (defined in [this file](/src/renderer/vulkan/api/structures/define_structure.h)) to allow me to modify the bodies of all the builders at the same time. A bonus advantage of these structs is that template objects can be built ahead of time, then used with a builder and have only some properties customised. For an example, see [this file](/src/renderer/vulkan/api/structures/default.h) which contains all of my frequently used template objects, and [an example](https://github.com/Aleksbgbg/Yomi/blob/06e5f83d119f1296e6f4ae6346d4386675c94a72/src/renderer/vulkan/Vulkan.cc#L764-L769) of them being consumed by a builder and then modified further.
 
 ## Unsolved Problems
 Although this project aims to be a complete implementation of a game engine from scratch (within reason), two main problems remain unaddressed at the time - multithreading and CPU memory management.
@@ -134,7 +132,7 @@ archived/ branches contain functionality of historical interest. They are used t
 obsolete/ branches contain abandoned code for reference. The code may be reworked and included in the game in the future, but for the time being isn't worth working on.
 
 ## Videos
-Here are some videos of the Vulkan game in action. Videos at the top are the most recent. Some videos have sound, but lower your headphone volume as they can be quite loud.
+Here are some videos of the space game in action. Videos at the top are the most recent. Some videos have sound, but lower your headphone volume as they can be quite loud.
 
 https://user-images.githubusercontent.com/31630318/154769437-04c9dee9-5877-4bce-984e-b9fb7b9409be.mp4
 
