@@ -4,3 +4,6 @@
 [submodule "dependencies/googletest"]
 	path = dependencies/googletest
 	url = https://github.com/google/googletest
+[submodule "dependencies/freetype"]
+	path = dependencies/freetype
+	url = https://github.com/freetype/freetype
