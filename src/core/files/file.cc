@@ -4,11 +4,25 @@
 #include <stdexcept>
 #include <string>
 
-namespace file {
+namespace {
 
 std::runtime_error CannotOpen(const std::string_view filename) {
   return std::runtime_error(std::string("Failed to open file '") +
                             filename.data() + "'.");
+}
+
+}  // namespace
+
+namespace file {
+
+std::ifstream OpenStream(const std::string_view filename) {
+  std::ifstream file(filename.data());
+
+  if (!file.is_open()) {
+    throw CannotOpen(filename);
+  }
+
+  return file;
 }
 
 std::vector<u8> ReadFile(const std::string_view filename) {

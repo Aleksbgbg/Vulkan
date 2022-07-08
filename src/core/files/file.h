@@ -8,6 +8,8 @@
 
 namespace file {
 
+std::ifstream OpenStream(const std::string_view filename);
+
 std::vector<u8> ReadFile(const std::string_view filename);
 
 void WriteFile(const std::string_view filename, const std::string& data);

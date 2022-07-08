@@ -4,6 +4,7 @@
 #include <string>
 
 #include "core/strings/split.h"
+#include "file.h"
 
 namespace file {
 
@@ -190,14 +191,8 @@ Model ModelFromStream(std::istream& stream) {
 }
 
 Model ModelFromObjFile(const std::string_view name) {
-  std::ifstream file(name.data());
-
-  if (!file.is_open()) {
-    throw new std::runtime_error(std::string("Could not open obj file ") +
-                                 name.data());
-  }
-
-  return ModelFromStream(file);
+  std::ifstream stream = file::OpenStream(name);
+  return ModelFromStream(stream);
 }
 
 bool ModelFaceVertex::operator==(const ModelFaceVertex other) const {

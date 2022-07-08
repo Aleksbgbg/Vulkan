@@ -4,6 +4,7 @@
 #include <list>
 
 #include "core/adapters/MapValueIterator.h"
+#include "core/files/file.h"
 #include "util/filenames.h"
 #include "util/include/freetype.h"
 
@@ -55,17 +56,12 @@ FontAtlas FontAtlas::Create() {
   u32 fontHeight = 0;
 
   for (const FontFile& fontFile : files) {
+    const std::vector<u8> buffer = file::ReadFile(fontFile.filename);
+
     FT_Face face;
     PROCEED_ON_VALID_RESULT(
-        FT_New_Face(library, fontFile.filename.data(), 0, &face));
-
-    PROCEED_ON_VALID_RESULT(
-        FT_Set_Char_Size(face,    /* handle to face object           */
-                         0,       /* char_width in 1/64th of points  */
-                         18 * 64, /* char_height in 1/64th of points */
-                         96,      /* horizontal device resolution    */
-                         0));     /* vertical device resolution      */
-    // PROCEED_ON_VALID_RESULT(FT_Set_Pixel_Sizes(face, 20, 0));
+        FT_New_Memory_Face(library, buffer.data(), buffer.size(), 0, &face));
+    PROCEED_ON_VALID_RESULT(FT_Set_Char_Size(face, 0, 18 * 64, 96, 0));
 
     fontHeight = std::max<u32>(fontHeight, face->height);
     FT_GlyphSlot slot = face->glyph;
