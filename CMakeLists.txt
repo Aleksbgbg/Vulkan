@@ -12,6 +12,8 @@ set(DEPENDENCIES_DIR ${CMAKE_SOURCE_DIR}/dependencies)
 set(GENERATED_FILES_DIR ${CMAKE_SOURCE_DIR}/generated)
 set(RESOURCES_DIR ${CMAKE_SOURCE_DIR}/resources)
 
+set(VULKAN_SDK $ENV{VULKAN_SDK})
+
 function(add_shader TARGET SHADER_PATH)
   get_filename_component(SHADER ${SHADER_PATH} NAME)
 
@@ -19,7 +21,7 @@ function(add_shader TARGET SHADER_PATH)
   set(current-output-path ${CMAKE_CURRENT_BINARY_DIR}/shaders/${SHADER}.spv)
 
   # Add a custom command to compile GLSL to SPIR-V.
-  find_program(GLSLC glslc PATHS ${DEPENDENCIES_DIR}/vulkan/bin)
+  find_program(GLSLC glslc PATHS ${VULKAN_SDK}/Bin)
   get_filename_component(GLSLC ${GLSLC} ABSOLUTE)
 
   get_filename_component(current-output-dir ${current-output-path} DIRECTORY)

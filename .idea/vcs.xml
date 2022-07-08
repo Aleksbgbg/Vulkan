@@ -2,6 +2,9 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/dependencies/freetype" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/dependencies/glm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/dependencies/googletest" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/dependencies/sdl" vcs="Git" />
   </component>
 </project>
