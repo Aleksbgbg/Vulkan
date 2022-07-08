@@ -9,7 +9,7 @@ target_include_directories(
     ${DEPENDENCIES_DIR}/freetype/include
     ${DEPENDENCIES_DIR}/vulkan/include
     ${DEPENDENCIES_DIR}/sdl/include
-    ${DEPENDENCIES_DIR}/glm/include
+    ${DEPENDENCIES_DIR}/glm
     ${GENERATED_FILES_DIR})
 
 target_include_directories(${CORE_LIBRARY_NAME} PUBLIC .)
