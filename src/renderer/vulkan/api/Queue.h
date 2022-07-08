@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_API_QUEUE_H_
-#define VULKAN_SRC_RENDERER_VULKAN_API_QUEUE_H_
+#ifndef SRC_RENDERER_VULKAN_API_QUEUE_H_
+#define SRC_RENDERER_VULKAN_API_QUEUE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -30,4 +30,4 @@ class Queue {
 
 }  // namespace vk
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_API_QUEUE_H_
+#endif  // SRC_RENDERER_VULKAN_API_QUEUE_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_ACTOR_ACTOR_H_
-#define VULKAN_SRC_ENGINE_ACTOR_ACTOR_H_
+#ifndef SRC_ENGINE_ACTOR_ACTOR_H_
+#define SRC_ENGINE_ACTOR_ACTOR_H_
 
 #include <list>
 #include <memory>
@@ -44,4 +44,4 @@ class Actor {
 
 }  // namespace game
 
-#endif  // VULKAN_SRC_ENGINE_ACTOR_ACTOR_H_
+#endif  // SRC_ENGINE_ACTOR_ACTOR_H_

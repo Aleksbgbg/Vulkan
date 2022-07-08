@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_BEHAVIOURS_SUNMOVEMENT_H_
-#define VULKAN_SRC_GAME_BEHAVIOURS_SUNMOVEMENT_H_
+#ifndef SRC_GAME_BEHAVIOURS_SUNMOVEMENT_H_
+#define SRC_GAME_BEHAVIOURS_SUNMOVEMENT_H_
 
 #include "engine/behaviour/Behaviour.h"
 #include "engine/property/type/Transform.h"
@@ -16,4 +16,4 @@ class SunMovement : public Behaviour {
   float spin_;
 };
 
-#endif  // VULKAN_SRC_GAME_BEHAVIOURS_SUNMOVEMENT_H_
+#endif  // SRC_GAME_BEHAVIOURS_SUNMOVEMENT_H_

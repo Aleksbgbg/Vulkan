@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_FILES_PNG_PNG_H_
-#define VULKAN_SRC_CORE_FILES_PNG_PNG_H_
+#ifndef SRC_CORE_FILES_PNG_PNG_H_
+#define SRC_CORE_FILES_PNG_PNG_H_
 
 #include <string_view>
 
@@ -11,4 +11,4 @@ Bitmap ReadPng(const std::string_view path);
 
 }  // namespace file
 
-#endif  // VULKAN_SRC_CORE_FILES_PNG_PNG_H_
+#endif  // SRC_CORE_FILES_PNG_PNG_H_

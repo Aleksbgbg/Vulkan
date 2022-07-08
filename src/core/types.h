@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_TYPES_H_
-#define VULKAN_SRC_CORE_TYPES_H_
+#ifndef SRC_CORE_TYPES_H_
+#define SRC_CORE_TYPES_H_
 
 #include <cstdint>
 
@@ -12,4 +12,4 @@ using u32 = uint32_t;
 using i64 = int64_t;
 using u64 = uint64_t;
 
-#endif  // VULKAN_SRC_CORE_TYPES_H_
+#endif  // SRC_CORE_TYPES_H_

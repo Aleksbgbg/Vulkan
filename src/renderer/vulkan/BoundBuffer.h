@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_BOUNDBUFFER_H_
-#define VULKAN_SRC_RENDERER_VULKAN_BOUNDBUFFER_H_
+#ifndef SRC_RENDERER_VULKAN_BOUNDBUFFER_H_
+#define SRC_RENDERER_VULKAN_BOUNDBUFFER_H_
 
 #include "core/types.h"
 #include "renderer/vulkan/api/Buffer.h"
@@ -28,4 +28,4 @@ class BoundBuffer {
   vk::BoundDeviceMemory memory_;
 };
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_BOUNDBUFFER_H_
+#endif  // SRC_RENDERER_VULKAN_BOUNDBUFFER_H_

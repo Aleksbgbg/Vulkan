@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_ELEMENT_H_
-#define VULKAN_SRC_ENGINE_UI_ELEMENT_H_
+#ifndef SRC_ENGINE_UI_ELEMENT_H_
+#define SRC_ENGINE_UI_ELEMENT_H_
 
 #include <list>
 #include <string>
@@ -11,4 +11,4 @@ struct Element {
 
 using ElementList = std::list<Element>;
 
-#endif  // VULKAN_SRC_ENGINE_UI_ELEMENT_H_
+#endif  // SRC_ENGINE_UI_ELEMENT_H_

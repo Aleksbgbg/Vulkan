@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_API_IMAGE_H_
-#define VULKAN_SRC_RENDERER_VULKAN_API_IMAGE_H_
+#ifndef SRC_RENDERER_VULKAN_API_IMAGE_H_
+#define SRC_RENDERER_VULKAN_API_IMAGE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -36,4 +36,4 @@ class Image {
 
 }  // namespace vk
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_API_IMAGE_H_
+#endif  // SRC_RENDERER_VULKAN_API_IMAGE_H_

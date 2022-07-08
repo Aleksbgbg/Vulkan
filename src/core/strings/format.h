@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_STRINGS_FORMAT_H_
-#define VULKAN_SRC_CORE_STRINGS_FORMAT_H_
+#ifndef SRC_CORE_STRINGS_FORMAT_H_
+#define SRC_CORE_STRINGS_FORMAT_H_
 
 #include <sstream>
 #include <string>
@@ -43,4 +43,4 @@ std::string Format(const TArgs... args) {
   return stream.str();
 }
 
-#endif  // VULKAN_SRC_CORE_STRINGS_FORMAT_H_
+#endif  // SRC_CORE_STRINGS_FORMAT_H_

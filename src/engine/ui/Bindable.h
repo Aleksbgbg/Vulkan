@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_BINDABLE_H_
-#define VULKAN_SRC_ENGINE_UI_BINDABLE_H_
+#ifndef SRC_ENGINE_UI_BINDABLE_H_
+#define SRC_ENGINE_UI_BINDABLE_H_
 
 #include <memory>
 
@@ -29,4 +29,4 @@ class Bindable {
   ReadWriteable<T>& readWriteable_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_BINDABLE_H_
+#endif  // SRC_ENGINE_UI_BINDABLE_H_

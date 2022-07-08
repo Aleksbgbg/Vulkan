@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_ADAPTERS_FUNCTION_TRAITS_H_
-#define VULKAN_SRC_CORE_ADAPTERS_FUNCTION_TRAITS_H_
+#ifndef SRC_CORE_ADAPTERS_FUNCTION_TRAITS_H_
+#define SRC_CORE_ADAPTERS_FUNCTION_TRAITS_H_
 
 template <std::size_t N, typename TArg0, typename... TArgs>
 struct NthType {
@@ -35,4 +35,4 @@ struct NthArg : public NthArg<N, decltype(&TFunc::operator())> {};
 template <std::size_t N, typename TFunction>
 using NthArgType = typename NthArg<N, TFunction>::Type;
 
-#endif  // VULKAN_SRC_CORE_ADAPTERS_FUNCTION_TRAITS_H_
+#endif  // SRC_CORE_ADAPTERS_FUNCTION_TRAITS_H_

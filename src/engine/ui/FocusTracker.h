@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_FOCUSTRACKER_H_
-#define VULKAN_SRC_ENGINE_UI_FOCUSTRACKER_H_
+#ifndef SRC_ENGINE_UI_FOCUSTRACKER_H_
+#define SRC_ENGINE_UI_FOCUSTRACKER_H_
 
 #include <unordered_map>
 
@@ -26,4 +26,4 @@ class FocusTracker {
   Focusable* focused_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_FOCUSTRACKER_H_
+#endif  // SRC_ENGINE_UI_FOCUSTRACKER_H_

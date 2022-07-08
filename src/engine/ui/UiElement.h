@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_UIELEMENT_H_
-#define VULKAN_SRC_ENGINE_UI_UIELEMENT_H_
+#ifndef SRC_ENGINE_UI_UIELEMENT_H_
+#define SRC_ENGINE_UI_UIELEMENT_H_
 
 #include "Action.h"
 #include "FocusTracker.h"
@@ -21,4 +21,4 @@ class UiElement : public Focusable {
   virtual void Render(const UiRenderer& renderer) const = 0;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_UIELEMENT_H_
+#endif  // SRC_ENGINE_UI_UIELEMENT_H_

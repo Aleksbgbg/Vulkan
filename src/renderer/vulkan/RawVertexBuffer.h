@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_RAWVERTEXBUFFER_H_
-#define VULKAN_SRC_RENDERER_VULKAN_RAWVERTEXBUFFER_H_
+#ifndef SRC_RENDERER_VULKAN_RAWVERTEXBUFFER_H_
+#define SRC_RENDERER_VULKAN_RAWVERTEXBUFFER_H_
 
 #include "BoundBuffer.h"
 #include "VertexBuffer.h"
@@ -15,4 +15,4 @@ class RawVertexBuffer : public VertexBuffer {
   BoundBuffer vertexBuffer_;
 };
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_RAWVERTEXBUFFER_H_
+#endif  // SRC_RENDERER_VULKAN_RAWVERTEXBUFFER_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_BEHAVIOURS_DESPAWNAFTERPERIOD_H_
-#define VULKAN_SRC_GAME_BEHAVIOURS_DESPAWNAFTERPERIOD_H_
+#ifndef SRC_GAME_BEHAVIOURS_DESPAWNAFTERPERIOD_H_
+#define SRC_GAME_BEHAVIOURS_DESPAWNAFTERPERIOD_H_
 
 #include "engine/actor/Actor.h"
 #include "engine/behaviour/Behaviour.h"
@@ -15,4 +15,4 @@ class DespawnAfterPeriod : public Behaviour {
   float timeLeftToLive_;
 };
 
-#endif  // VULKAN_SRC_GAME_BEHAVIOURS_DESPAWNAFTERPERIOD_H_
+#endif  // SRC_GAME_BEHAVIOURS_DESPAWNAFTERPERIOD_H_

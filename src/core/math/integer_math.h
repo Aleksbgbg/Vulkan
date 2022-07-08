@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_MATH_INTEGER_MATH_H_
-#define VULKAN_SRC_CORE_MATH_INTEGER_MATH_H_
+#ifndef SRC_CORE_MATH_INTEGER_MATH_H_
+#define SRC_CORE_MATH_INTEGER_MATH_H_
 
 #include <type_traits>
 
@@ -9,4 +9,4 @@ constexpr std::enable_if_t<std::is_integral_v<T>, T> DivideCeil(const T a,
   return (a + (b - 1)) / b;
 }
 
-#endif  // VULKAN_SRC_CORE_MATH_INTEGER_MATH_H_
+#endif  // SRC_CORE_MATH_INTEGER_MATH_H_

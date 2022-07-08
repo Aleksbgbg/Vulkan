@@ -29,7 +29,7 @@ for path in CODE_PATHS:
 
         # Coerce header guards
         if file.endswith(".h"):
-          header_guard = "VULKAN_" + relative_path.upper().replace("\\", "_").replace("/", "_")[:-2] + "_H_"        
+          header_guard = relative_path.upper().replace("\\", "_").replace("/", "_")[:-2] + "_H_"
 
           end_guard_line_index = 0
 

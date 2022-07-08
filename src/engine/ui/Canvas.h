@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_CANVAS_H_
-#define VULKAN_SRC_ENGINE_UI_CANVAS_H_
+#ifndef SRC_ENGINE_UI_CANVAS_H_
+#define SRC_ENGINE_UI_CANVAS_H_
 
 #include <vector>
 
@@ -32,4 +32,4 @@ class Canvas {
   std::vector<TextVertex>& textVertices_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_CANVAS_H_
+#endif  // SRC_ENGINE_UI_CANVAS_H_

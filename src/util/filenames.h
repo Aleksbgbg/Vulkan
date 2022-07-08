@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_UTIL_FILENAMES_H_
-#define VULKAN_SRC_UTIL_FILENAMES_H_
+#ifndef SRC_UTIL_FILENAMES_H_
+#define SRC_UTIL_FILENAMES_H_
 
 inline constexpr const char* PIPELINE_CACHE_FILENAME = "pipeline.cache";
 
@@ -42,4 +42,4 @@ inline constexpr const char* BACKGROUND_MUSIC_FILENAME =
 
 inline constexpr const char* LASER_SOUND_FILENAME = "resources/laser.ogg";
 
-#endif  // VULKAN_SRC_UTIL_FILENAMES_H_
+#endif  // SRC_UTIL_FILENAMES_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_UNBOUNDVALUE_H_
-#define VULKAN_SRC_ENGINE_UI_UNBOUNDVALUE_H_
+#ifndef SRC_ENGINE_UI_UNBOUNDVALUE_H_
+#define SRC_ENGINE_UI_UNBOUNDVALUE_H_
 
 #include "ReadWriteable.h"
 
@@ -20,4 +20,4 @@ class UnboundValue : public ReadWriteable<T> {
   T value_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_UNBOUNDVALUE_H_
+#endif  // SRC_ENGINE_UI_UNBOUNDVALUE_H_

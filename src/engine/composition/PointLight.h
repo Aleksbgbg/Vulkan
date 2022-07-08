@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_COMPOSITION_POINTLIGHT_H_
-#define VULKAN_SRC_ENGINE_COMPOSITION_POINTLIGHT_H_
+#ifndef SRC_ENGINE_COMPOSITION_POINTLIGHT_H_
+#define SRC_ENGINE_COMPOSITION_POINTLIGHT_H_
 
 #include "LightSource.h"
 #include "LightSourceComposition.h"
@@ -32,4 +32,4 @@ class PointLight : public LightSourceComposition {
   float attenuationQuadratic_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_COMPOSITION_POINTLIGHT_H_
+#endif  // SRC_ENGINE_COMPOSITION_POINTLIGHT_H_

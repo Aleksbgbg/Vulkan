@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_BEHAVIOURS_CONSTANTMOVEMENT_H_
-#define VULKAN_SRC_GAME_BEHAVIOURS_CONSTANTMOVEMENT_H_
+#ifndef SRC_GAME_BEHAVIOURS_CONSTANTMOVEMENT_H_
+#define SRC_GAME_BEHAVIOURS_CONSTANTMOVEMENT_H_
 
 #include "engine/behaviour/Behaviour.h"
 #include "engine/composition/parameter_utils.h"
@@ -21,4 +21,4 @@ class ConstantMovement : public Behaviour {
   glm::vec3 velocity_;
 };
 
-#endif  // VULKAN_SRC_GAME_BEHAVIOURS_CONSTANTMOVEMENT_H_
+#endif  // SRC_GAME_BEHAVIOURS_CONSTANTMOVEMENT_H_

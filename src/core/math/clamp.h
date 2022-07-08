@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_MATH_CLAMP_H_
-#define VULKAN_SRC_CORE_MATH_CLAMP_H_
+#ifndef SRC_CORE_MATH_CLAMP_H_
+#define SRC_CORE_MATH_CLAMP_H_
 
 #include <cmath>
 
@@ -13,4 +13,4 @@ constexpr void Clamp(T* const value, const T min, const T max) {
   *value = Clamp(*value, min, max);
 }
 
-#endif  // VULKAN_SRC_CORE_MATH_CLAMP_H_
+#endif  // SRC_CORE_MATH_CLAMP_H_

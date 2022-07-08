@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_MATH_RECT_H_
-#define VULKAN_SRC_CORE_MATH_RECT_H_
+#ifndef SRC_CORE_MATH_RECT_H_
+#define SRC_CORE_MATH_RECT_H_
 
 #include "core/types.h"
 #include "util/include/glm.h"
@@ -160,4 +160,4 @@ using Rectf = Rect<float, glm::vec2>;
 using Recti = Rect<i32, glm::ivec2>;
 using Rectu = Rect<u32, glm::uvec2>;
 
-#endif  // VULKAN_SRC_CORE_MATH_RECT_H_
+#endif  // SRC_CORE_MATH_RECT_H_

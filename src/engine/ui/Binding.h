@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_BINDING_H_
-#define VULKAN_SRC_ENGINE_UI_BINDING_H_
+#ifndef SRC_ENGINE_UI_BINDING_H_
+#define SRC_ENGINE_UI_BINDING_H_
 
 namespace ui {
 
@@ -10,4 +10,4 @@ class Binding {
 
 }  // namespace ui
 
-#endif  // VULKAN_SRC_ENGINE_UI_BINDING_H_
+#endif  // SRC_ENGINE_UI_BINDING_H_

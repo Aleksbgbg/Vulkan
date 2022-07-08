@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_MATH_BITS_H_
-#define VULKAN_SRC_CORE_MATH_BITS_H_
+#ifndef SRC_CORE_MATH_BITS_H_
+#define SRC_CORE_MATH_BITS_H_
 
 #include <vector>
 
@@ -17,4 +17,4 @@ constexpr bool LowerBitsEqual(const std::size_t bits, const std::size_t a,
 
 std::vector<u8> PackBitsLsbFirst(const std::vector<bool>& bits);
 
-#endif  // VULKAN_SRC_CORE_MATH_BITS_H_
+#endif  // SRC_CORE_MATH_BITS_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_BUILDER_BINDINGS_H_
-#define VULKAN_SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_BUILDER_BINDINGS_H_
+#ifndef SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_BUILDER_BINDINGS_H_
+#define SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_BUILDER_BINDINGS_H_
 
 #include "renderer/vulkan/api/Sampler.h"
 #include "renderer/vulkan/render_graph/layout/Binding.h"
@@ -46,4 +46,4 @@ Binding TextureSampler(const vk::Sampler& sampler) {
                  .sampler = &sampler};
 }
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_BUILDER_BINDINGS_H_
+#endif  // SRC_RENDERER_VULKAN_RENDER_GRAPH_LAYOUT_BUILDER_BINDINGS_H_

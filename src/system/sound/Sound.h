@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_SYSTEM_SOUND_SOUND_H_
-#define VULKAN_SRC_SYSTEM_SOUND_SOUND_H_
+#ifndef SRC_SYSTEM_SOUND_SOUND_H_
+#define SRC_SYSTEM_SOUND_SOUND_H_
 
 #include <SDL_audio.h>
 
@@ -68,4 +68,4 @@ class Sound {
 
 }  // namespace sys
 
-#endif  // VULKAN_SRC_SYSTEM_SOUND_SOUND_H_
+#endif  // SRC_SYSTEM_SOUND_SOUND_H_

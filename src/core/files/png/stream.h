@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_FILES_PNG_STREAM_H_
-#define VULKAN_SRC_CORE_FILES_PNG_STREAM_H_
+#ifndef SRC_CORE_FILES_PNG_STREAM_H_
+#define SRC_CORE_FILES_PNG_STREAM_H_
 
 #include <array>
 
@@ -67,4 +67,4 @@ class ByteStreamReadWriter {
   u32 offset_;
 };
 
-#endif  // VULKAN_SRC_CORE_FILES_PNG_STREAM_H_
+#endif  // SRC_CORE_FILES_PNG_STREAM_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_MATH_BYTES_H_
-#define VULKAN_SRC_CORE_MATH_BYTES_H_
+#ifndef SRC_CORE_MATH_BYTES_H_
+#define SRC_CORE_MATH_BYTES_H_
 
 #include <cassert>
 #include <type_traits>
@@ -19,4 +19,4 @@ constexpr u32 ExtractBytes(const u32 value, const Range<u32> range) {
   return (value >> min) & ValueOfBits(range.max - min);
 }
 
-#endif  // VULKAN_SRC_CORE_MATH_BYTES_H_
+#endif  // SRC_CORE_MATH_BYTES_H_

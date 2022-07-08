@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_BEHAVIOURS_PLAYERMOVEMENT_H_
-#define VULKAN_SRC_GAME_BEHAVIOURS_PLAYERMOVEMENT_H_
+#ifndef SRC_GAME_BEHAVIOURS_PLAYERMOVEMENT_H_
+#define SRC_GAME_BEHAVIOURS_PLAYERMOVEMENT_H_
 
 #include "engine/behaviour/Behaviour.h"
 #include "engine/property/type/Transform.h"
@@ -16,4 +16,4 @@ class PlayerMovement : public Behaviour {
   float velocity_;
 };
 
-#endif  // VULKAN_SRC_GAME_BEHAVIOURS_PLAYERMOVEMENT_H_
+#endif  // SRC_GAME_BEHAVIOURS_PLAYERMOVEMENT_H_

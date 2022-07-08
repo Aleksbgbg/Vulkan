@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_COMPOSITION_RENDERER_H_
-#define VULKAN_SRC_ENGINE_COMPOSITION_RENDERER_H_
+#ifndef SRC_ENGINE_COMPOSITION_RENDERER_H_
+#define SRC_ENGINE_COMPOSITION_RENDERER_H_
 
 #include "LightSource.h"
 #include "engine/composition/MeshHandle.h"
@@ -51,4 +51,4 @@ class Renderer {
   virtual std::unique_ptr<Resource> SpawnUi(const UiInfo& uiInfo) = 0;
 };
 
-#endif  // VULKAN_SRC_ENGINE_COMPOSITION_RENDERER_H_
+#endif  // SRC_ENGINE_COMPOSITION_RENDERER_H_

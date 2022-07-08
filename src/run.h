@@ -1,8 +1,8 @@
-#ifndef VULKAN_SRC_RUN_H_
-#define VULKAN_SRC_RUN_H_
+#ifndef SRC_RUN_H_
+#define SRC_RUN_H_
 
 #include "system/System.h"
 
 int run(sys::System& system);
 
-#endif  // VULKAN_SRC_RUN_H_
+#endif  // SRC_RUN_H_

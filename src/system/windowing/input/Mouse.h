@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_SYSTEM_WINDOWING_INPUT_MOUSE_H_
-#define VULKAN_SRC_SYSTEM_WINDOWING_INPUT_MOUSE_H_
+#ifndef SRC_SYSTEM_WINDOWING_INPUT_MOUSE_H_
+#define SRC_SYSTEM_WINDOWING_INPUT_MOUSE_H_
 
 #include "util/include/glm.h"
 #include "util/include/sdl.h"
@@ -16,4 +16,4 @@ class Mouse {
   glm::vec2 position_;
 };
 
-#endif  // VULKAN_SRC_SYSTEM_WINDOWING_INPUT_MOUSE_H_
+#endif  // SRC_SYSTEM_WINDOWING_INPUT_MOUSE_H_

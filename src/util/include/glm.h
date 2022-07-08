@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_UTIL_INCLUDE_GLM_H_
-#define VULKAN_SRC_UTIL_INCLUDE_GLM_H_
+#ifndef SRC_UTIL_INCLUDE_GLM_H_
+#define SRC_UTIL_INCLUDE_GLM_H_
 
 #include <ostream>
 
@@ -27,4 +27,4 @@ std::ostream& operator<<(std::ostream& stream, const glm::mat4& mat);
 
 std::ostream& operator<<(std::ostream& stream, const glm::vec3 vec);
 
-#endif  // VULKAN_SRC_UTIL_INCLUDE_GLM_H_
+#endif  // SRC_UTIL_INCLUDE_GLM_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_PARSE_XML_TREE_H_
-#define VULKAN_SRC_ENGINE_UI_PARSE_XML_TREE_H_
+#ifndef SRC_ENGINE_UI_PARSE_XML_TREE_H_
+#define SRC_ENGINE_UI_PARSE_XML_TREE_H_
 
 #include <optional>
 #include <string_view>
@@ -12,4 +12,4 @@ std::optional<ParseTree> ParseXmlTree(std::string_view content);
 
 }  // namespace ui
 
-#endif  // VULKAN_SRC_ENGINE_UI_PARSE_XML_TREE_H_
+#endif  // SRC_ENGINE_UI_PARSE_XML_TREE_H_

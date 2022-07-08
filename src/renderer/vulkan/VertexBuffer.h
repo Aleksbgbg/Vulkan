@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_VERTEXBUFFER_H_
-#define VULKAN_SRC_RENDERER_VULKAN_VERTEXBUFFER_H_
+#ifndef SRC_RENDERER_VULKAN_VERTEXBUFFER_H_
+#define SRC_RENDERER_VULKAN_VERTEXBUFFER_H_
 
 #include "core/types.h"
 #include "renderer/vulkan/api/CommandBuffer.h"
@@ -12,4 +12,4 @@ class VertexBuffer {
                     u32 instances) const = 0;
 };
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_VERTEXBUFFER_H_
+#endif  // SRC_RENDERER_VULKAN_VERTEXBUFFER_H_

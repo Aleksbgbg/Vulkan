@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_TEXT_GLYPHSTRING_H_
-#define VULKAN_SRC_CORE_TEXT_GLYPHSTRING_H_
+#ifndef SRC_CORE_TEXT_GLYPHSTRING_H_
+#define SRC_CORE_TEXT_GLYPHSTRING_H_
 
 #include <string>
 #include <string_view>
@@ -26,4 +26,4 @@ class UniformGlyphString {
 #define GLYPH_STRING_LITERAL(LITERAL) u##LITERAL
 #define TO_GLYPH_STRING(STRING) UniformGlyphString(STRING).AsGlyphString()
 
-#endif  // VULKAN_SRC_CORE_TEXT_GLYPHSTRING_H_
+#endif  // SRC_CORE_TEXT_GLYPHSTRING_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_RESOURCE_RESOURCELIST_H_
-#define VULKAN_SRC_ENGINE_RESOURCE_RESOURCELIST_H_
+#ifndef SRC_ENGINE_RESOURCE_RESOURCELIST_H_
+#define SRC_ENGINE_RESOURCE_RESOURCELIST_H_
 
 #include <list>
 #include <memory>
@@ -66,4 +66,4 @@ class ResourceList {
   std::list<ResourceKey> resourcesToRelease_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_RESOURCE_RESOURCELIST_H_
+#endif  // SRC_ENGINE_RESOURCE_RESOURCELIST_H_

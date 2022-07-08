@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_FOCUSABLE_H_
-#define VULKAN_SRC_ENGINE_UI_FOCUSABLE_H_
+#ifndef SRC_ENGINE_UI_FOCUSABLE_H_
+#define SRC_ENGINE_UI_FOCUSABLE_H_
 
 class Focusable {
  public:
@@ -10,4 +10,4 @@ class Focusable {
   virtual void OnLostFocus() = 0;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_FOCUSABLE_H_
+#endif  // SRC_ENGINE_UI_FOCUSABLE_H_

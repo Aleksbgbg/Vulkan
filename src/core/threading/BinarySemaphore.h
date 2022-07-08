@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_THREADING_BINARYSEMAPHORE_H_
-#define VULKAN_SRC_CORE_THREADING_BINARYSEMAPHORE_H_
+#ifndef SRC_CORE_THREADING_BINARYSEMAPHORE_H_
+#define SRC_CORE_THREADING_BINARYSEMAPHORE_H_
 
 #include <condition_variable>
 #include <mutex>
@@ -14,4 +14,4 @@ class BinarySemaphore {
   std::condition_variable condition_;
 };
 
-#endif  // VULKAN_SRC_CORE_THREADING_BINARYSEMAPHORE_H_
+#endif  // SRC_CORE_THREADING_BINARYSEMAPHORE_H_

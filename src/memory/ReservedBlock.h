@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_MEMORY_RESERVEDBLOCK_H_
-#define VULKAN_SRC_MEMORY_RESERVEDBLOCK_H_
+#ifndef SRC_MEMORY_RESERVEDBLOCK_H_
+#define SRC_MEMORY_RESERVEDBLOCK_H_
 
 #include "AllocatedBlock.h"
 #include "Allocator.h"
@@ -46,4 +46,4 @@ class ReservedBlock {
   AllocationInfo info_;
 };
 
-#endif  // VULKAN_SRC_MEMORY_RESERVEDBLOCK_H_
+#endif  // SRC_MEMORY_RESERVEDBLOCK_H_

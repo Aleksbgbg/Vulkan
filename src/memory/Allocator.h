@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_MEMORY_ALLOCATOR_H_
-#define VULKAN_SRC_MEMORY_ALLOCATOR_H_
+#ifndef SRC_MEMORY_ALLOCATOR_H_
+#define SRC_MEMORY_ALLOCATOR_H_
 
 #include <memory>
 
@@ -17,4 +17,4 @@ class Allocator {
   virtual std::unique_ptr<MemoryObject> Allocate(u64 size) = 0;
 };
 
-#endif  // VULKAN_SRC_MEMORY_ALLOCATOR_H_
+#endif  // SRC_MEMORY_ALLOCATOR_H_

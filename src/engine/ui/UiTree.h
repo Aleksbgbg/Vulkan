@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_UITREE_H_
-#define VULKAN_SRC_ENGINE_UI_UITREE_H_
+#ifndef SRC_ENGINE_UI_UITREE_H_
+#define SRC_ENGINE_UI_UITREE_H_
 
 #include <memory>
 #include <vector>
@@ -16,4 +16,4 @@ struct UiTree {
   std::unique_ptr<Node> root;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_UITREE_H_
+#endif  // SRC_ENGINE_UI_UITREE_H_

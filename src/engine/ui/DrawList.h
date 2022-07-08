@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_DRAWLIST_H_
-#define VULKAN_SRC_ENGINE_UI_DRAWLIST_H_
+#ifndef SRC_ENGINE_UI_DRAWLIST_H_
+#define SRC_ENGINE_UI_DRAWLIST_H_
 
 #include <memory>
 
@@ -16,4 +16,4 @@ class DrawList {
   virtual DrawList::DrawData Generate(glm::vec2 windowSize) = 0;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_DRAWLIST_H_
+#endif  // SRC_ENGINE_UI_DRAWLIST_H_

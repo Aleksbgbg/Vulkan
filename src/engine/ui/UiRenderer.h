@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_UIRENDERER_H_
-#define VULKAN_SRC_ENGINE_UI_UIRENDERER_H_
+#ifndef SRC_ENGINE_UI_UIRENDERER_H_
+#define SRC_ENGINE_UI_UIRENDERER_H_
 
 #include "Canvas.h"
 #include "SelectionState.h"
@@ -32,4 +32,4 @@ class UiRenderer {
   SelectionState inheritedSelection_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_UIRENDERER_H_
+#endif  // SRC_ENGINE_UI_UIRENDERER_H_

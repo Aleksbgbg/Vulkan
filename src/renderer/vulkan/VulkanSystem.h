@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_VULKANSYSTEM_H_
-#define VULKAN_SRC_RENDERER_VULKAN_VULKANSYSTEM_H_
+#ifndef SRC_RENDERER_VULKAN_VULKANSYSTEM_H_
+#define SRC_RENDERER_VULKAN_VULKANSYSTEM_H_
 
 class VulkanSystem {
  public:
@@ -8,4 +8,4 @@ class VulkanSystem {
   virtual const char* SurfaceExtensionName() const = 0;
 };
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_VULKANSYSTEM_H_
+#endif  // SRC_RENDERER_VULKAN_VULKANSYSTEM_H_

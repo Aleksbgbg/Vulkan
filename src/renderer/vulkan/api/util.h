@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_API_UTIL_H_
-#define VULKAN_SRC_RENDERER_VULKAN_API_UTIL_H_
+#ifndef SRC_RENDERER_VULKAN_API_UTIL_H_
+#define SRC_RENDERER_VULKAN_API_UTIL_H_
 
 #include <set>
 #include <string>
@@ -40,4 +40,4 @@ bool RequiredValuesAreAvailable(
 
 }  // namespace vk
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_API_UTIL_H_
+#endif  // SRC_RENDERER_VULKAN_API_UTIL_H_

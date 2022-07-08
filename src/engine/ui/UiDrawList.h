@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_UIDRAWLIST_H_
-#define VULKAN_SRC_ENGINE_UI_UIDRAWLIST_H_
+#ifndef SRC_ENGINE_UI_UIDRAWLIST_H_
+#define SRC_ENGINE_UI_UIDRAWLIST_H_
 
 #include <queue>
 
@@ -42,4 +42,4 @@ class UiDrawList : public WindowEventConsumer,
   DrawVertices<TextVertex> text_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_UIDRAWLIST_H_
+#endif  // SRC_ENGINE_UI_UIDRAWLIST_H_

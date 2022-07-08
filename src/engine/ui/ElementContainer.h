@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_ELEMENTCONTAINER_H_
-#define VULKAN_SRC_ENGINE_UI_ELEMENTCONTAINER_H_
+#ifndef SRC_ENGINE_UI_ELEMENTCONTAINER_H_
+#define SRC_ENGINE_UI_ELEMENTCONTAINER_H_
 
 #include <vector>
 
@@ -230,4 +230,4 @@ class ElementContainer : private ElementActivator<T> {
   }
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_ELEMENTCONTAINER_H_
+#endif  // SRC_ENGINE_UI_ELEMENTCONTAINER_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_PARTICLECOMPUTEHANDLER_H_
-#define VULKAN_SRC_RENDERER_VULKAN_PARTICLECOMPUTEHANDLER_H_
+#ifndef SRC_RENDERER_VULKAN_PARTICLECOMPUTEHANDLER_H_
+#define SRC_RENDERER_VULKAN_PARTICLECOMPUTEHANDLER_H_
 
 #include "core/algorithms/RandomNumberGenerator.h"
 #include "engine/property/traits/Transformable.h"
@@ -24,4 +24,4 @@ class ParticleComputeHandler : public HostDescriptorWriter {
   glm::vec3 spawnRegionHigh_;
 };
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_PARTICLECOMPUTEHANDLER_H_
+#endif  // SRC_RENDERER_VULKAN_PARTICLECOMPUTEHANDLER_H_

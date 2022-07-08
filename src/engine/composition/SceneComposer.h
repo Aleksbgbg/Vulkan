@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_COMPOSITION_SCENECOMPOSER_H_
-#define VULKAN_SRC_ENGINE_COMPOSITION_SCENECOMPOSER_H_
+#ifndef SRC_ENGINE_COMPOSITION_SCENECOMPOSER_H_
+#define SRC_ENGINE_COMPOSITION_SCENECOMPOSER_H_
 
 #include "ActorConsumer.h"
 #include "CompositionBuilder.h"
@@ -31,4 +31,4 @@ class SceneComposer {
   SpawnDependencies spawnDependencies_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_COMPOSITION_SCENECOMPOSER_H_
+#endif  // SRC_ENGINE_COMPOSITION_SCENECOMPOSER_H_

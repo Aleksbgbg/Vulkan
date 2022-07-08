@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_CAMERA_H_
-#define VULKAN_SRC_GAME_CAMERA_H_
+#ifndef SRC_GAME_CAMERA_H_
+#define SRC_GAME_CAMERA_H_
 
 #include "util/include/glm.h"
 
@@ -24,4 +24,4 @@ class Camera {
 
 }  // namespace game
 
-#endif  // VULKAN_SRC_GAME_CAMERA_H_
+#endif  // SRC_GAME_CAMERA_H_

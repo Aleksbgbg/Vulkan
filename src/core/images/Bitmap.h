@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_IMAGES_BITMAP_H_
-#define VULKAN_SRC_CORE_IMAGES_BITMAP_H_
+#ifndef SRC_CORE_IMAGES_BITMAP_H_
+#define SRC_CORE_IMAGES_BITMAP_H_
 
 #include <vector>
 
@@ -68,4 +68,4 @@ class Bitmap {
   std::vector<u8> data_;
 };
 
-#endif  // VULKAN_SRC_CORE_IMAGES_BITMAP_H_
+#endif  // SRC_CORE_IMAGES_BITMAP_H_

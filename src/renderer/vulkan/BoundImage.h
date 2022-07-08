@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_BOUNDIMAGE_H_
-#define VULKAN_SRC_RENDERER_VULKAN_BOUNDIMAGE_H_
+#ifndef SRC_RENDERER_VULKAN_BOUNDIMAGE_H_
+#define SRC_RENDERER_VULKAN_BOUNDIMAGE_H_
 
 #include "renderer/vulkan/api/Image.h"
 #include "renderer/vulkan/api/ImageView.h"
@@ -18,4 +18,4 @@ class BoundImage {
   vk::BoundDeviceMemory memory_;
 };
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_BOUNDIMAGE_H_
+#endif  // SRC_RENDERER_VULKAN_BOUNDIMAGE_H_

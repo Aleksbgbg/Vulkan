@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_SYSTEM_WINDOWING_WINDOW_H_
-#define VULKAN_SRC_SYSTEM_WINDOWING_WINDOW_H_
+#ifndef SRC_SYSTEM_WINDOWING_WINDOW_H_
+#define SRC_SYSTEM_WINDOWING_WINDOW_H_
 
 #include <vector>
 
@@ -56,4 +56,4 @@ class Window : public vk::SurfaceFactory, public WindowEventConsumerConsumer {
 
 }  // namespace sys
 
-#endif  // VULKAN_SRC_SYSTEM_WINDOWING_WINDOW_H_
+#endif  // SRC_SYSTEM_WINDOWING_WINDOW_H_

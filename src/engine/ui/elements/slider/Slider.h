@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_ELEMENTS_SLIDER_SLIDER_H_
-#define VULKAN_SRC_ENGINE_UI_ELEMENTS_SLIDER_SLIDER_H_
+#ifndef SRC_ENGINE_UI_ELEMENTS_SLIDER_SLIDER_H_
+#define SRC_ENGINE_UI_ELEMENTS_SLIDER_SLIDER_H_
 
 #include "SliderLayout.h"
 #include "engine/ui/Bindable.h"
@@ -9,4 +9,4 @@ struct Slider {
   SliderLayout layout;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_ELEMENTS_SLIDER_SLIDER_H_
+#endif  // SRC_ENGINE_UI_ELEMENTS_SLIDER_SLIDER_H_

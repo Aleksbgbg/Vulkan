@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_PRODUCE_UI_TREE_H_
-#define VULKAN_SRC_ENGINE_UI_PRODUCE_UI_TREE_H_
+#ifndef SRC_ENGINE_UI_PRODUCE_UI_TREE_H_
+#define SRC_ENGINE_UI_PRODUCE_UI_TREE_H_
 
 #include <optional>
 
@@ -10,4 +10,4 @@
 std::optional<UiTree> ProduceUiTree(
     const std::optional<ui::ParseTree>& parseTree, const ViewModel& viewModel);
 
-#endif  // VULKAN_SRC_ENGINE_UI_PRODUCE_UI_TREE_H_
+#endif  // SRC_ENGINE_UI_PRODUCE_UI_TREE_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_READWRITEABLE_H_
-#define VULKAN_SRC_ENGINE_UI_READWRITEABLE_H_
+#ifndef SRC_ENGINE_UI_READWRITEABLE_H_
+#define SRC_ENGINE_UI_READWRITEABLE_H_
 
 template <typename T>
 class ReadWriteable {
@@ -10,4 +10,4 @@ class ReadWriteable {
   virtual void SetValue(const T value) = 0;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_READWRITEABLE_H_
+#endif  // SRC_ENGINE_UI_READWRITEABLE_H_

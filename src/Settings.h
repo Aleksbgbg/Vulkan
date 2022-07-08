@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_SETTINGS_H_
-#define VULKAN_SRC_SETTINGS_H_
+#ifndef SRC_SETTINGS_H_
+#define SRC_SETTINGS_H_
 
 #include <cstring>
 #include <memory>
@@ -61,4 +61,4 @@ class Settings {
   std::unordered_map<SettingKey, StoredSetting> settingsStore_;
 };
 
-#endif  // VULKAN_SRC_SETTINGS_H_
+#endif  // SRC_SETTINGS_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_FILES_PNG_DECOMPRESS_ZLIB_H_
-#define VULKAN_SRC_CORE_FILES_PNG_DECOMPRESS_ZLIB_H_
+#ifndef SRC_CORE_FILES_PNG_DECOMPRESS_ZLIB_H_
+#define SRC_CORE_FILES_PNG_DECOMPRESS_ZLIB_H_
 
 #include "stream.h"
 
@@ -9,4 +9,4 @@ void DecompressZlib(ByteStreamReader& source, ByteStreamReadWriter& sink);
 
 }  // namespace file::png
 
-#endif  // VULKAN_SRC_CORE_FILES_PNG_DECOMPRESS_ZLIB_H_
+#endif  // SRC_CORE_FILES_PNG_DECOMPRESS_ZLIB_H_

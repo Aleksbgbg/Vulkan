@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_SYSTEM_SOUND_VORBIS_H_
-#define VULKAN_SRC_SYSTEM_SOUND_VORBIS_H_
+#ifndef SRC_SYSTEM_SOUND_VORBIS_H_
+#define SRC_SYSTEM_SOUND_VORBIS_H_
 
 // Ogg Vorbis audio decoder - v1.22 - public domain
 // http://nothings.org/stb_vorbis/
@@ -5579,4 +5579,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 */
 
-#endif  // VULKAN_SRC_SYSTEM_SOUND_VORBIS_H_
+#endif  // SRC_SYSTEM_SOUND_VORBIS_H_

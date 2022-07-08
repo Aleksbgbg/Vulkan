@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_MEMORY_ALLOCATEDBLOCK_H_
-#define VULKAN_SRC_MEMORY_ALLOCATEDBLOCK_H_
+#ifndef SRC_MEMORY_ALLOCATEDBLOCK_H_
+#define SRC_MEMORY_ALLOCATEDBLOCK_H_
 
 #include "core/types.h"
 
@@ -13,4 +13,4 @@ struct AllocatedBlock {
   }
 };
 
-#endif  // VULKAN_SRC_MEMORY_ALLOCATEDBLOCK_H_
+#endif  // SRC_MEMORY_ALLOCATEDBLOCK_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_MARGIN_H_
-#define VULKAN_SRC_ENGINE_UI_MARGIN_H_
+#ifndef SRC_ENGINE_UI_MARGIN_H_
+#define SRC_ENGINE_UI_MARGIN_H_
 
 #include "DistanceUnit.h"
 #include "core/math/Rect.h"
@@ -13,4 +13,4 @@ struct Margin {
   };
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_MARGIN_H_
+#endif  // SRC_ENGINE_UI_MARGIN_H_

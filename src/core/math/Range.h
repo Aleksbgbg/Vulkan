@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_MATH_RANGE_H_
-#define VULKAN_SRC_CORE_MATH_RANGE_H_
+#ifndef SRC_CORE_MATH_RANGE_H_
+#define SRC_CORE_MATH_RANGE_H_
 
 // Range [min, max]
 template <typename T>
@@ -10,4 +10,4 @@ struct Range {
   T max;
 };
 
-#endif  // VULKAN_SRC_CORE_MATH_RANGE_H_
+#endif  // SRC_CORE_MATH_RANGE_H_

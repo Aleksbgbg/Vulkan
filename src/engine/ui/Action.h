@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_ACTION_H_
-#define VULKAN_SRC_ENGINE_UI_ACTION_H_
+#ifndef SRC_ENGINE_UI_ACTION_H_
+#define SRC_ENGINE_UI_ACTION_H_
 
 #include "core/types.h"
 
@@ -41,4 +41,4 @@ struct Action {
   };
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_ACTION_H_
+#endif  // SRC_ENGINE_UI_ACTION_H_

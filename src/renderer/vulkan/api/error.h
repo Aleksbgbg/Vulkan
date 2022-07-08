@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_RENDERER_VULKAN_API_ERROR_H_
-#define VULKAN_SRC_RENDERER_VULKAN_API_ERROR_H_
+#ifndef SRC_RENDERER_VULKAN_API_ERROR_H_
+#define SRC_RENDERER_VULKAN_API_ERROR_H_
 
 #include "util/build_definition.h"
 
@@ -38,4 +38,4 @@ class ResultException : public std::runtime_error {
 
 #endif
 
-#endif  // VULKAN_SRC_RENDERER_VULKAN_API_ERROR_H_
+#endif  // SRC_RENDERER_VULKAN_API_ERROR_H_

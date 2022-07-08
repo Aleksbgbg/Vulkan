@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_BOUND_H_
-#define VULKAN_SRC_ENGINE_UI_BOUND_H_
+#ifndef SRC_ENGINE_UI_BOUND_H_
+#define SRC_ENGINE_UI_BOUND_H_
 
 #include <functional>
 
@@ -27,4 +27,4 @@ class Bound : public ui::Binding, public ReadWriteable<T> {
   T value_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_BOUND_H_
+#endif  // SRC_ENGINE_UI_BOUND_H_

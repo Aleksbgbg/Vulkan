@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_TEXT_FONTATLAS_H_
-#define VULKAN_SRC_CORE_TEXT_FONTATLAS_H_
+#ifndef SRC_CORE_TEXT_FONTATLAS_H_
+#define SRC_CORE_TEXT_FONTATLAS_H_
 
 #include <unordered_map>
 
@@ -35,4 +35,4 @@ class FontAtlas {
   std::unordered_map<GlyphCode, Glyph> glyphs_;
 };
 
-#endif  // VULKAN_SRC_CORE_TEXT_FONTATLAS_H_
+#endif  // SRC_CORE_TEXT_FONTATLAS_H_

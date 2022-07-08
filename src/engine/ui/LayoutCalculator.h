@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_LAYOUTCALCULATOR_H_
-#define VULKAN_SRC_ENGINE_UI_LAYOUTCALCULATOR_H_
+#ifndef SRC_ENGINE_UI_LAYOUTCALCULATOR_H_
+#define SRC_ENGINE_UI_LAYOUTCALCULATOR_H_
 
 #include "core/math/Rect.h"
 #include "core/text/FontAtlas.h"
@@ -28,4 +28,4 @@ class LayoutCalculator {
   Rectu layoutArea_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_LAYOUTCALCULATOR_H_
+#endif  // SRC_ENGINE_UI_LAYOUTCALCULATOR_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_PROPERTY_TYPE_TRANSFORM_H_
-#define VULKAN_SRC_ENGINE_PROPERTY_TYPE_TRANSFORM_H_
+#ifndef SRC_ENGINE_PROPERTY_TYPE_TRANSFORM_H_
+#define SRC_ENGINE_PROPERTY_TYPE_TRANSFORM_H_
 
 #include "engine/property/Property.h"
 #include "engine/property/PropertyKey.h"
@@ -33,4 +33,4 @@ class Transform : public Property, public Transformable {
   glm::quat rotation_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_PROPERTY_TYPE_TRANSFORM_H_
+#endif  // SRC_ENGINE_PROPERTY_TYPE_TRANSFORM_H_

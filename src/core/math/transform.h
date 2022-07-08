@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_MATH_TRANSFORM_H_
-#define VULKAN_SRC_CORE_MATH_TRANSFORM_H_
+#ifndef SRC_CORE_MATH_TRANSFORM_H_
+#define SRC_CORE_MATH_TRANSFORM_H_
 
 #include "Range.h"
 
@@ -30,4 +30,4 @@ constexpr void AffineTransform(T* const x, const Range<T> output) {
   *x = AffineTransform(*x, output);
 }
 
-#endif  // VULKAN_SRC_CORE_MATH_TRANSFORM_H_
+#endif  // SRC_CORE_MATH_TRANSFORM_H_

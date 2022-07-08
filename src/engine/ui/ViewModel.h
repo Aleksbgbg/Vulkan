@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_UI_VIEWMODEL_H_
-#define VULKAN_SRC_ENGINE_UI_VIEWMODEL_H_
+#ifndef SRC_ENGINE_UI_VIEWMODEL_H_
+#define SRC_ENGINE_UI_VIEWMODEL_H_
 
 #include <functional>
 #include <string>
@@ -36,4 +36,4 @@ class ViewModel : public Resource {
   std::unordered_map<std::string, std::unique_ptr<ui::Binding>> bindings_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_UI_VIEWMODEL_H_
+#endif  // SRC_ENGINE_UI_VIEWMODEL_H_

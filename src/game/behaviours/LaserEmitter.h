@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_BEHAVIOURS_LASEREMITTER_H_
-#define VULKAN_SRC_GAME_BEHAVIOURS_LASEREMITTER_H_
+#ifndef SRC_GAME_BEHAVIOURS_LASEREMITTER_H_
+#define SRC_GAME_BEHAVIOURS_LASEREMITTER_H_
 
 #include "engine/behaviour/Behaviour.h"
 #include "engine/composition/CompositionBuilder.h"
@@ -27,4 +27,4 @@ class LaserEmitter : public Behaviour {
   SoundHandle soundEffect_;
 };
 
-#endif  // VULKAN_SRC_GAME_BEHAVIOURS_LASEREMITTER_H_
+#endif  // SRC_GAME_BEHAVIOURS_LASEREMITTER_H_

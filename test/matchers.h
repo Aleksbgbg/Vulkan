@@ -1,5 +1,5 @@
-#ifndef VULKAN_TEST_MATCHERS_H_
-#define VULKAN_TEST_MATCHERS_H_
+#ifndef TEST_MATCHERS_H_
+#define TEST_MATCHERS_H_
 
 #include <gmock/gmock.h>
 
@@ -11,4 +11,4 @@ MATCHER_P2(EqualsMemoryRegion, region, size, "") {
 
 }  // namespace matchers
 
-#endif  // VULKAN_TEST_MATCHERS_H_
+#endif  // TEST_MATCHERS_H_

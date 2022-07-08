@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_APP_H_
-#define VULKAN_SRC_APP_H_
+#ifndef SRC_APP_H_
+#define SRC_APP_H_
 
 #include <chrono>
 
@@ -40,4 +40,4 @@ class App {
   std::chrono::time_point<std::chrono::high_resolution_clock> previousTime_;
 };
 
-#endif  // VULKAN_SRC_APP_H_
+#endif  // SRC_APP_H_

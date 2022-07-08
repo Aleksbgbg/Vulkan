@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_GAME_SCENE_H_
-#define VULKAN_SRC_GAME_SCENE_H_
+#ifndef SRC_GAME_SCENE_H_
+#define SRC_GAME_SCENE_H_
 
 #include <memory>
 #include <unordered_map>
@@ -35,4 +35,4 @@ class Scene : public ActorConsumer, public ActorOwner {
   std::list<ActorKey> actorsToDespawn_;
 };
 
-#endif  // VULKAN_SRC_GAME_SCENE_H_
+#endif  // SRC_GAME_SCENE_H_

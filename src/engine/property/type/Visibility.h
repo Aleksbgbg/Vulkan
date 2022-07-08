@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_PROPERTY_TYPE_VISIBILITY_H_
-#define VULKAN_SRC_ENGINE_PROPERTY_TYPE_VISIBILITY_H_
+#ifndef SRC_ENGINE_PROPERTY_TYPE_VISIBILITY_H_
+#define SRC_ENGINE_PROPERTY_TYPE_VISIBILITY_H_
 
 #include "engine/property/Property.h"
 #include "engine/property/PropertyKey.h"
@@ -24,4 +24,4 @@ class Visibility : public Property, public Visible {
   bool isVisible_;
 };
 
-#endif  // VULKAN_SRC_ENGINE_PROPERTY_TYPE_VISIBILITY_H_
+#endif  // SRC_ENGINE_PROPERTY_TYPE_VISIBILITY_H_

@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_ENGINE_PROPERTY_PROPERTYKEY_H_
-#define VULKAN_SRC_ENGINE_PROPERTY_PROPERTYKEY_H_
+#ifndef SRC_ENGINE_PROPERTY_PROPERTYKEY_H_
+#define SRC_ENGINE_PROPERTY_PROPERTYKEY_H_
 
 enum class PropertyKey {
   Transform = 1,
@@ -8,4 +8,4 @@ enum class PropertyKey {
   GraphicalInterface,
 };
 
-#endif  // VULKAN_SRC_ENGINE_PROPERTY_PROPERTYKEY_H_
+#endif  // SRC_ENGINE_PROPERTY_PROPERTYKEY_H_

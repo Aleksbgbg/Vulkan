@@ -1,5 +1,5 @@
-#ifndef VULKAN_SRC_CORE_FILES_VERTEX_LOADER_H_
-#define VULKAN_SRC_CORE_FILES_VERTEX_LOADER_H_
+#ifndef SRC_CORE_FILES_VERTEX_LOADER_H_
+#define SRC_CORE_FILES_VERTEX_LOADER_H_
 
 #include <string_view>
 #include <unordered_map>
@@ -45,4 +45,4 @@ DrawVertices<TVertex> LoadDrawVertices(const std::string_view filename,
   return drawVertices;
 }
 
-#endif  // VULKAN_SRC_CORE_FILES_VERTEX_LOADER_H_
+#endif  // SRC_CORE_FILES_VERTEX_LOADER_H_
