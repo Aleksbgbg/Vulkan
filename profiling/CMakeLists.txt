@@ -1,4 +1,4 @@
-set(BINARY_NAME profiling)
+set(PROFILING_BINARY_NAME profiling)
 set(SOURCE_FILES main.cc)
-add_executable(${BINARY_NAME} ${SOURCE_FILES})
-target_link_libraries(${BINARY_NAME} PRIVATE vulkan_lib)
+add_executable(${PROFILING_BINARY_NAME} ${SOURCE_FILES})
+target_link_libraries(${PROFILING_BINARY_NAME} PRIVATE ${CORE_LIBRARY_NAME})

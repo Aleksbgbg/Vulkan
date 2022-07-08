@@ -5,6 +5,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CORE_LIBRARY_NAME ${CMAKE_PROJECT_NAME}_lib)
+set(CORE_BINARY_NAME ${CMAKE_PROJECT_NAME})
+
+set(DEPENDENCIES_DIR ${CMAKE_SOURCE_DIR}/lib)
+set(GENERATED_FILES_DIR ${CMAKE_SOURCE_DIR}/generated)
+set(RESOURCES_DIR ${CMAKE_SOURCE_DIR}/resources)
+
 function(add_shader TARGET SHADER_PATH)
   get_filename_component(SHADER ${SHADER_PATH} NAME)
 
@@ -12,7 +19,7 @@ function(add_shader TARGET SHADER_PATH)
   set(current-output-path ${CMAKE_CURRENT_BINARY_DIR}/shaders/${SHADER}.spv)
 
   # Add a custom command to compile GLSL to SPIR-V.
-  find_program(GLSLC glslc PATHS ${CMAKE_SOURCE_DIR}/lib/vulkan/bin)
+  find_program(GLSLC glslc PATHS ${DEPENDENCIES_DIR}/vulkan/bin)
   get_filename_component(GLSLC ${GLSLC} ABSOLUTE)
 
   get_filename_component(current-output-dir ${current-output-path} DIRECTORY)
@@ -46,7 +53,7 @@ endfunction()
 
 function(add_ui_page TARGET PAGE_PATH)
   get_filename_component(PAGE_NAME ${PAGE_PATH} NAME)
-  set(OUTPUT_PATH ${CMAKE_SOURCE_DIR}/generated/ui_pages/${PAGE_NAME})
+  set(OUTPUT_PATH ${GENERATED_FILES_DIR}/ui_pages/${PAGE_NAME})
   add_custom_command(
       OUTPUT ${OUTPUT_PATH}
       COMMAND ${CMAKE_COMMAND}
@@ -62,8 +69,8 @@ set(FT_DISABLE_PNG TRUE)
 set(FT_DISABLE_HARFBUZZ TRUE)
 set(FT_DISABLE_BROTLI TRUE)
 
-add_subdirectory(lib/freetype)
-add_subdirectory(lib/googletest)
+add_subdirectory(${DEPENDENCIES_DIR}/freetype)
+add_subdirectory(${DEPENDENCIES_DIR}/googletest)
 
 add_subdirectory(src)
 add_subdirectory(test)
