@@ -2,8 +2,9 @@
 #define SRC_CORE_DIAGNOSTICS_PROFILE_H_
 
 #include <chrono>
-#include <iostream>
 
+#include "core/strings/format.h"
+#include "log.h"
 #include "util/build_definition.h"
 
 #if defined(PROFILING)
@@ -18,7 +19,7 @@
       std::chrono::duration<float, std::chrono::milliseconds::period>( \
           __END_TIME - __START_TIME)                                   \
           .count();                                                    \
-  std::cout << __MESSAGE << " took " << __DURATION << "ms" << std::endl;
+  ImmediateLog(Format(__MESSAGE, " took ", __DURATION, "ms"));
 
 #else
 

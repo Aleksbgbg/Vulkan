@@ -1,8 +1,8 @@
-#include <SDL.h>
-#include <SDL_syswm.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_macos.h>
 
+#include "SDL.h"
+#include "SDL_syswm.h"
 #include "renderer/vulkan/api/Surface.h"
 #include "renderer/vulkan/api/error.h"
 #include "run.h"

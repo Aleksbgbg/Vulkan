@@ -14,6 +14,12 @@ set(RESOURCES_DIR ${CMAKE_SOURCE_DIR}/resources)
 
 set(VULKAN_SDK $ENV{VULKAN_SDK})
 
+if(WIN32 OR APPLE OR UNIX)
+  set(DESKTOP TRUE)
+else()
+  set(MOBILE TRUE)
+endif()
+
 function(add_shader TARGET SHADER_PATH)
   get_filename_component(SHADER ${SHADER_PATH} NAME)
 
@@ -40,17 +46,17 @@ function(add_shader TARGET SHADER_PATH)
 endfunction()
 
 function(add_shaders TARGET SHADERS)
-  foreach (SHADER IN LISTS SHADERS)
+  foreach(SHADER IN LISTS SHADERS)
     add_shader(${TARGET} ${SHADER})
-  endforeach ()
+  endforeach()
 endfunction()
 
 function(add_files_to_output DIRECTORY SUBPATH)
   file(GLOB FILES LIST_DIRECTORIES false ${DIRECTORY}/*)
-  foreach (FILE IN LISTS FILES)
+  foreach(FILE IN LISTS FILES)
     get_filename_component(NAME ${FILE} NAME)
     configure_file(${FILE} ${SUBPATH}/${NAME} COPYONLY)
-  endforeach ()
+  endforeach()
 endfunction()
 
 function(add_ui_page TARGET PAGE_PATH)

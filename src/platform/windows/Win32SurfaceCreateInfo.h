@@ -2,12 +2,12 @@
 #define SRC_RENDERER_VULKAN_API_STRUCTURES_WIN32SURFACECREATEINFO_H_
 
 // Must come before vulkan
-#include "util/include/windows.h"
+#include "platform/windows/windows.h"
 // Must come after windows.h
+#include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
 
-#include "core/types.h"
-#include "define_structure.h"
+#include "renderer/vulkan/api/structures/define_structure.h"
 
 STRUCTURE_BUILDER(Win32SurfaceCreateInfoBuilder, VkWin32SurfaceCreateInfoKHR,
                   VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR)

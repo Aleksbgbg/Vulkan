@@ -12,7 +12,7 @@
 #include <SDL2/SDL_syswm.h>
 #include <X11/Xlib.h>
 
-#include "renderer/vulkan/api/structures/XlibSurfaceCreateInfo.h"
+#include "XlibSurfaceCreateInfo.h"
 
 class LinuxWindow : public sys::Window {
  public:

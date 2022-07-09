@@ -16,17 +16,21 @@ std::string_view ResolveAssetFilename(asset::Model asset);
 std::string_view ResolveAssetFilename(asset::Texture asset);
 std::string_view ResolveAssetFilename(asset::Sound asset);
 
+std::ifstream OpenAssetStream(asset::Shader asset);
+std::ifstream OpenAssetStream(asset::Font asset);
+std::ifstream OpenAssetStream(asset::Model asset);
+std::ifstream OpenAssetStream(asset::Texture asset);
+std::ifstream OpenAssetStream(asset::Sound asset);
+
+std::vector<u8> ReadAsset(asset::Shader asset);
+std::vector<u8> ReadAsset(asset::Font asset);
+std::vector<u8> ReadAsset(asset::Model asset);
+std::vector<u8> ReadAsset(asset::Texture asset);
+std::vector<u8> ReadAsset(asset::Sound asset);
+
 std::ifstream OpenStream(std::string_view filename);
-template <typename Asset>
-std::ifstream OpenAssetStream(const Asset asset) {
-  return OpenStream(ResolveAssetFilename(asset));
-}
 
 std::vector<u8> ReadFile(std::string_view filename);
-template <typename Asset>
-std::vector<u8> ReadAsset(const Asset asset) {
-  return ReadFile(ResolveAssetFilename(asset));
-}
 
 void WriteFile(std::string_view filename, const std::string& data);
 void WriteFile(std::string_view filename, const std::vector<u8>& data);

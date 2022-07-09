@@ -5,7 +5,7 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_xlib.h>
 
-#include "define_structure.h"
+#include "renderer/vulkan/api/structures/define_structure.h"
 
 STRUCTURE_BUILDER(XlibSurfaceCreateInfoBuilder, VkXlibSurfaceCreateInfoKHR,
                   VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR)
