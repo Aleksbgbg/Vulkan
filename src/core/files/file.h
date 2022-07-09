@@ -1,19 +1,35 @@
 #ifndef SRC_CORE_FILES_FILE_H_
 #define SRC_CORE_FILES_FILE_H_
 
+#include <fstream>
 #include <string_view>
 #include <vector>
 
+#include "asset.h"
 #include "core/types.h"
 
 namespace file {
 
-std::ifstream OpenStream(const std::string_view filename);
+std::string_view ResolveAssetFilename(asset::Shader asset);
+std::string_view ResolveAssetFilename(asset::Font asset);
+std::string_view ResolveAssetFilename(asset::Model asset);
+std::string_view ResolveAssetFilename(asset::Texture asset);
+std::string_view ResolveAssetFilename(asset::Sound asset);
 
-std::vector<u8> ReadFile(const std::string_view filename);
+std::ifstream OpenStream(std::string_view filename);
+template <typename Asset>
+std::ifstream OpenAssetStream(const Asset asset) {
+  return OpenStream(ResolveAssetFilename(asset));
+}
 
-void WriteFile(const std::string_view filename, const std::string& data);
-void WriteFile(const std::string_view filename, const std::vector<u8>& data);
+std::vector<u8> ReadFile(std::string_view filename);
+template <typename Asset>
+std::vector<u8> ReadAsset(const Asset asset) {
+  return ReadFile(ResolveAssetFilename(asset));
+}
+
+void WriteFile(std::string_view filename, const std::string& data);
+void WriteFile(std::string_view filename, const std::vector<u8>& data);
 
 }  // namespace file
 

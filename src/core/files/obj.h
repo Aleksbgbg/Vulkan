@@ -6,6 +6,7 @@
 #include <string_view>
 #include <vector>
 
+#include "asset.h"
 #include "core/types.h"
 
 namespace file {
@@ -50,7 +51,7 @@ struct Model {
   std::vector<ModelFace> faces;
 };
 
-Model ModelFromObjFile(const std::string_view name);
+Model ModelFromAsset(asset::Model model);
 
 Model ModelFromStream(std::istream& stream);
 

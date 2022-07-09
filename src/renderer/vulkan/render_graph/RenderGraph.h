@@ -38,9 +38,10 @@ class RenderGraph {
     virtual BoundBuffer AllocateDeviceBuffer(std::size_t size,
                                              VkBufferUsageFlags usage) = 0;
 
-    virtual vk::ShaderModule LoadComputeShader(std::string_view name) const = 0;
+    virtual vk::ShaderModule LoadComputeShader(
+        const std::vector<u8>& code) const = 0;
     virtual vk::ShaderModule LoadGraphicsShader(
-        std::string_view name, VkShaderStageFlagBits stage) const = 0;
+        VkShaderStageFlagBits stage, const std::vector<u8>& code) const = 0;
 
     virtual vk::ComputePipeline CreateComputePipeline(
         const std::vector<const vk::DescriptorSetLayout*>& descriptorSetLayouts,

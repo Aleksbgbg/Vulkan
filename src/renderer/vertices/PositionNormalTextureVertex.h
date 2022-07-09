@@ -5,11 +5,12 @@
 #include <string_view>
 
 #include "StructuredVertexData.h"
+#include "asset.h"
 #include "util/include/glm.h"
 
 struct PositionNormalTextureVertex {
   static std::unique_ptr<StructuredVertexData> LoadVertexData(
-      const std::string_view filename);
+      asset::Model model);
 
   bool operator==(const PositionNormalTextureVertex& other) const;
 

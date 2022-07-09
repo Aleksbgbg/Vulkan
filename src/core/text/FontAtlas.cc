@@ -17,7 +17,7 @@
 using GlyphList = std::list<GlyphCode>;
 
 struct FontFile {
-  std::string_view filename;
+  asset::Font font;
   GlyphList glyphs;
 };
 
@@ -37,14 +37,14 @@ FontAtlas FontAtlas::Create() {
   PROCEED_ON_VALID_RESULT(FT_Init_FreeType(&library));
 
   std::list<FontFile> files;
-  FontFile ui;
-  ui.filename = UI_FONT_FILENAME;
-  AddGlyphRange(ui.glyphs, ' ', 'z');
+  FontFile uiMainLanguage;
+  uiMainLanguage.font = asset::Font::English;
+  AddGlyphRange(uiMainLanguage.glyphs, ' ', 'z');
   FontFile fontawesome;
-  fontawesome.filename = FONTAWESOME_FONT_FILENAME;
+  fontawesome.font = asset::Font::FontAwesome;
   AddGlyphRange(fontawesome.glyphs, 61700, 61701);
 
-  files.push_back(std::move(ui));
+  files.push_back(std::move(uiMainLanguage));
   files.push_back(std::move(fontawesome));
 
   std::unordered_map<GlyphCode, Bitmap> glyphImages;
@@ -56,7 +56,7 @@ FontAtlas FontAtlas::Create() {
   u32 fontHeight = 0;
 
   for (const FontFile& fontFile : files) {
-    const std::vector<u8> buffer = file::ReadFile(fontFile.filename);
+    const std::vector<u8> buffer = file::ReadAsset(fontFile.font);
 
     FT_Face face;
     PROCEED_ON_VALID_RESULT(

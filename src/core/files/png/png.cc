@@ -25,8 +25,8 @@ namespace file {
 
 class PngReader {
  public:
-  PngReader(const std::string_view path)
-      : pngData_(ReadFile(path)),
+  PngReader(std::vector<u8> pngData)
+      : pngData_(std::move(pngData)),
         streamReader_(pngData_.data()),
         image_(),
         compressedData_() {}
@@ -165,8 +165,8 @@ class PngReader {
   Bitmap image_;
 };
 
-Bitmap ReadPng(const std::string_view path) {
-  return PngReader(path).Read();
+Bitmap ReadPng(std::vector<u8> pngData) {
+  return PngReader(std::move(pngData)).Read();
 }
 
 }  // namespace file

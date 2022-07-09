@@ -2,14 +2,14 @@
 #define SRC_ENGINE_COMPOSITION_MESHLOADPARAMS_H_
 
 #include <optional>
-#include <string_view>
 
+#include "asset.h"
 #include "util/include/glm.h"
 
 struct MeshLoadParams {
-  std::string_view model;
-  std::optional<std::string_view> texture;
-  std::optional<std::string_view> emissive;
+  asset::Model model;
+  std::optional<asset::Texture> texture;
+  std::optional<asset::Texture> emissive;
   std::optional<glm::mat4> meshTransform;
 };
 

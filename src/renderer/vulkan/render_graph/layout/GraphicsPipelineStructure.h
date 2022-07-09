@@ -12,7 +12,6 @@
 
 struct GraphicsPipelineStructure {
   PipelineKey pipelineKey;
-  std::string_view name;
   VkVertexInputBindingDescription vertexBinding;
   std::vector<VkVertexInputAttributeDescription> vertexAttributes;
   DescriptorSetStructure descriptors;

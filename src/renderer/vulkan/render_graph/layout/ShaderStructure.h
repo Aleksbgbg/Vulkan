@@ -5,9 +5,11 @@
 
 #include <list>
 
+#include "asset.h"
 #include "core/types.h"
 
 struct ShaderStructure {
+  asset::Shader shaderAsset;
   VkShaderStageFlagBits shaderStage;
   std::list<u32> globalBindings;
   std::list<u32> localBindings;

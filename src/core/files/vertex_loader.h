@@ -1,19 +1,19 @@
 #ifndef SRC_CORE_FILES_VERTEX_LOADER_H_
 #define SRC_CORE_FILES_VERTEX_LOADER_H_
 
-#include <string_view>
 #include <unordered_map>
 
 #include "DrawVertices.h"
+#include "asset.h"
 #include "core/files/obj.h"
 
 template <typename TVertex, typename TVertexProducer>
-DrawVertices<TVertex> LoadDrawVertices(const std::string_view filename,
+DrawVertices<TVertex> LoadDrawVertices(const asset::Model modelAsset,
                                        TVertexProducer vertexProducer) {
   std::unordered_map<TVertex, u16> uniqueVertices;
   DrawVertices<TVertex> drawVertices;
 
-  const file::Model model = file::ModelFromObjFile(filename);
+  const file::Model model = file::ModelFromAsset(modelAsset);
 
   for (const auto& face : model.faces) {
     for (u32 vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {

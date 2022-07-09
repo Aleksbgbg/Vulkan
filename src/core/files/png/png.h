@@ -7,7 +7,7 @@
 
 namespace file {
 
-Bitmap ReadPng(const std::string_view path);
+Bitmap ReadPng(std::vector<u8> pngData);
 
 }  // namespace file
 

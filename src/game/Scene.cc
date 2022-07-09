@@ -1,5 +1,6 @@
 #include "Scene.h"
 
+#include "asset.h"
 #include "engine/composition/ParticleBehaviour.h"
 #include "engine/composition/PointLight.h"
 #include "engine/composition/SceneComposer.h"
@@ -14,7 +15,6 @@
 #include "game/behaviours/SunMovement.h"
 #include "game/viewmodels/PauseMenuViewModel.h"
 #include "ui_pages.h"
-#include "util/filenames.h"
 
 Scene::Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
              game::Camera& camera, const FontAtlas& fontAtlas,
@@ -26,31 +26,31 @@ Scene::Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
       actorsToDespawn_() {
   const MeshHandle skyboxMesh = scene_.LoadMesh(
       RenderType::Skybox,
-      {.model = SKYBOX_MODEL_FILENAME,
-       .texture = SKYBOX_TEXTURE_FILENAME,
+      {.model = asset::Model::SkyboxSphere,
+       .texture = asset::Texture::Nebula,
        .meshTransform = glm::scale(glm::mat4(1.0f), glm::vec3(2000.0f))});
   const MeshHandle sunMesh = scene_.LoadMesh(
       RenderType::Sun,
-      {.model = SPHERE_MODEL_FILENAME, .texture = SUN_TEXTURE_FILENAME});
-  const MeshHandle playerMesh = scene_.LoadMesh(
-      RenderType::Spaceship, {.model = SPACESHIP_STATIONARY_MODEL_FILENAME,
-                              .texture = SPACESHIP_TEXTURE_FILENAME,
-                              .emissive = SPACESHIP_EMISSIVE_FILENAME});
+      {.model = asset::Model::Sphere, .texture = asset::Texture::Sun});
+  const MeshHandle playerMesh =
+      scene_.LoadMesh(RenderType::Spaceship,
+                      {.model = asset::Model::InterstellarRunner,
+                       .texture = asset::Texture::InterstellarRunner,
+                       .emissive = asset::Texture::InterstellarRunnerEmissive});
   const MeshHandle npcMesh = scene_.LoadMesh(
-      RenderType::Spaceship, {.model = NPC_SPACESHIP_MODEL_FILENAME,
-                              .texture = NPC_SPACESHIP_TEXTURE_FILENAME,
-                              .emissive = NPC_SPACESHIP_EMISSIVE_FILENAME});
+      RenderType::Spaceship, {.model = asset::Model::Transtellar,
+                              .texture = asset::Texture::Transtellar,
+                              .emissive = asset::Texture::TranstellarEmissive});
   const MeshHandle exhaustParticleMesh = scene_.LoadMesh(
       RenderType::Particle,
-      {.model = PARTICLE_MODEL_FILENAME,
+      {.model = asset::Model::ExhaustParticle,
        .meshTransform = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f))});
   const MeshHandle laserMesh = scene_.LoadMesh(
       RenderType::Sun,
-      {.model = LASER_MODEL_FILENAME, .texture = LASER_TEXTURE_FILENAME});
+      {.model = asset::Model::Laser, .texture = asset::Texture::Laser});
 
-  const SoundHandle backgroundMusic =
-      sound.LoadSound(BACKGROUND_MUSIC_FILENAME);
-  const SoundHandle laserSoundEffect = sound.LoadSound(LASER_SOUND_FILENAME);
+  const SoundHandle backgroundMusic = sound.LoadSound(asset::Sound::Background);
+  const SoundHandle laserSoundEffect = sound.LoadSound(asset::Sound::Laser);
 
   const CompositionBuilder spaceshipExhaust =
       std::move(scene_.ParticleSystem(ParticleBehaviour::SpaceshipExhaust)

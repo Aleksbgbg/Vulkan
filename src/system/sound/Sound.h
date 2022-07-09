@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "Settings.h"
+#include "asset.h"
 #include "core/diagnostics/SoundErrorReporter.h"
 #include "core/types.h"
 
@@ -44,7 +45,7 @@ class Sound {
   Sound& operator=(Sound&) = delete;
   Sound& operator=(Sound&&) = delete;
 
-  SoundHandle LoadSound(std::string_view filename);
+  SoundHandle LoadSound(asset::Sound sound);
 
   void Loop(SoundHandle soundHandle);
   void Play(SoundHandle soundHandle);

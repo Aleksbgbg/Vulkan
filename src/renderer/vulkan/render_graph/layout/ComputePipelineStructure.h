@@ -7,7 +7,6 @@
 
 struct ComputePipelineStructure {
   PipelineKey pipelineKey;
-  std::string_view name;
   DescriptorSetStructure descriptors;
   ShaderStructure shader;
 };

@@ -51,9 +51,9 @@ class VirtualDevice {
 
   Queue GetQueue(const u32 familyIndex, const u32 queueIndex) const;
 
-  ShaderModule LoadComputeShader(const std::string_view shaderFilename) const;
+  ShaderModule LoadComputeShader(const std::vector<u8>& code) const;
   ShaderModule LoadShader(const VkShaderStageFlagBits stage,
-                          const std::string_view shaderFilename) const;
+                          const std::vector<u8>& code) const;
 
   Semaphore CreateSemaphore() const;
   Fence CreateFence() const;

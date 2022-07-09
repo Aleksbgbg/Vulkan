@@ -1,38 +1,12 @@
 #include "RenderGraph.h"
 
 #include "core/adapters/MapValueIterator.h"
+#include "core/files/file.h"
 #include "engine/resource/ReleaseListResource.h"
 #include "engine/resource/ResourceCollection.h"
 #include "renderer/vulkan/buffer_structures/ModelTransform.h"
 
 namespace {
-
-std::string_view StageExtension(const VkShaderStageFlagBits shaderStage) {
-  switch (shaderStage) {
-    case VK_SHADER_STAGE_VERTEX_BIT:
-      return "vert";
-    case VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT:
-      return "tesc";
-    case VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT:
-      return "tese";
-    case VK_SHADER_STAGE_GEOMETRY_BIT:
-      return "geom";
-    case VK_SHADER_STAGE_FRAGMENT_BIT:
-      return "frag";
-    case VK_SHADER_STAGE_COMPUTE_BIT:
-      return "comp";
-    default:
-      return "";
-  }
-}
-
-std::string ShaderName(const std::string_view pipelineName,
-                       const VkShaderStageFlagBits shaderStage) {
-  return std::string("shaders/") + pipelineName.data() + "." +
-         StageExtension(shaderStage).data() + ".spv";
-}
-
-}  // namespace
 
 vk::DescriptorSetLayout DescriptorSetStructureAsLayout(
     const DescriptorSetStructure& structure,
@@ -51,6 +25,8 @@ vk::DescriptorSetLayout DescriptorSetStructureAsLayout(
           .SetBindingCount(descriptorBindings.size())
           .SetPBindings(descriptorBindings.data()));
 }
+
+}  // namespace
 
 void RenderGraph::FlushDescriptors() {
   allocator_->UpdateDescriptorSets(descriptorSetWrites_);
@@ -129,8 +105,7 @@ RenderGraph::RenderGraph(RenderGraph::ResourceAllocator& allocator,
             .pipeline = allocator_->CreateComputePipeline(
                 {&computePipelineGraph_.descriptorLayout, &descriptorLayout},
                 allocator_->LoadComputeShader(
-                    ShaderName(pipelineStructure.name,
-                               pipelineStructure.shader.shaderStage))),
+                    file::ReadAsset(pipelineStructure.shader.shaderAsset))),
             .descriptorLayout = std::move(descriptorLayout),
             .descriptorStructure = pipelineStructure.descriptors}));
   }
@@ -140,8 +115,7 @@ RenderGraph::RenderGraph(RenderGraph::ResourceAllocator& allocator,
     std::vector<vk::ShaderModule> shaders;
     for (const auto& shader : pipelineStructure.shaders) {
       shaders.push_back(allocator_->LoadGraphicsShader(
-          ShaderName(pipelineStructure.name, shader.shaderStage),
-          shader.shaderStage));
+          shader.shaderStage, file::ReadAsset(shader.shaderAsset)));
     }
 
     graphicsPipelineGraph_.pipelines.insert(std::make_pair(

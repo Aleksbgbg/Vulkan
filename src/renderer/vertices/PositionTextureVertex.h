@@ -5,14 +5,14 @@
 #include <string_view>
 
 #include "StructuredVertexData.h"
+#include "asset.h"
 #include "core/files/DrawVertices.h"
 #include "util/include/glm.h"
 
 struct PositionTextureVertex {
   static std::unique_ptr<StructuredVertexData> LoadVertexData(
-      const std::string_view filename);
-  static DrawVertices<PositionTextureVertex> LoadVertices(
-      const std::string_view filename);
+      asset::Model model);
+  static DrawVertices<PositionTextureVertex> LoadVertices(asset::Model model);
 
   bool operator==(const PositionTextureVertex& other) const;
 

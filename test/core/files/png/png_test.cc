@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "core/files/bmp.h"
+#include "core/files/file.h"
 #include "matchers.h"
 
 namespace {
@@ -15,7 +16,8 @@ TEST(PngTest, ReadsBasicSrgbPng) {
   const Bitmap expectedImage =
       file::ReadBitmap("data/images/SpaceshipTexture.bmp");
 
-  const Bitmap actualImage = file::ReadPng("data/images/SpaceshipTexture.png");
+  const Bitmap actualImage =
+      file::ReadPng(file::ReadFile("data/images/SpaceshipTexture.png"));
 
   ASSERT_EQ(expectedImage.Width(), actualImage.Width());
   ASSERT_EQ(expectedImage.Height(), actualImage.Height());
@@ -29,7 +31,8 @@ TEST(PngTest, ReadsBasicSrgbPng) {
 TEST(PngTest, ReadsLargePng) {
   const Bitmap expectedImage = file::ReadBitmap("data/images/Alice.bmp");
 
-  const Bitmap actualImage = file::ReadPng("data/images/Alice.png");
+  const Bitmap actualImage =
+      file::ReadPng(file::ReadFile("data/images/Alice.png"));
 
   ASSERT_EQ(expectedImage.Width(), actualImage.Width());
   ASSERT_EQ(expectedImage.Height(), actualImage.Height());
@@ -43,7 +46,8 @@ TEST(PngTest, ReadsLargePng) {
 TEST(PngTest, ReadsPngUsingUpAndAverageFilter) {
   const Bitmap expectedImage = file::ReadBitmap("data/images/Space.bmp");
 
-  const Bitmap actualImage = file::ReadPng("data/images/Space.png");
+  const Bitmap actualImage =
+      file::ReadPng(file::ReadFile("data/images/Space.png"));
 
   ASSERT_EQ(expectedImage.Width(), actualImage.Width());
   ASSERT_EQ(expectedImage.Height(), actualImage.Height());
@@ -57,7 +61,8 @@ TEST(PngTest, ReadsPngUsingUpAndAverageFilter) {
 TEST(PngTest, ReadsPngUsingPaethAndSubFilters) {
   const Bitmap expectedImage = file::ReadBitmap("data/images/Nebula.bmp");
 
-  const Bitmap actualImage = file::ReadPng("data/images/Nebula.png");
+  const Bitmap actualImage =
+      file::ReadPng(file::ReadFile("data/images/Nebula.png"));
 
   ASSERT_EQ(expectedImage.Width(), actualImage.Width());
   ASSERT_EQ(expectedImage.Height(), actualImage.Height());

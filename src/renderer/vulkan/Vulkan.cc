@@ -401,13 +401,14 @@ RenderGraph Vulkan::CreateRenderGraph() {
               UniformStructure<GlobalComputeUniform>(
                   STRUCTURE_FLAGS_HOST_ACCESSIBLE)))
           .ComputePipeline(
-              PIPELINE_PARTICLE_COMPUTE, "particles",
+              PIPELINE_PARTICLE_COMPUTE,
               DescriptorSetBuilder()
                   .AddBinding(UniformStructure<ParticleSpawnParams>(
                       STRUCTURE_FLAGS_HOST_ACCESSIBLE))
                   .AddBinding(BufferStructurePerInstance<Particle>())
                   .AddBinding(BufferStructurePerInstance<ParticleRender>()),
               ShaderBuilder().AddComputeShader(
+                  asset::Shader::ParticlesComp,
                   DescriptorReferenceBuilder()
                       .AddGlobalSetBindings(0)
                       .AddLocalSetBindings({0, 1, 2})))
@@ -416,7 +417,6 @@ RenderGraph Vulkan::CreateRenderGraph() {
                   STRUCTURE_FLAGS_HOST_ACCESSIBLE)))
           .RenderPipeline(
               PIPELINE_SKYBOX_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D,
-              "skybox",
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(PositionTextureVertex))
@@ -438,12 +438,13 @@ RenderGraph Vulkan::CreateRenderGraph() {
                   TextureSampler(textureSampler_)),
               ShaderBuilder()
                   .AddVertexShader(
+                      asset::Shader::SkyboxVert,
                       DescriptorReferenceBuilder().AddGlobalSetBindings(0))
                   .AddFragmentShader(
+                      asset::Shader::SkyboxFrag,
                       DescriptorReferenceBuilder().AddLocalSetBindings(0)))
           .RenderPipeline(
               PIPELINE_LIGHT_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D,
-              "light",
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(PositionTextureVertex))
@@ -466,14 +467,16 @@ RenderGraph Vulkan::CreateRenderGraph() {
                       STRUCTURE_FLAGS_HOST_ACCESSIBLE))
                   .AddBinding(TextureSampler(textureSampler_)),
               ShaderBuilder()
-                  .AddVertexShader(DescriptorReferenceBuilder()
+                  .AddVertexShader(asset::Shader::LightVert,
+                                   DescriptorReferenceBuilder()
                                        .AddGlobalSetBindings(0)
                                        .AddLocalSetBindings(0))
                   .AddFragmentShader(
+                      asset::Shader::LightFrag,
                       DescriptorReferenceBuilder().AddLocalSetBindings(1)))
           .RenderPipeline(
               PIPELINE_PARTICLE_RENDER,
-              GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D, "particles",
+              GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D,
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(PositionVertex))
@@ -487,13 +490,14 @@ RenderGraph Vulkan::CreateRenderGraph() {
               DescriptorSetBuilder().AddBinding(
                   BufferStructurePerInstance<ParticleRender>()),
               ShaderBuilder()
-                  .AddVertexShader(DescriptorReferenceBuilder()
+                  .AddVertexShader(asset::Shader::ParticlesVert,
+                                   DescriptorReferenceBuilder()
                                        .AddGlobalSetBindings(0)
                                        .AddLocalSetBindings(0))
-                  .AddFragmentShader())
+                  .AddFragmentShader(asset::Shader::ParticlesFrag))
           .RenderPipeline(
               PIPELINE_SPACESHIP_RENDER,
-              GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D, "spaceship",
+              GRAPHICS_PIPELINE_TEMPLATE_KEY_RENDER_3D,
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(PositionNormalTextureVertex))
@@ -525,14 +529,16 @@ RenderGraph Vulkan::CreateRenderGraph() {
                   .AddBinding(TextureSampler(textureSampler_))
                   .AddBinding(TextureSampler(textureSampler_)),
               ShaderBuilder()
-                  .AddVertexShader(DescriptorReferenceBuilder()
+                  .AddVertexShader(asset::Shader::SpaceshipVert,
+                                   DescriptorReferenceBuilder()
                                        .AddGlobalSetBindings(0)
                                        .AddLocalSetBindings(0))
-                  .AddFragmentShader(DescriptorReferenceBuilder()
+                  .AddFragmentShader(asset::Shader::SpaceshipFrag,
+                                     DescriptorReferenceBuilder()
                                          .AddGlobalSetBindings(0)
                                          .AddLocalSetBindings({1, 2})))
           .RenderPipeline(
-              PIPELINE_UI_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_UI, "ui",
+              PIPELINE_UI_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_UI,
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(PositionColorVertex))
@@ -551,9 +557,11 @@ RenderGraph Vulkan::CreateRenderGraph() {
                           .SetFormat(VK_FORMAT_R32G32B32A32_SFLOAT)
                           .SetOffset(offsetof(PositionColorVertex, color))),
               DescriptorSetBuilder(),
-              ShaderBuilder().AddVertexShader().AddFragmentShader())
+              ShaderBuilder()
+                  .AddVertexShader(asset::Shader::UiVert)
+                  .AddFragmentShader(asset::Shader::UiFrag))
           .RenderPipeline(
-              PIPELINE_TEXT_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_UI, "text",
+              PIPELINE_TEXT_RENDER, GRAPHICS_PIPELINE_TEMPLATE_KEY_UI,
               VertexInputBindingDescriptionBuilder()
                   .SetBinding(0)
                   .SetStride(sizeof(TextVertex))
@@ -577,8 +585,11 @@ RenderGraph Vulkan::CreateRenderGraph() {
                                       .SetFormat(VK_FORMAT_R32G32B32_SFLOAT)
                                       .SetOffset(offsetof(TextVertex, color))),
               DescriptorSetBuilder().AddBinding(TextureSampler(fontSampler_)),
-              ShaderBuilder().AddVertexShader().AddFragmentShader(
-                  DescriptorReferenceBuilder().AddLocalSetBindings(0)))
+              ShaderBuilder()
+                  .AddVertexShader(asset::Shader::TextVert)
+                  .AddFragmentShader(
+                      asset::Shader::TextFrag,
+                      DescriptorReferenceBuilder().AddLocalSetBindings(0)))
           .Build());
 }
 
@@ -723,8 +734,8 @@ VkBool32 Vulkan::DebugCallback(
   return VK_FALSE;
 }
 
-Texture Vulkan::LoadTexture(const std::string_view filename) {
-  return LoadTexture(file::ReadPng(filename));
+Texture Vulkan::LoadTexture(const asset::Texture texture) {
+  return LoadTexture(file::ReadPng(file::ReadAsset(texture)));
 }
 
 Texture Vulkan::LoadTexture(const Bitmap& image, const VkFormat format) {
@@ -1203,13 +1214,13 @@ BoundBuffer Vulkan::AllocateDeviceBuffer(const std::size_t size,
   return BoundBuffer(std::move(buffer), std::move(bufferMemory));
 }
 
-vk::ShaderModule Vulkan::LoadComputeShader(const std::string_view name) const {
-  return virtualDevice_.LoadComputeShader(name);
+vk::ShaderModule Vulkan::LoadComputeShader(const std::vector<u8>& code) const {
+  return virtualDevice_.LoadComputeShader(code);
 }
 
-vk::ShaderModule Vulkan::LoadGraphicsShader(
-    const std::string_view name, const VkShaderStageFlagBits stage) const {
-  return virtualDevice_.LoadShader(stage, name);
+vk::ShaderModule Vulkan::LoadGraphicsShader(VkShaderStageFlagBits stage,
+                                            const std::vector<u8>& code) const {
+  return virtualDevice_.LoadShader(stage, code);
 }
 
 vk::ComputePipeline Vulkan::CreateComputePipeline(

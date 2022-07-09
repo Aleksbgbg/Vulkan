@@ -4,11 +4,11 @@
 #include "util/include/glm_hash.h"
 
 std::unique_ptr<StructuredVertexData>
-PositionNormalTextureVertex::LoadVertexData(const std::string_view filename) {
+PositionNormalTextureVertex::LoadVertexData(const asset::Model model) {
   return std::make_unique<VertexDataOfType<PositionNormalTextureVertex>>(
       LoadDrawVertices<PositionNormalTextureVertex>(
-          filename, [](const auto& positionVertex, const auto& normalVertex,
-                       const auto& textureVertex) {
+          model, [](const auto& positionVertex, const auto& normalVertex,
+                    const auto& textureVertex) {
             PositionNormalTextureVertex vertex;
             vertex.position.x = positionVertex.x;
             vertex.position.y = positionVertex.y;

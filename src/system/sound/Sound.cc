@@ -42,20 +42,20 @@ Sound::~Sound() {
   SDL_CloseAudioDevice(audioDeviceId_);
 }
 
-SoundHandle Sound::LoadSound(const std::string_view filename) {
+SoundHandle Sound::LoadSound(const asset::Sound sound) {
   ++currentSoundHandle_;
 
   i32 channels;
   i32 sampleRate;
   SoundType* data;
 
-  const std::vector<u8> buffer = file::ReadFile(filename);
+  const std::vector<u8> buffer = file::ReadAsset(sound);
   const i32 size = stb_vorbis_decode_memory(buffer.data(), buffer.size(),
                                             &channels, &sampleRate, &data);
 
   if (size < 0) {
     throw std::runtime_error(std::string("Could not open sound ") +
-                             filename.data());
+                             file::ResolveAssetFilename(sound).data());
   }
 
   sounds_.insert(std::make_pair(

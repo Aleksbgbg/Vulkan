@@ -50,7 +50,7 @@ class Vulkan : public Renderer,
   vk::RenderPass CreateRenderPass() const;
   RenderGraph CreateRenderGraph();
 
-  Texture LoadTexture(std::string_view filename);
+  Texture LoadTexture(asset::Texture texture);
   Texture LoadTexture(const Bitmap& image,
                       VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
   IndexedVertexBuffer AllocateDrawBuffer(
@@ -93,9 +93,10 @@ class Vulkan : public Renderer,
                                  VkBufferUsageFlags usage) override;
   BoundBuffer AllocateDeviceBuffer(std::size_t size,
                                    VkBufferUsageFlags usage) override;
-  vk::ShaderModule LoadComputeShader(std::string_view name) const override;
+  vk::ShaderModule LoadComputeShader(
+      const std::vector<u8>& code) const override;
   vk::ShaderModule LoadGraphicsShader(
-      std::string_view name, VkShaderStageFlagBits stage) const override;
+      VkShaderStageFlagBits stage, const std::vector<u8>& code) const override;
   vk::ComputePipeline CreateComputePipeline(
       const std::vector<const vk::DescriptorSetLayout*>& descriptorSetLayouts,
       vk::ShaderModule computeShader) const override;

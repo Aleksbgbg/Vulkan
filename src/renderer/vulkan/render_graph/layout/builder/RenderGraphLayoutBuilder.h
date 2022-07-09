@@ -24,14 +24,13 @@ class RenderGraphLayoutBuilder {
       const DescriptorSetBuilder& builder);
 
   RenderGraphLayoutBuilder& ComputePipeline(
-      PipelineKey key, std::string_view name,
-      const DescriptorSetBuilder& descriptorSetBuilder,
+      PipelineKey key, const DescriptorSetBuilder& descriptorSetBuilder,
       const ShaderBuilder& shaderBuilder);
 
   RenderGraphLayoutBuilder& GraphicsPipelineTemplate(
       TemplateKey key, GraphicsPipelineCreateInfoBuilder builder);
   RenderGraphLayoutBuilder& RenderPipeline(
-      PipelineKey key, TemplateKey templateKey, std::string_view name,
+      const PipelineKey key, const TemplateKey templateKey,
       const VertexInputBindingDescriptionBuilder& vertexBindingBuilder,
       const VertexAttributesBuilder& vertexAttributesBuilder,
       const DescriptorSetBuilder& descriptorSetBuilder,

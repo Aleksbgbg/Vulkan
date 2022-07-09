@@ -4,10 +4,10 @@
 #include "util/include/glm_hash.h"
 
 DrawVertices<PositionTextureVertex> PositionTextureVertex::LoadVertices(
-    const std::string_view filename) {
+    const asset::Model model) {
   return LoadDrawVertices<PositionTextureVertex>(
-      filename, [](const auto& positionVertex, const auto& normalVertex,
-                   const auto& textureVertex) {
+      model, [](const auto& positionVertex, const auto& normalVertex,
+                const auto& textureVertex) {
         PositionTextureVertex vertex;
         vertex.position.x = positionVertex.x;
         vertex.position.y = positionVertex.y;
@@ -19,9 +19,9 @@ DrawVertices<PositionTextureVertex> PositionTextureVertex::LoadVertices(
 }
 
 std::unique_ptr<StructuredVertexData> PositionTextureVertex::LoadVertexData(
-    const std::string_view filename) {
+    const asset::Model model) {
   return std::make_unique<VertexDataOfType<PositionTextureVertex>>(
-      PositionTextureVertex::LoadVertices(filename));
+      PositionTextureVertex::LoadVertices(model));
 }
 
 bool PositionTextureVertex::operator==(

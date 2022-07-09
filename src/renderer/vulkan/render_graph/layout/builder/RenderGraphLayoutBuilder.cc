@@ -15,14 +15,12 @@ RenderGraphLayoutBuilder& RenderGraphLayoutBuilder::RenderGlobalDescriptors(
 }
 
 RenderGraphLayoutBuilder& RenderGraphLayoutBuilder::ComputePipeline(
-    PipelineKey key, const std::string_view name,
-    const DescriptorSetBuilder& descriptorSetBuilder,
+    PipelineKey key, const DescriptorSetBuilder& descriptorSetBuilder,
     const ShaderBuilder& shaderBuilder) {
   const ShaderBuilder::ShaderBuildResult result = shaderBuilder.Build();
 
   ComputePipelineStructure pipelineStructure{
       .pipelineKey = key,
-      .name = name,
       .descriptors = descriptorSetBuilder.Build(),
       .shader = result.shader};
   for (const u32 reference : pipelineStructure.shader.localBindings) {
@@ -42,7 +40,6 @@ RenderGraphLayoutBuilder& RenderGraphLayoutBuilder::GraphicsPipelineTemplate(
 
 RenderGraphLayoutBuilder& RenderGraphLayoutBuilder::RenderPipeline(
     const PipelineKey key, const TemplateKey templateKey,
-    const std::string_view name,
     const VertexInputBindingDescriptionBuilder& vertexBindingBuilder,
     const VertexAttributesBuilder& vertexAttributesBuilder,
     const DescriptorSetBuilder& descriptorSetBuilder,
@@ -51,7 +48,6 @@ RenderGraphLayoutBuilder& RenderGraphLayoutBuilder::RenderPipeline(
 
   GraphicsPipelineStructure pipelineStructure{
       .pipelineKey = key,
-      .name = name,
       .vertexBinding = vertexBindingBuilder.BuildObject(),
       .vertexAttributes = vertexAttributesBuilder.Build(),
       .descriptors = descriptorSetBuilder.Build(),

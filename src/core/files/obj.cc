@@ -190,8 +190,8 @@ Model ModelFromStream(std::istream& stream) {
   return model;
 }
 
-Model ModelFromObjFile(const std::string_view name) {
-  std::ifstream stream = file::OpenStream(name);
+Model ModelFromAsset(const asset::Model model) {
+  std::ifstream stream = file::OpenAssetStream(model);
   return ModelFromStream(stream);
 }
 
