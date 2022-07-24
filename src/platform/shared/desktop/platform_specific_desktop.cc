@@ -13,35 +13,23 @@ void ImmediateLog(const std::string_view text) {
 
 namespace file {
 
-std::ifstream OpenAssetStream(const asset::Shader asset) {
-  return OpenStream(ResolveAssetFilename(asset));
-}
-std::ifstream OpenAssetStream(const asset::Font asset) {
-  return OpenStream(ResolveAssetFilename(asset));
-}
-std::ifstream OpenAssetStream(const asset::Model asset) {
-  return OpenStream(ResolveAssetFilename(asset));
-}
-std::ifstream OpenAssetStream(const asset::Texture asset) {
-  return OpenStream(ResolveAssetFilename(asset));
-}
-std::ifstream OpenAssetStream(const asset::Sound asset) {
-  return OpenStream(ResolveAssetFilename(asset));
+std::string RelativeApplicationPath(const std::string_view path) {
+  return path.data();
 }
 
-std::vector<u8> ReadAsset(const asset::Shader asset) {
-  return ReadFile(ResolveAssetFilename(asset));
-}
 std::vector<u8> ReadAsset(const asset::Font asset) {
   return ReadFile(ResolveAssetFilename(asset));
 }
 std::vector<u8> ReadAsset(const asset::Model asset) {
   return ReadFile(ResolveAssetFilename(asset));
 }
-std::vector<u8> ReadAsset(const asset::Texture asset) {
+std::vector<u8> ReadAsset(const asset::Shader asset) {
   return ReadFile(ResolveAssetFilename(asset));
 }
 std::vector<u8> ReadAsset(const asset::Sound asset) {
+  return ReadFile(ResolveAssetFilename(asset));
+}
+std::vector<u8> ReadAsset(const asset::Texture asset) {
   return ReadFile(ResolveAssetFilename(asset));
 }
 

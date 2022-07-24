@@ -6,5 +6,6 @@
     <mapping directory="$PROJECT_DIR$/dependencies/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/dependencies/googletest" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/dependencies/sdl" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/platform/android/java/app/native" vcs="Git" />
   </component>
 </project>

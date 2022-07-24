@@ -3,6 +3,21 @@
 
 namespace asset {
 
+enum class Font {
+  English,
+  Korean,
+  FontAwesome,
+};
+
+enum class Model {
+  SkyboxSphere,
+  Sphere,
+  Transtellar,
+  InterstellarRunner,
+  Laser,
+  ExhaustParticle,
+};
+
 enum class Shader {
   LightVert,
   LightFrag,
@@ -19,19 +34,9 @@ enum class Shader {
   UiFrag,
 };
 
-enum class Font {
-  English,
-  Korean,
-  FontAwesome,
-};
-
-enum class Model {
-  SkyboxSphere,
-  Sphere,
-  Transtellar,
-  InterstellarRunner,
+enum class Sound {
+  Background,
   Laser,
-  ExhaustParticle,
 };
 
 enum class Texture {
@@ -41,11 +46,6 @@ enum class Texture {
   TranstellarEmissive,
   Nebula,
   Sun,
-  Laser,
-};
-
-enum class Sound {
-  Background,
   Laser,
 };
 

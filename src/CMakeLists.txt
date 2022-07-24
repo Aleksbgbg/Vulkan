@@ -16,6 +16,17 @@ target_include_directories(
     ${DEPENDENCIES_DIR}/glm
     ${GENERATED_FILES_DIR})
 
+set(SHADERS ${RESOURCES_DIR}/shaders/light.frag ${RESOURCES_DIR}/shaders/light.vert ${RESOURCES_DIR}/shaders/particles.comp ${RESOURCES_DIR}/shaders/particles.frag ${RESOURCES_DIR}/shaders/particles.vert ${RESOURCES_DIR}/shaders/skybox.frag ${RESOURCES_DIR}/shaders/skybox.vert ${RESOURCES_DIR}/shaders/spaceship.frag ${RESOURCES_DIR}/shaders/spaceship.vert ${RESOURCES_DIR}/shaders/text.frag ${RESOURCES_DIR}/shaders/text.vert ${RESOURCES_DIR}/shaders/ui.frag ${RESOURCES_DIR}/shaders/ui.vert)
+add_shaders(${CORE_LIBRARY_NAME} "${SHADERS}")
+
+add_files_to_output(${RESOURCES_DIR}/fonts resources/fonts)
+add_files_to_output(${RESOURCES_DIR}/models resources/models)
+add_files_to_output(${GENERATED_FILES_DIR}/shaders resources/shaders)
+add_files_to_output(${RESOURCES_DIR}/sounds resources/sounds)
+add_files_to_output(${RESOURCES_DIR}/textures resources/textures)
+
+add_ui_page(${CORE_LIBRARY_NAME} ${RESOURCES_DIR}/ui_pages/pause_menu.xml)
+
 find_package(Vulkan REQUIRED)
 
 if(WIN32)
@@ -26,6 +37,23 @@ if(WIN32)
       PRIVATE
       Vulkan::Vulkan
       SDL2::SDL2-static)
+elseif(ANDROID)
+  add_library(${CORE_BINARY_NAME} SHARED platform/android/android_main.cc platform/android/platform_specific_android.cc)
+
+  set(ANDROID_ASSETS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/platform/android/java/app/src/main/assets/resources)
+
+  copy_directory_files(${RESOURCES_DIR}/fonts ${ANDROID_ASSETS_DIR}/fonts)
+  copy_directory_files(${RESOURCES_DIR}/models ${ANDROID_ASSETS_DIR}/models)
+  copy_directory_files(${GENERATED_FILES_DIR}/shaders ${ANDROID_ASSETS_DIR}/shaders)
+  copy_directory_files(${RESOURCES_DIR}/sounds ${ANDROID_ASSETS_DIR}/sounds)
+  copy_directory_files(${RESOURCES_DIR}/textures ${ANDROID_ASSETS_DIR}/textures)
+
+  target_link_libraries(
+      ${CORE_BINARY_NAME}
+      PRIVATE
+      Vulkan::Vulkan
+      SDL2::SDL2
+      log)
 elseif(APPLE)
   add_executable(${CORE_BINARY_NAME} platform/macos/macos_main.cc)
 
@@ -48,11 +76,3 @@ elseif(UNIX)
 endif()
 
 target_link_libraries(${CORE_BINARY_NAME} PRIVATE ${CORE_LIBRARY_NAME} freetype)
-
-add_files_to_output(${RESOURCES_DIR} ${CMAKE_CURRENT_BINARY_DIR}/resources)
-
-add_ui_page(${CORE_LIBRARY_NAME} ${RESOURCES_DIR}/ui/pause_menu.xml)
-
-# Using ${RESOURCES_DIR} here causes Ninja error (wait for fix in new ninja version)
-set(SHADERS resources/shaders/light.frag resources/shaders/light.vert resources/shaders/particles.comp resources/shaders/particles.frag resources/shaders/particles.vert resources/shaders/skybox.frag resources/shaders/skybox.vert resources/shaders/spaceship.frag resources/shaders/spaceship.vert resources/shaders/text.frag resources/shaders/text.vert resources/shaders/ui.frag resources/shaders/ui.vert)
-add_shaders(${CORE_BINARY_NAME} "${SHADERS}")

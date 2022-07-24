@@ -44,7 +44,7 @@ int run(sys::System& system) {
     const std::string errorString =
         std::string("Error during run:\n") + exception.what();
     ImmediateLog(errorString);
-    file::WriteFile("RunDebug.txt", errorString);
+    file::WriteFile(file::RelativeApplicationPath("RunDebug.txt"), errorString);
     throw;
   }
 }

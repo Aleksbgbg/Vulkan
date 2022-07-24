@@ -10,7 +10,7 @@ std::string ToString(const char* const value) {
 }
 
 template <>
-std::string format::ToString(std::string_view value) {
+std::string ToString(std::string_view value) {
   return std::string(value);
 }
 

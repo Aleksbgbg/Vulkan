@@ -28,9 +28,9 @@ std::ostream& operator<<(std::ostream& os,
 }  // namespace file
 
 TEST(ReadObjTest, ReadsEmptyFile) {
-  std::istringstream stream;
+  const std::string modelString;
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   EXPECT_THAT(model.vertices, IsEmpty());
   EXPECT_THAT(model.normalVertices, IsEmpty());
@@ -39,12 +39,12 @@ TEST(ReadObjTest, ReadsEmptyFile) {
 }
 
 TEST(ReadObjTest, IgnoresUninterestingAttributes) {
-  std::istringstream stream(
+  const std::string modelString(
       "# Blender OBJ File\n"
       "mtllib Sphere.mtl\n"
       "o Sphere\n");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   EXPECT_THAT(model.vertices, IsEmpty());
   EXPECT_THAT(model.normalVertices, IsEmpty());
@@ -53,11 +53,11 @@ TEST(ReadObjTest, IgnoresUninterestingAttributes) {
 }
 
 TEST(ReadObjTest, ParsesVertices) {
-  std::istringstream stream(
+  const std::string modelString(
       "v 1 2 3\n"
       "v 4 5 6\n");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   ASSERT_THAT(model.vertices, SizeIs(2));
   EXPECT_EQ(model.vertices[0].x, 1.0f);
@@ -69,9 +69,9 @@ TEST(ReadObjTest, ParsesVertices) {
 }
 
 TEST(ReadObjTest, ParsesFloatingPointVertex) {
-  std::istringstream stream("v -0.0 0.0 -1.2345");
+  const std::string modelString("v -0.0 0.0 -1.2345");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   ASSERT_THAT(model.vertices, SizeIs(1));
   EXPECT_EQ(model.vertices[0].x, -0.0f);
@@ -80,11 +80,11 @@ TEST(ReadObjTest, ParsesFloatingPointVertex) {
 }
 
 TEST(ReadObjTest, ParsesNormalVertices) {
-  std::istringstream stream(
+  const std::string modelString(
       "vn 1 2 3\n"
       "vn 4 5 6\n");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   ASSERT_THAT(model.normalVertices, SizeIs(2));
   EXPECT_EQ(model.normalVertices[0].x, 1.0f);
@@ -96,11 +96,11 @@ TEST(ReadObjTest, ParsesNormalVertices) {
 }
 
 TEST(ReadObjTest, ParsesTextureVertices) {
-  std::istringstream stream(
+  const std::string modelString(
       "vt 1 2\n"
       "vt 3 4\n");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   ASSERT_THAT(model.textureVertices, SizeIs(2));
   EXPECT_EQ(model.textureVertices[0].u, 1.0f);
@@ -110,9 +110,9 @@ TEST(ReadObjTest, ParsesTextureVertices) {
 }
 
 TEST(ReadObjTest, ParsesVertexOnlyFace) {
-  std::istringstream stream("f 1// 2// 3//");
+  const std::string modelString("f 1// 2// 3//");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   ASSERT_THAT(model.faces, SizeIs(1));
   EXPECT_THAT(model.faces[0].faceVertices,
@@ -128,9 +128,9 @@ TEST(ReadObjTest, ParsesVertexOnlyFace) {
 }
 
 TEST(ReadObjTest, ParsesVertexAndNormalFace) {
-  std::istringstream stream("f 1//1 2//2 3//3");
+  const std::string modelString("f 1//1 2//2 3//3");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   ASSERT_THAT(model.faces, SizeIs(1));
   EXPECT_THAT(model.faces[0].faceVertices,
@@ -146,9 +146,9 @@ TEST(ReadObjTest, ParsesVertexAndNormalFace) {
 }
 
 TEST(ReadObjTest, ParsesVertexTextureNormalFace) {
-  std::istringstream stream("f 1/1/1 2/2/2 3/3/3");
+  const std::string modelString("f 1/1/1 2/2/2 3/3/3");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   ASSERT_THAT(model.faces, SizeIs(1));
   EXPECT_THAT(model.faces[0].faceVertices,
@@ -164,11 +164,11 @@ TEST(ReadObjTest, ParsesVertexTextureNormalFace) {
 }
 
 TEST(ReadObjTest, ParsesMultipleFaces) {
-  std::istringstream stream(
+  const std::string modelString(
       "f 1/1/1 2/2/2 3/3/3\n"
       "f 6/6/6 5/5/5 4/4/4\n");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   ASSERT_THAT(model.faces, SizeIs(2));
   EXPECT_THAT(model.faces[0].faceVertices,
@@ -194,9 +194,9 @@ TEST(ReadObjTest, ParsesMultipleFaces) {
 }
 
 TEST(ReadObjTest, ParsesSquareFace) {
-  std::istringstream stream("f 1/1/1 2/2/2 3/3/3 4/4/4");
+  const std::string modelString("f 1/1/1 2/2/2 3/3/3 4/4/4");
 
-  const file::Model model = file::ModelFromStream(stream);
+  const file::Model model = file::ModelFromString(modelString);
 
   ASSERT_THAT(model.faces, SizeIs(2));
   EXPECT_THAT(model.faces[0].faceVertices,

@@ -78,3 +78,6 @@ fabric.properties
 
 # Generated files
 generated/
+
+# Android build
+.gradle-build/

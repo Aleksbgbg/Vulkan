@@ -6,13 +6,18 @@ A space game is included in this project which is built using the engine, curren
 
 See the end of this document for a bunch of videos which show off the development progress.
 
+## Portability
+Yomi is portable and currently runs on Windows, Linux, MacOS, and Android. More platforms may be added in the future and the porting process is fairly straightforward (see the cmake build files).
+
 ## How to Build and Run
 Clone with:
 ```bash
 git clone --recurse-submodules https://github.com/Aleksbgbg/Yomi
 ```
 
-For UNIX systems (MacOS, Linux), download and install the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/), cmake, and C and C++ compilers on your system if needed, then run these commands from the project directory:
+You must have the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/), cmake, and your favourite C and C++ compilers installed on your system for the project to build.
+
+You can build and run the project on desktop systems using these commands from the project's root directory:
 ```bash
 cmake -B cmake-build-debug
 cmake --build cmake-build-debug -j 8
@@ -20,9 +25,23 @@ cmake --build cmake-build-debug -j 8
 cd cmake-build-debug/src && ./yomi
 ```
 
-On Windows, open the project in Visual Studio and run it.
+On Windows, you can also open the project in Visual Studio and run it.
 
-Alternatively, on any platform use JetBrains CLion which will automatically figure out building and running for you, as long as you have the dependencies listed above installed.
+Alternatively, for any desktop platform, use JetBrains CLion which will automatically figure out building and running for you, as long as you have the dependencies listed above installed.
+
+### Android
+When building for Android, use Android Studio with the appropriate environment variables configured and cmake version >= `3.20`.
+
+Open `src/platform/android/java` as the root project directory.
+
+If Android Studio defaults to a lower version of cmake, you might need to create a `local.properties` file in the `src/platform/android/java` directory that contains this line:
+```
+cmake.dir={path to your cmake root directory, either in the Android SDK directory, or a different location}
+```
+
+Ensure you have symbolic links enabled in git using `git config --global core.symlinks true` before cloning, otherwise the project won't build, since the Android project symlinks back to the top-level cmake project.
+
+Gradle doesn't seem to re-run cmake when resources change, so consider deleting build files and rebuilding if you run into resource issues (or commit a fix for the issue if you know of one). Particularly on the first build, you might need to perform a clean rebuild because gradle doesn't seem to copy the generated shaders into the assets folder on the first try.
 
 ## Dependencies
 Yomi has very few dependencies:
@@ -35,9 +54,6 @@ Yomi has very few dependencies:
 - stb_vorbis (for decoding vorbis audio files)
 
 glm will definitely be removed in the future, and stb_vorbis could potentially be removed in the future (in favour of a custom OPUS implementation) if time allows. However, the other dependencies would take too much time to implement from scratch.
-
-## Portability
-Yomi is portable and currently runs on Windows, Linux, and MacOS. More platforms may be added in the future and the porting process is fairly straightforward.
 
 ## Points of Interest
 Many interesting programming problems have been solved during the development of Yomi.

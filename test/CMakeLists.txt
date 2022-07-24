@@ -8,4 +8,4 @@ add_test(NAME ${TEST_BINARY_NAME} COMMAND ${TEST_BINARY_NAME})
 target_link_libraries(${TEST_BINARY_NAME} PRIVATE ${CORE_LIBRARY_NAME} gtest gmock)
 target_include_directories(${TEST_BINARY_NAME} PRIVATE .)
 
-add_files_to_output(data/images ${CMAKE_CURRENT_BINARY_DIR}/data/images)
+add_files_to_output(data/images data/images)

@@ -147,7 +147,7 @@ class FaceHandler : public LineHandler {
   Model& model_;
 };
 
-Model ModelFromStream(std::istream& stream) {
+Model ModelFromBytes(const std::vector<u8>& bytes) {
   Model model;
 
   VertexHandler vertexHandler(model);
@@ -155,7 +155,7 @@ Model ModelFromStream(std::istream& stream) {
   TextureHandler textureHandler(model);
   FaceHandler faceHandler(model);
 
-  std::array<LineHandler*, 4> lineHandlers{
+  const std::array<LineHandler*, 4> lineHandlers{
       &vertexHandler,
       &normalHandler,
       &textureHandler,
@@ -164,10 +164,8 @@ Model ModelFromStream(std::istream& stream) {
 
   std::string line;
 
-  while (true) {
-    const auto nextChar = stream.get();
-
-    if (nextChar == '\n' || stream.eof()) {
+  for (const u8 byte : bytes) {
+    if (byte == '\n') {
       for (LineHandler* handler : lineHandlers) {
         if (handler->CanHandle(line)) {
           const std::vector<std::string> lineParts =
@@ -179,10 +177,16 @@ Model ModelFromStream(std::istream& stream) {
 
       line.clear();
     } else {
-      line.push_back(nextChar);
+      line.push_back(byte);
     }
+  }
 
-    if (stream.eof()) {
+  // Handle final line, if any (consider extracting to function)
+  for (LineHandler* handler : lineHandlers) {
+    if (handler->CanHandle(line)) {
+      const std::vector<std::string> lineParts =
+          Split(line.substr(line.find(' ') + 1), " ");
+      handler->Handle(lineParts);
       break;
     }
   }
@@ -191,8 +195,11 @@ Model ModelFromStream(std::istream& stream) {
 }
 
 Model ModelFromAsset(const asset::Model model) {
-  std::ifstream stream = file::OpenAssetStream(model);
-  return ModelFromStream(stream);
+  return ModelFromBytes(file::ReadAsset(model));
+}
+
+Model ModelFromString(const std::string& string) {
+  return ModelFromBytes(std::vector<u8>(string.begin(), string.end()));
 }
 
 bool ModelFaceVertex::operator==(const ModelFaceVertex other) const {

@@ -145,8 +145,7 @@ u32 ChooseQueueFamily(const vk::PhysicalDevice& physicalDevice,
 
 u32 ChooseComputeFamily(const vk::PhysicalDevice& physicalDevice) {
   const std::optional<u32> queueFamilyIndex =
-      physicalDevice.FindAppropriateQueueFamily(VK_QUEUE_TRANSFER_BIT |
-                                                VK_QUEUE_COMPUTE_BIT);
+      physicalDevice.FindAppropriateQueueFamily(VK_QUEUE_COMPUTE_BIT);
 
   if (!queueFamilyIndex.has_value()) {
     throw std::runtime_error("Could not find compute queue.");
@@ -195,9 +194,12 @@ vk::VirtualDevice CreateVirtualDevice(const vk::PhysicalDevice& physicalDevice,
 
 vk::PipelineCache LoadOrCreatePipelineCache(
     const vk::VirtualDevice& virtualDevice) {
-  if (std::filesystem::exists(PIPELINE_CACHE_FILENAME)) {
+  const std::string pipelineCacheFilename =
+      file::RelativeApplicationPath(PIPELINE_CACHE_FILENAME);
+
+  if (std::filesystem::exists(pipelineCacheFilename)) {
     return virtualDevice.LoadPipelineCache(
-        file::ReadFile(PIPELINE_CACHE_FILENAME));
+        file::ReadFile(pipelineCacheFilename));
   }
 
   return virtualDevice.CreatePipelineCache();
@@ -698,7 +700,7 @@ void Vulkan::SetMsaaIndex(const u32 index) {
 
 Vulkan::~Vulkan() {
   virtualDevice_.WaitIdle();
-  file::WriteFile(PIPELINE_CACHE_FILENAME,
+  file::WriteFile(file::RelativeApplicationPath(PIPELINE_CACHE_FILENAME),
                   pipelineCache_.GetPipelineCacheData());
 }
 

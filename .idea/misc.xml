@@ -9,6 +9,7 @@
       <file path="$PROJECT_DIR$/dependencies" />
     </libraryRoots>
     <excludeRoots>
+      <file path="$PROJECT_DIR$/.gradle-build" />
       <file path="$PROJECT_DIR$/.vs" />
       <file path="$PROJECT_DIR$/lib" />
       <file path="$PROJECT_DIR$/out" />

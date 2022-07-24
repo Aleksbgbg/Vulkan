@@ -1,7 +1,7 @@
 #ifndef SRC_UTIL_BUILD_DEFINITION_H_
 #define SRC_UTIL_BUILD_DEFINITION_H_
 
-#if defined(NDEBUG)
+#if defined(NDEBUG) || defined(__ANDROID__)
 #define RELEASE
 #else
 #define DEBUG

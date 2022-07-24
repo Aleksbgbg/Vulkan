@@ -52,8 +52,7 @@ struct Model {
 };
 
 Model ModelFromAsset(asset::Model model);
-
-Model ModelFromStream(std::istream& stream);
+Model ModelFromString(const std::string& string);
 
 }  // namespace file
 
