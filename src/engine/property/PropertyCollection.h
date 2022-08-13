@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <utility>
 
 #include "Property.h"
 #include "PropertyKey.h"
@@ -13,17 +14,17 @@ class PropertyCollection {
  public:
   template <typename TProperty, typename... TArgs>
   void EmplaceProperty(TArgs&&... args) {
-    properties_.insert(
-        {TProperty::Key(), std::make_unique<TProperty>(args...)});
+    properties_.insert({TProperty::Key(), std::make_unique<TProperty>(
+                                              std::forward<TArgs>(args)...)});
   }
 
   template <typename T>
-  const T& RetrieveProperty() const {
+  decltype(auto) RetrieveProperty() const {
     return static_cast<const T&>(*properties_.at(T::Key()));
   }
 
   template <typename T>
-  T& RetrieveProperty() {
+  decltype(auto) RetrieveProperty() {
     return static_cast<T&>(*properties_.at(T::Key()));
   }
 
