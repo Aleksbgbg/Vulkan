@@ -15,6 +15,7 @@ Controls::Controls()
           {Control::SpawnPlayer, SDLK_g},
           {Control::Shoot, SDLK_f},
           {Control::TogglePauseMenu, SDLK_ESCAPE},
+          {Control::ToggleDebugView, SDLK_F3},
       }),
       activeControls_(),
       normalizedAxisValues_() {}

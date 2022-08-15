@@ -34,6 +34,7 @@ class CompositionBuilder {
       Actor,
       ParticleSystem,
       Ui,
+      DrawList,
     };
     Type type;
 
@@ -52,6 +53,11 @@ class CompositionBuilder {
       std::unique_ptr<ViewModel> viewModel;
     };
     std::shared_ptr<UiInfo> ui;
+
+    struct DrawListInfo {
+      std::unique_ptr<DrawList> drawList;
+    };
+    std::shared_ptr<DrawListInfo> drawListInfo;
   };
 
  public:
@@ -61,6 +67,8 @@ class CompositionBuilder {
   static CompositionBuilder Ui(SpawnDependencies spawnDependencies,
                                std::string_view view,
                                std::unique_ptr<ViewModel> viewModel);
+  static CompositionBuilder CreateDrawList(SpawnDependencies spawnDependencies,
+                                           std::unique_ptr<DrawList> drawList);
 
   CompositionBuilder Copy() const;
 

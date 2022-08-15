@@ -46,3 +46,9 @@ CompositionBuilder SceneComposer::UiElement(
   return CompositionBuilder::Ui(spawnDependencies_, content,
                                 std::move(viewModel));
 }
+
+CompositionBuilder SceneComposer::CreateDrawList(
+    std::unique_ptr<DrawList> drawList) {
+  return CompositionBuilder::CreateDrawList(spawnDependencies_,
+                                            std::move(drawList));
+}

@@ -37,6 +37,17 @@ CompositionBuilder CompositionBuilder::Ui(
   return CompositionBuilder(spawnDependencies, std::move(composition));
 }
 
+CompositionBuilder CompositionBuilder::CreateDrawList(
+    const SpawnDependencies spawnDependencies,
+    std::unique_ptr<DrawList> drawList) {
+  Composition composition = std::make_shared<Composition_T>();
+  composition->type = Composition_T::Type::DrawList;
+  composition->drawListInfo = std::make_shared<Composition_T::DrawListInfo>();
+  composition->drawListInfo->drawList = std::move(drawList);
+
+  return CompositionBuilder(spawnDependencies, std::move(composition));
+}
+
 CompositionBuilder CompositionBuilder::Copy() const {
   Composition copy = std::make_shared<Composition_T>();
   *copy = *composition_;
@@ -147,6 +158,15 @@ void CompositionBuilder::SpawnComposition(const SpawnDependencies& dependencies,
       resources.push_back(dependencies.renderer->SpawnUi(
           {.drawList = drawList.get(), .visible = visibility}));
       resources.push_back(std::move(composition->ui->viewModel));
+    } break;
+
+    case Composition_T::Type::DrawList: {
+      properties.EmplaceProperty<GraphicalInterface>(visibility);
+
+      resources.push_back(dependencies.renderer->SpawnUi(
+          {.drawList = composition->drawListInfo->drawList.get(),
+           .visible = visibility}));
+      resources.push_back(std::move(composition->drawListInfo->drawList));
     } break;
   }
 

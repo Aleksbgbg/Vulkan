@@ -17,6 +17,7 @@ class GraphicalInterface : public Property {
 
   void Show();
   void Hide();
+  void ToggleVisibility();
 
   // A way for the interface container to request that scripts hide the
   // interface, otherwise the two contradict each other because they process the

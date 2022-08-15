@@ -1,10 +1,10 @@
 #ifndef SRC_APP_H_
 #define SRC_APP_H_
 
-#include <chrono>
-
+#include "core/clock.h"
 #include "core/text/FontAtlas.h"
 #include "core/threading/MultithreadedMessageQueue.h"
+#include "engine/RenderPerformanceTracker.h"
 #include "game/Scene.h"
 #include "renderer/vulkan/Vulkan.h"
 #include "system/sound/Sound.h"
@@ -29,6 +29,7 @@ class App {
  private:
   sys::Window& window_;
   Vulkan& vulkan_;
+  RenderPerformanceTracker renderPerformanceTracker_;
 
   Controls controls_;
   game::Camera camera_;
@@ -37,7 +38,7 @@ class App {
   enum class EventNotification { Exited, Paused, Unpaused, Resized };
   MultithreadedMessageQueue<EventNotification> threadMessenger_;
 
-  std::chrono::time_point<std::chrono::high_resolution_clock> previousTime_;
+  time_point previousTime_;
 };
 
 #endif  // SRC_APP_H_

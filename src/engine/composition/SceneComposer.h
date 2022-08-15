@@ -24,6 +24,7 @@ class SceneComposer {
   CompositionBuilder ParticleSystem(const ParticleBehaviour behaviour);
   CompositionBuilder UiElement(const std::string_view content,
                                std::unique_ptr<ViewModel> viewModel);
+  CompositionBuilder CreateDrawList(std::unique_ptr<DrawList> drawList);
 
  private:
   ActorKeyGenerator actorKeyGenerator_;

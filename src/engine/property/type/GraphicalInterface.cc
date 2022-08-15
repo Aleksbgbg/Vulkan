@@ -16,6 +16,14 @@ void GraphicalInterface::Hide() {
   hideRequested_ = false;
 }
 
+void GraphicalInterface::ToggleVisibility() {
+  if (IsVisible()) {
+    Hide();
+  } else {
+    Show();
+  }
+}
+
 bool GraphicalInterface::HideRequested() const {
   return hideRequested_;
 }

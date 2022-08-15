@@ -1,5 +1,6 @@
 #include "Scene.h"
 
+#include "DebugViewDrawList.h"
 #include "asset.h"
 #include "engine/composition/ParticleBehaviour.h"
 #include "engine/composition/PointLight.h"
@@ -7,6 +8,7 @@
 #include "engine/composition/behaviour_utils.h"
 #include "game/behaviours/BackgroundMusic.h"
 #include "game/behaviours/ConstantMovement.h"
+#include "game/behaviours/DebugViewToggle.h"
 #include "game/behaviours/DespawnAfterPeriod.h"
 #include "game/behaviours/ExhaustParticleController.h"
 #include "game/behaviours/LaserEmitter.h"
@@ -19,7 +21,8 @@
 Scene::Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
              game::Camera& camera, const FontAtlas& fontAtlas,
              Settings& settings,
-             GraphicsSettingsConfigurator& graphicsSettingsConfigurator)
+             GraphicsSettingsConfigurator& graphicsSettingsConfigurator,
+             const RenderPerformanceTracker& renderPerformanceTracker)
     : scene_(camera, *this, *this, renderer, window, sound, fontAtlas),
       sceneGraph_(),
       actorsToSpawn_(),
@@ -108,6 +111,13 @@ Scene::Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
       .UiElement(PAUSE_MENU, std::make_unique<PauseMenuViewModel>(
                                  settings, graphicsSettingsConfigurator))
       .Attach(BEHAVIOUR(PauseMenuToggle,
+                        actor.RetrieveProperty<GraphicalInterface>()))
+      .Spawn();
+
+  scene_
+      .CreateDrawList(std::make_unique<DebugViewDrawList>(
+          fontAtlas, renderPerformanceTracker))
+      .Attach(BEHAVIOUR(DebugViewToggle,
                         actor.RetrieveProperty<GraphicalInterface>()))
       .Spawn();
 }

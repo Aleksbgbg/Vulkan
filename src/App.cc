@@ -1,18 +1,20 @@
 #include "App.h"
 
-#include <array>
 #include <thread>
 
+#include "core/clock.h"
 #include "core/diagnostics/log.h"
 
 App::App(sys::Window& window, sys::Sound& sound, Vulkan& vulkan,
          const FontAtlas& fontAtlas, Settings& settings)
     : window_(window),
       vulkan_(vulkan),
+      renderPerformanceTracker_(),
       controls_(),
       camera_(),
-      scene_(vulkan_, window_, sound, camera_, fontAtlas, settings, vulkan),
-      previousTime_(std::chrono::high_resolution_clock::time_point::min()),
+      scene_(vulkan_, window_, sound, camera_, fontAtlas, settings, vulkan,
+             renderPerformanceTracker_),
+      previousTime_(),
       threadMessenger_() {}
 
 int App::Run() {
@@ -47,6 +49,8 @@ void App::MainThread() {
 
 void App::RenderThread() {
   try {
+    previousTime_ = default_clock::now();
+
     while (true) {
       MainLoop();
 
@@ -74,15 +78,13 @@ void App::RenderThread() {
 }
 
 void App::MainLoop() {
-  if (previousTime_ == std::chrono::high_resolution_clock::time_point::min()) {
-    previousTime_ = std::chrono::high_resolution_clock::now();
-  }
-
-  const auto timeNow = std::chrono::high_resolution_clock::now();
+  const auto timeNow = default_clock::now();
   const float deltaTime =
       std::chrono::duration<float, std::chrono::seconds::period>(timeNow -
                                                                  previousTime_)
           .count();
+
+  renderPerformanceTracker_.ReportFrame(deltaTime);
 
   UpdateModel(deltaTime);
   Render();

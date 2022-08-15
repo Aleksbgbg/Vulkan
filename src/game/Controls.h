@@ -17,6 +17,7 @@ enum class Control {
   TiltRight,
   Shoot,
   TogglePauseMenu,
+  ToggleDebugView,
 };
 
 enum class Axis {

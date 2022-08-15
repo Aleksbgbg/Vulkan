@@ -3,10 +3,14 @@
 #include "UiElement.h"
 #include "produce_ui_tree.h"
 
+namespace {
+
 template <typename T>
 constexpr T NormalizedToNdc(const T value) {
   return (value * 2.0f) - 1.0f;
 }
+
+}  // namespace
 
 UiDrawList::UiDrawList(const FontAtlas& fontAtlas,
                        GraphicalInterface& interface, UiTree uiTree,

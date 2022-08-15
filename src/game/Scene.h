@@ -8,6 +8,7 @@
 #include "GraphicsSettingsConfigurator.h"
 #include "Settings.h"
 #include "core/text/FontAtlas.h"
+#include "engine/RenderPerformanceTracker.h"
 #include "engine/actor/Actor.h"
 #include "engine/actor/ActorOwner.h"
 #include "engine/behaviour/UpdateContext.h"
@@ -21,7 +22,8 @@ class Scene : public ActorConsumer, public ActorOwner {
  public:
   Scene(Renderer& renderer, sys::Window& window, sys::Sound& sound,
         game::Camera& camera, const FontAtlas& fontAtlas, Settings& settings,
-        GraphicsSettingsConfigurator& graphicsSettingsConfigurator);
+        GraphicsSettingsConfigurator& graphicsSettingsConfigurator,
+        const RenderPerformanceTracker& renderPerformanceTracker);
 
   void Consume(ActorToSpawn actor) override;
   void DespawnActor(const ActorKey key) override;

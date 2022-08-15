@@ -3,9 +3,10 @@
 
 #include <memory>
 
+#include "engine/resource/Resource.h"
 #include "renderer/vertices/StructuredVertexData.h"
 
-class DrawList {
+class DrawList : public Resource {
  public:
   virtual ~DrawList() = default;
 
